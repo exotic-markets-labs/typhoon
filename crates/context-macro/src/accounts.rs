@@ -3,7 +3,10 @@ use {
     proc_macro2::{Span, TokenStream},
     quote::{quote, ToTokens},
     std::ops::Deref,
-    syn::{spanned::Spanned, visit_mut::VisitMut, Field, Ident, PathSegment, Type, TypePath},
+    syn::{
+        spanned::Spanned, visit_mut::VisitMut, Expr, ExprArray, Field, Ident, PathSegment, Type,
+        TypePath,
+    },
 };
 
 pub struct Account {
@@ -72,12 +75,63 @@ impl ToTokens for Assign<'_> {
                     return syn::Error::new(name.span(), "Not found payer or space for the init constraint").to_compile_error()
                 };
 
-                quote! {
-                    let #name: #ty = {
-                        let system_acc = <Mut<SystemAccount> as FromAccountInfo>::try_from_info(#name)?;
-                        SystemCpi::create_account(&system_acc, &#payer, &crate::ID, #space as u64, None)?;
-                        Mut::try_from_info(#name)?
+                if let Some(punctuated_seeds) = c.get_seeds() {
+                    let seeds_array = {
+                        let array = ExprArray {
+                            attrs: Vec::new(),
+                            bracket_token: syn::token::Bracket::default(),
+                            elems: punctuated_seeds.clone(),
+                        };
+
+                        Expr::Array(array)
                     };
+
+                    quote! {
+                        // TODO: Handle values coming from ix data and other accounts
+                        let seeds: &[&[u8]] = &#seeds_array;
+                        let (pk, bump) = crayfish_program::try_find_program_address(seeds, &crate::ID).ok_or(ProgramError::InvalidSeeds)?;
+                        if #name.key() != &pk {
+                            return Err(ProgramError::InvalidSeeds);
+                        }
+
+                        let #name: #ty = {
+                            let system_acc = <crayfish_accounts::Mut<crayfish_accounts::SystemAccount> as crayfish_accounts::FromAccountInfo>::try_from_info(#name)?;
+                            let signer_seeds = [#punctuated_seeds, &[bump]];
+                            let seeds_vec = &signer_seeds.into_iter().map(|seed| crayfish_program::instruction::Seed::from(seed)).collect::<Vec<crayfish_program::instruction::Seed>>()[..];
+                            let signer: crayfish_program::instruction::Signer = crayfish_program::instruction::Signer::from(&seeds_vec[..]);
+                            crayfish_traits::SystemCpi::create_account(&system_acc, &#payer, &crate::ID, #space as u64, Some(&[crayfish_program::instruction::Signer::from(signer)]))?;
+                            Mut::try_from_info(#name)?
+                        };
+                    }
+                } else {
+                    quote! {
+                        let #name: #ty = {
+                            let system_acc = <crayfish_accounts::Mut<crayfish_accounts::SystemAccount> as crayfish_accounts::FromAccountInfo>::try_from_info(#name)?;
+                            crayfish_traits::SystemCpi::create_account(&system_acc, &#payer, &crate::ID, #space as u64, None)?;
+                            Mut::try_from_info(#name)?
+                        };
+                    }
+                }
+            } else if let Some(punctuated_seeds) = c.get_seeds() {
+                let seeds_array = {
+                    let array = ExprArray {
+                        attrs: Vec::new(),
+                        bracket_token: syn::token::Bracket::default(),
+                        elems: punctuated_seeds.clone(),
+                    };
+
+                    Expr::Array(array)
+                };
+
+                quote! {
+                    // TODO: Handle values coming from ix data and other accounts
+                    let seeds: &[&[u8]] = &#seeds_array;
+                    let (pk, bump) = crayfish_program::try_find_program_address(seeds, &crate::ID).ok_or(ProgramError::InvalidSeeds)?;
+                    if #name.key() != &pk {
+                        return Err(ProgramError::InvalidSeeds);
+                    }
+
+                    let #name = <#ty as crayfish_accounts::FromAccountInfo>::try_from_info(#name)?;
                 }
             } else {
                 quote! {
