@@ -36,13 +36,6 @@ pub fn main() {
             .stdout;
         let content = String::from_utf8(command).unwrap();
         let file = syn::parse_file(&content).unwrap();
-
-        file.items.iter().for_each(|item| {
-            if let syn::Item::Struct(item_struct) = item {
-                println!("{item_struct:#?}")
-            }
-        });
-
         let context = ParsingContext::from(&file);
 
         println!("{context:?}");

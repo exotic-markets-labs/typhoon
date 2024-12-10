@@ -9,6 +9,7 @@ repository.workspace = true
 
 [dependencies]
 cargo-manifest.workspace = true
+five8_const.workspace = true
 syn = { workspace = true, features = [
     "full",
     "visit",
