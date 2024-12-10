@@ -1029,7 +1029,8 @@ name = "typhoon-metadata-extractor"
 version = "0.1.0"
 dependencies = [
  "cargo-manifest",
- "syn 2.0.96",
+ "five8_const",
+ "syn 2.0.91",
 ]
 
 [[package]]
