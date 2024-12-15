@@ -4,7 +4,7 @@ use {
     crayfish_accounts::{
         Account, FromAccountInfo, Mut, Program, ReadableAccount, Signer, System, WritableAccount,
     },
-    crayfish_context_macro::{context, instruction},
+    crayfish_context_macro::context,
     crayfish_handler_macro::handlers,
     crayfish_program::{program_error::ProgramError, pubkey::Pubkey},
     crayfish_program_id_macro::program_id,
@@ -18,7 +18,7 @@ handlers! {
 }
 
 #[context]
-#[instruction(admin: Pubkey, bump: u64)]
+#[args(admin: Pubkey, bump: u64)]
 pub struct InitContext {
     pub payer: Signer,
     #[constraint(
@@ -29,7 +29,7 @@ pub struct InitContext {
             b"counter".as_ref(),
             args.admin.as_ref(),
         ],
-        bump = args.bump,
+        bump = args.bump as u8,
     )]
     pub counter: Mut<Account<Counter>>,
     pub system: Program<System>,
@@ -50,9 +50,10 @@ pub struct IncrementContext {
 
 pub fn initialize(ctx: InitContext) -> Result<(), ProgramError> {
     *ctx.counter.mut_data()? = Counter {
-        bump: ctx.args.bump,
+        bump: ctx.args.bump as u8,
         admin: ctx.args.admin,
         count: 0,
+        _padding: [0_u8; 7],
     };
 
     Ok(())
@@ -70,7 +71,8 @@ pub fn increment(ctx: IncrementContext) -> Result<(), ProgramError> {
 
 #[account]
 pub struct Counter {
-    pub bump: u64, // Should be u8 if 8-bit aligned
+    pub bump: u8,
+    pub _padding: [u8; 7], // used to align fields
     pub admin: Pubkey,
     pub count: u64,
 }
