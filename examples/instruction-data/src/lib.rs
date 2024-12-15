@@ -37,14 +37,15 @@ handlers! {
 }
 
 pub fn initialize(ctx: InitContext) -> Result<(), ProgramError> {
-    msg!("{}", ctx.args.value);
+    ctx.buffer.mut_data()?.value1 = ctx.args.value;
 
     Ok(())
 }
 
 pub fn set_value(ctx: SetValueContext, more_args: Args<u64>) -> Result<(), ProgramError> {
-    ctx.buffer.mut_data()?.value = ctx.args.value;
-    msg!("{}", *more_args);
+    let mut data = ctx.buffer.mut_data()?;
+    data.value1 = ctx.args.value;
+    data.value2 = *more_args;
 
     Ok(())
 }
@@ -53,20 +54,17 @@ pub fn set_and_add_values(
     ctx_a: SetValueContext,
     ctx_b: SetValueContext,
 ) -> Result<(), ProgramError> {
-    ctx_a.buffer.mut_data()?.value = ctx_a.args.value;
-    ctx_b.buffer.mut_data()?.value = ctx_b.args.value;
-
-    msg!(
-        "{}",
-        ctx_a.buffer.data()?.value + ctx_b.buffer.data()?.value
-    );
+    ctx_a.buffer.mut_data()?.value1 = ctx_a.args.value;
+    ctx_b.buffer.mut_data()?.value1 = ctx_b.args.value;
+    ctx_a.buffer.mut_data()?.value2 = ctx_a.args.value + ctx_b.args.value;
 
     Ok(())
 }
 
 #[account]
 pub struct Buffer {
-    pub value: u64,
+    pub value1: u64,
+    pub value2: u64,
 }
 
 impl Buffer {

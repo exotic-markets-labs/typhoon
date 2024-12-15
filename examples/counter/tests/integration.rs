@@ -39,21 +39,9 @@ fn integration_test() {
     let ix = Instruction {
         program_id,
         accounts: vec![
-            AccountMeta {
-                pubkey: admin_pk,
-                is_signer: true,
-                is_writable: false,
-            },
-            AccountMeta {
-                pubkey: counter_pk,
-                is_signer: true,
-                is_writable: true,
-            },
-            AccountMeta {
-                pubkey: system_program::ID,
-                is_signer: false,
-                is_writable: false,
-            },
+            AccountMeta::new_readonly(admin_pk, true),
+            AccountMeta::new(counter_pk, true),
+            AccountMeta::new_readonly(system_program::ID, false),
         ],
         data: vec![0],
     };
