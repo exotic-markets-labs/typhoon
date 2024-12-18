@@ -17,6 +17,14 @@ borsh = "1.5"
 bytemuck = "1.21.0"
 cargo-manifest = "0.19.1"
 five8_const = "0.1.4"
+codama = { git = "https://github.com/codama-idl/codama-rs" }
+codama-attributes = { git = "https://github.com/codama-idl/codama-rs" }
+codama-nodes = { git = "https://github.com/codama-idl/codama-rs" }
+codama-koroks = { git = "https://github.com/codama-idl/codama-rs" }
+codama-korok-plugins = { git = "https://github.com/codama-idl/codama-rs" }
+codama-korok-visitors = { git = "https://github.com/codama-idl/codama-rs" }
+codama-stores = { git = "https://github.com/codama-idl/codama-rs" }
+codama-syn-helpers = { git = "https://github.com/codama-idl/codama-rs" }
 trybuild = "1.0"
 typhoon = { version = "0.1.0", path = "crates/lib" }
 typhoon-accounts = { version = "0.1.0", path = "crates/accounts" }

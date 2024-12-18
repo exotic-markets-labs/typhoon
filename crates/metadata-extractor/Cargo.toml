@@ -8,7 +8,14 @@ authors.workspace = true
 repository.workspace = true
 
 [dependencies]
-cargo-manifest.workspace = true
+codama.workspace = true
+codama-attributes.workspace = true
+codama-nodes.workspace = true
+codama-koroks.workspace = true
+codama-korok-plugins.workspace = true
+codama-korok-visitors.workspace = true
+codama-stores.workspace = true
+codama-syn-helpers.workspace = true
 five8_const.workspace = true
 syn = { workspace = true, features = [
     "full",
