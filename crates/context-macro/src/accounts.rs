@@ -78,19 +78,20 @@ impl ToTokens for Assign<'_> {
                 if let (Some(punctuated_seeds), Some(bump)) = (c.get_seeds(), c.get_bump(name)) {
                     quote! {
                         let #name: #ty = {
-                            let system_acc = <crayfish_accounts::Mut<crayfish_accounts::SystemAccount> as crayfish_accounts::FromAccountInfo>::try_from_info(#name)?;
+                            let system_acc = <typhoon::lib::Mut<typhoon::lib::SystemAccount> as typhoon::lib::FromAccountInfo>::try_from_info(#name)?;
                             let signer_seeds = [#punctuated_seeds, &[#bump as u8]];
-                            let seeds_vec = &signer_seeds.into_iter().map(|seed| crayfish_program::instruction::Seed::from(seed)).collect::<Vec<crayfish_program::instruction::Seed>>()[..];
-                            let signer: crayfish_program::instruction::Signer = crayfish_program::instruction::Signer::from(&seeds_vec[..]);
-                            crayfish_traits::SystemCpi::create_account(&system_acc, &#payer, &crate::ID, #space as u64, Some(&[crayfish_program::instruction::Signer::from(signer)]))?;
+                            // TODO: make it work when not using pinocchio
+                            let seeds_vec = &signer_seeds.into_iter().map(|seed| typhoon::program::SignerSeed::from(seed)).collect::<Vec<typhoon::program::SignerSeed>>()[..];
+                            let signer: typhoon::program::SignerSeeds = typhoon::program::SignerSeeds::from(&seeds_vec[..]);
+                            typhoon::lib::SystemCpi::create_account(&system_acc, &#payer, &crate::ID, #space as u64, Some(&[typhoon::program::SignerSeeds::from(signer)]))?;
                             Mut::try_from_info(#name)?
                         };
                     }
                 } else {
                     quote! {
                         let #name: #ty = {
-                            let system_acc = <crayfish_accounts::Mut<crayfish_accounts::SystemAccount> as crayfish_accounts::FromAccountInfo>::try_from_info(#name)?;
-                            crayfish_traits::SystemCpi::create_account(&system_acc, &#payer, &crate::ID, #space as u64, None)?;
+                            let system_acc = <typhoon::lib::Mut<typhoon::lib::SystemAccount> as typhoon::lib::FromAccountInfo>::try_from_info(#name)?;
+                            typhoon::lib::SystemCpi::create_account(&system_acc, &#payer, &crate::ID, #space as u64, None)?;
                             Mut::try_from_info(#name)?
                         };
                     }

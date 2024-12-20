@@ -14,6 +14,6 @@ pub mod lib {
 pub mod prelude {
     pub use {
         super::{lib::*, macros::*, typhoon_program},
-        typhoon_program::{msg, program_error::ProgramError},
+        typhoon_program::{msg, program_error::ProgramError, pubkey::*},
     };
 }

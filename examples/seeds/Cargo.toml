@@ -11,15 +11,7 @@ crate-type = ["cdylib", "lib"]
 bytemuck = { workspace = true, features = ["derive"] }
 pinocchio.workspace = true
 pinocchio-pubkey.workspace = true
-crayfish-accounts.workspace = true
-crayfish-account-macro.workspace = true
-crayfish-context.workspace = true
-crayfish-context-macro.workspace = true
-crayfish-handler-macro.workspace = true
-crayfish-program = { workspace = true, features = ["pinocchio"] }
-crayfish-program-id-macro.workspace = true
-crayfish-space.workspace = true
-crayfish-traits.workspace = true
+typhoon = { workspace = true, features = ["pinocchio"] }
 
 [dev-dependencies]
 litesvm.workspace = true
