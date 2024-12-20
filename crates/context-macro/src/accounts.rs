@@ -10,9 +10,9 @@ use {
 };
 
 pub struct Account {
-    name: Ident,
-    constraints: Constraints,
-    ty: PathSegment,
+    pub(crate) name: Ident,
+    pub(crate) constraints: Constraints,
+    pub(crate) ty: PathSegment,
 }
 
 impl TryFrom<&mut Field> for Account {
@@ -75,7 +75,7 @@ impl ToTokens for Assign<'_> {
                     return syn::Error::new(name.span(), "Not found payer or space for the init constraint").to_compile_error()
                 };
 
-                if let (Some(punctuated_seeds), Some(bump)) = (c.get_seeds(), c.get_bump()) {
+                if let (Some(punctuated_seeds), Some(bump)) = (c.get_seeds(), c.get_bump(name)) {
                     quote! {
                         let #name: #ty = {
                             let system_acc = <crayfish_accounts::Mut<crayfish_accounts::SystemAccount> as crayfish_accounts::FromAccountInfo>::try_from_info(#name)?;
@@ -110,48 +110,16 @@ impl ToTokens for Assign<'_> {
     }
 }
 
-pub struct Verify<'a>(Vec<(&'a Ident, &'a Constraints)>);
-
-impl ToTokens for Verify<'_> {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let verify_fields = self.0.iter().map(|(name, c)| {
-            if (c.get_seeds().is_some() && c.get_bump().is_none()) || (c.get_seeds().is_some() && c.get_bump().is_none()) {
-                return syn::Error::new(name.span(), "`seeds` and `bump` must be used together").to_compile_error();
-            };
-
-            if let (Some(punctuated_seeds), Some(bump)) = (c.get_seeds(), c.get_bump()) {
-                quote! {
-                    let pk = crayfish_program::pubkey::create_program_address(&[#punctuated_seeds, &[#bump as u8]], &crate::ID)?;
-                    if #name.key() != &pk {
-                        return Err(ProgramError::InvalidSeeds);
-                    }
-                }
-            } else {
-                quote!()
-            }
-        });
-
-        let expanded = quote! {
-            #(#verify_fields)*
-        };
-        expanded.to_tokens(tokens);
-    }
-}
-
 pub struct Accounts(pub Vec<Account>);
 
 impl Accounts {
-    pub fn split_for_impl(&self) -> (NameList, Assign, Verify) {
-        let iter = self.0.iter();
+    pub fn split_for_impl(&self) -> (NameList, Assign) {
+        let (names, assigns) = self
+            .0
+            .iter()
+            .map(|el| (&el.name, (&el.name, &el.ty, &el.constraints)))
+            .unzip();
 
-        (
-            NameList(iter.clone().map(|el| &el.name).collect()),
-            Assign(
-                iter.clone()
-                    .map(|el| (&el.name, &el.ty, &el.constraints))
-                    .collect(),
-            ),
-            Verify(iter.map(|el| (&el.name, &el.constraints)).collect()),
-        )
+        (NameList(names), Assign(assigns))
     }
 }

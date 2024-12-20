@@ -78,10 +78,18 @@ impl Constraints {
         })
     }
 
-    pub fn get_bump(&self) -> Option<&Expr> {
+    pub fn get_bump(&self, account_name: &Ident) -> Option<Expr> {
         self.0.iter().find_map(|c| {
-            if let Constraint::Bump(ConstraintBump { bump }) = c {
-                Some(bump)
+            if let Constraint::Bump(bump_constraint) = c {
+                if bump_constraint.is_some() {
+                    if let Some(bump) = &bump_constraint.bump {
+                        Some(bump.clone())
+                    } else {
+                        syn::parse_str::<Expr>(&format!("{}_bump", account_name)).ok()
+                    }
+                } else {
+                    None
+                }
             } else {
                 None
             }

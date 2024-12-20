@@ -29,7 +29,7 @@ pub struct InitContext {
             b"counter".as_ref(),
             args.admin.as_ref(),
         ],
-        bump = args.bump as u8,
+        bump,
     )]
     pub counter: Mut<Account<Counter>>,
     pub system: Program<System>,
