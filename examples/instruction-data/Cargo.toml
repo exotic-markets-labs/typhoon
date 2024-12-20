@@ -12,12 +12,12 @@ default = ["solana-nostd-entrypoint", "solana-program"]
 pinocchio = ["dep:pinocchio", "typhoon/pinocchio"]
 
 [dependencies]
-bytemuck.workspace = true
-pinocchio = { workspace = true, optional = true }
-solana-nostd-entrypoint = { workspace = true, optional = true }
-solana-program = { workspace = true, optional = true }
-typhoon.workspace = true
+bytemuck = "1.19"
+pinocchio = { git = "https://github.com/febo/pinocchio", optional = true }
+solana-nostd-entrypoint = { git = "https://github.com/cavemanloverboy/solana-nostd-entrypoint", optional = true }
+solana-program = { version = "1.18", optional = true }
+typhoon = { path = "../../crates/lib" }
 
 [dev-dependencies]
-litesvm.workspace = true
-solana-sdk.workspace = true
+litesvm = "0.3.0"
+solana-sdk = "2.0"

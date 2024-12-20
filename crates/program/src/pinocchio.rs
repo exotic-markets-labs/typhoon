@@ -26,3 +26,7 @@ impl crate::ToMeta for RawAccountInfo {
         AccountMeta::new(self.key(), is_writable, is_signer)
     }
 }
+
+pub const fn pubkey_from_array(pubkey_array: [u8; 32]) -> pubkey::Pubkey {
+    pubkey_array
+}

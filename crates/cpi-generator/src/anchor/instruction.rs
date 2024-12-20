@@ -35,14 +35,14 @@ pub fn gen_instructions(idl: &Idl) -> TokenStream {
                     self.invoke_signed(&[])
                 }
 
-                pub fn invoke_signed(&self, signers: program::Signer) -> #program_result {
+                pub fn invoke_signed(&self, seeds: &[program::SignerSeeds]) -> #program_result {
                     #account_metas
                     #instruction_data
 
                     program::invoke_signed(
                         &instruction,
                         &[#(self.#accounts),*],
-                        signers
+                        seeds
                     )
                 }
             }
@@ -77,22 +77,22 @@ fn gen_instruction_data(
 
     let instruction_data = if arg_ser.is_empty() {
         quote! {
-            let mut instruction_data = [program::UNINIT_BYTE; #discriminator_len];
+            let mut instruction_data = [program::bytes::UNINIT_BYTE; #discriminator_len];
 
-            write_bytes(&mut instruction_data, #discriminator_expr);
+            program::bytes::write_bytes(&mut instruction_data, #discriminator_expr);
 
             let instruction = program::Instruction {
                 program_id: &program::pubkey!(#program_id),
                 accounts: &account_metas,
-                data: unsafe { from_raw_parts(instruction_data.as_ptr() as _, #discriminator_len) },
+                data: unsafe { std::slice::from_raw_parts(instruction_data.as_ptr() as _, #discriminator_len) },
             };
         }
     } else {
         quote! {
-            let mut instruction_data = [program::UNINIT_BYTE; #buffer_size];
-            let mut writer = MaybeUninitWriter::new(destination, #discriminator_len);
+            let mut instruction_data = [program::bytes::UNINIT_BYTE; #buffer_size];
+            let mut writer = program::bytes::MaybeUninitWriter::new(&instruction_data, #discriminator_len);
 
-            write_bytes(&mut instruction_data, #discriminator_expr);
+            program::bytes::write_bytes(&mut instruction_data, #discriminator_expr);
             #(#arg_ser)*
 
             let instruction = program::Instruction {
@@ -168,14 +168,14 @@ mod tests {
 
         let (fields, data) = gen_instruction_data(&args, &discriminator, program_id);
         let expected_data = quote! {
-            let mut instruction_data = [program::UNINIT_BYTE; 4usize];
+            let mut instruction_data = [program::bytes::UNINIT_BYTE; 4usize];
 
-            write_bytes(&mut instruction_data, &[1u8, 2u8, 3u8, 4u8]);
+            program::bytes::write_bytes(&mut instruction_data, &[1u8, 2u8, 3u8, 4u8]);
 
             let instruction = program::Instruction {
                 program_id: &program::pubkey!(#program_id),
                 accounts: &account_metas,
-                data: unsafe { from_raw_parts(instruction_data.as_ptr() as _, 4usize) },
+                data: unsafe { std::slice::from_raw_parts(instruction_data.as_ptr() as _, 4usize) },
             };
         };
         assert!(fields.is_empty());
@@ -191,10 +191,10 @@ mod tests {
 
         let (fields, data) = gen_instruction_data(&args, &discriminator, program_id);
         let expected_data = quote! {
-            let mut instruction_data = [program::UNINIT_BYTE; 1228usize];
-            let mut writer = MaybeUninitWriter::new(destination, 4usize);
+            let mut instruction_data = [program::bytes::UNINIT_BYTE; 1228usize];
+            let mut writer = program::bytes::MaybeUninitWriter::new(&instruction_data, 4usize);
 
-            write_bytes(&mut instruction_data, &[1u8, 2u8, 3u8, 4u8]);
+            program::bytes::write_bytes(&mut instruction_data, &[1u8, 2u8, 3u8, 4u8]);
             amount.serialize(&mut writer).map_err(|_| ProgramError::BorshIoError)?;
 
             let instruction = program::Instruction {

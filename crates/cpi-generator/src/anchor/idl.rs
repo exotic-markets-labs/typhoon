@@ -11,6 +11,8 @@ pub fn gen_cpi(idl: &Idl) -> proc_macro2::TokenStream {
 
     quote! {
         pub mod cpi {
+            use ::typhoon::prelude::*;
+
             #program_id
             #accounts
             #instructions

@@ -121,3 +121,7 @@ pub fn invoke_signed<const ACCOUNTS: usize>(
 
     Ok(())
 }
+
+pub const fn pubkey_from_array(pubkey_array: [u8; 32]) -> pubkey::Pubkey {
+    pubkey::Pubkey::new_from_array(pubkey_array)
+}

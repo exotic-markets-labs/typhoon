@@ -71,7 +71,7 @@ impl Arguments {
 
                 let generated_struct = quote! {
                     #[repr(C)]
-                    #[derive(Clone, Copy, Debug, PartialEq, Pod, Zeroable)]
+                    #[derive(Clone, Copy, Debug, PartialEq, bytemuck::Pod, bytemuck::Zeroable)]
                     pub struct #struct_name {
                         #(#fields)*
                     }
