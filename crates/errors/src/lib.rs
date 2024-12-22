@@ -21,6 +21,12 @@ pub enum Error {
 
     #[error("The current owner of this account is not the expected one")]
     AccountOwnedByWrongProgram,
+
+    #[error("Failed to serialize or deserialize account data")]
+    BorshIoError,
+
+    #[error("Discriminator did not match what was expected")]
+    AccountDiscriminatorMismatch,
 }
 
 impl FromPrimitive for Error {
@@ -31,6 +37,8 @@ impl FromPrimitive for Error {
             3002 => Some(Error::AccountNotMutable),
             3003 => Some(Error::AccountNotSigner),
             3004 => Some(Error::AccountOwnedByWrongProgram),
+            3005 => Some(Error::BorshIoError),
+            3006 => Some(Error::AccountDiscriminatorMismatch),
             _ => None,
         }
     }
@@ -48,6 +56,8 @@ impl ToPrimitive for Error {
             Error::AccountNotMutable => Some(3002),
             Error::AccountNotSigner => Some(3003),
             Error::AccountOwnedByWrongProgram => Some(3004),
+            Error::BorshIoError => Some(3005),
+            Error::AccountDiscriminatorMismatch => Some(3006),
         }
     }
 
@@ -58,7 +68,7 @@ impl ToPrimitive for Error {
 
 impl From<Error> for ProgramError {
     fn from(value: Error) -> Self {
-        let error_msg = format!("[ERROR] {}", value.to_string());
+        let error_msg = format!("[ERROR] {}", value);
         msg!(&error_msg);
         ProgramError::Custom(value.to_u32().unwrap())
     }

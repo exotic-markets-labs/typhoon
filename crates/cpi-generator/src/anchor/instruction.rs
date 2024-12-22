@@ -1,6 +1,7 @@
 use {
     crate::anchor::{gen_docs, gen_type, gen_type_ref},
     anchor_lang_idl_spec::{Idl, IdlField, IdlInstructionAccountItem, IdlType},
+    five8_const::decode_32_const,
     heck::ToUpperCamelCase,
     proc_macro2::{Span, TokenStream},
     quote::quote,
@@ -14,7 +15,7 @@ pub fn gen_instructions(idl: &Idl) -> TokenStream {
         let ident = Ident::new(&name, Span::call_site());
         let (metas, accounts) = gen_account_instruction(&instruction.accounts);
         let docs = gen_docs(&instruction.docs);
-        let program_result = gen_instructionn_result(&instruction.returns);
+        let program_result = gen_instruction_result(&instruction.returns);
 
         let account_metas = gen_account_metas(&metas);
         let discriminator = &instruction.discriminator;
@@ -59,6 +60,7 @@ fn gen_instruction_data(
     discriminator: &[u8],
     program_id: &str,
 ) -> (Vec<TokenStream>, TokenStream) {
+    let id_array = decode_32_const(program_id);
     let discriminator_len = discriminator.len();
     let buffer_size = 1232 - discriminator_len;
     let discriminator_expr: Expr = syn::parse_quote!(&[#(#discriminator),*]);
@@ -69,8 +71,8 @@ fn gen_instruction_data(
             let ty_ref = gen_type_ref(&arg.ty);
 
             (
-                quote!(#ident: #ty_ref,),
-                quote!(#ident.serialize(&mut writer).map_err(|_| ProgramError::BorshIoError)?;),
+                quote!(pub #ident: #ty_ref,),
+                quote!(borsh::ser::BorshSerialize::serialize(self.#ident, &mut writer).map_err(|_| Error::BorshIoError)?;),
             )
         })
         .unzip();
@@ -82,7 +84,7 @@ fn gen_instruction_data(
             program::bytes::write_bytes(&mut instruction_data, #discriminator_expr);
 
             let instruction = program::Instruction {
-                program_id: &program::pubkey!(#program_id),
+                program_id: &program::pubkey_from_array([#(#id_array),*]),
                 accounts: &account_metas,
                 data: unsafe { std::slice::from_raw_parts(instruction_data.as_ptr() as _, #discriminator_len) },
             };
@@ -90,13 +92,13 @@ fn gen_instruction_data(
     } else {
         quote! {
             let mut instruction_data = [program::bytes::UNINIT_BYTE; #buffer_size];
-            let mut writer = program::bytes::MaybeUninitWriter::new(&instruction_data, #discriminator_len);
-
             program::bytes::write_bytes(&mut instruction_data, #discriminator_expr);
+
+            let mut writer = program::bytes::MaybeUninitWriter::new(&mut instruction_data, #discriminator_len);
             #(#arg_ser)*
 
             let instruction = program::Instruction {
-                program_id: &program::pubkey!(#program_id),
+                program_id: &program::pubkey_from_array([#(#id_array),*]),
                 accounts: &account_metas,
                 data: writer.initialized(),
             };
@@ -106,7 +108,7 @@ fn gen_instruction_data(
     (arg_fields, instruction_data)
 }
 
-fn gen_instructionn_result(returns: &Option<IdlType>) -> TokenStream {
+fn gen_instruction_result(returns: &Option<IdlType>) -> TokenStream {
     match returns {
         Some(ty) => {
             let result_ty = gen_type(ty);
@@ -131,13 +133,12 @@ fn gen_account_instruction(
                 fields.extend(nested_fields);
             }
             IdlInstructionAccountItem::Single(account) => {
-                let name = &account.name;
-                let ident = Ident::new(name, Span::call_site());
+                let ident = Ident::new(&account.name, Span::call_site());
                 let is_writable = account.writable;
                 let is_signer = account.signer;
 
                 metas.push(quote! {
-                    program::ToMeta::to_meta(&self.#ident, #is_writable, #is_signer)
+                    program::ToMeta::to_meta(self.#ident, #is_writable, #is_signer)
                 });
                 fields.push(ident);
             }
@@ -192,10 +193,10 @@ mod tests {
         let (fields, data) = gen_instruction_data(&args, &discriminator, program_id);
         let expected_data = quote! {
             let mut instruction_data = [program::bytes::UNINIT_BYTE; 1228usize];
-            let mut writer = program::bytes::MaybeUninitWriter::new(&instruction_data, 4usize);
-
             program::bytes::write_bytes(&mut instruction_data, &[1u8, 2u8, 3u8, 4u8]);
-            amount.serialize(&mut writer).map_err(|_| ProgramError::BorshIoError)?;
+
+            let mut writer = program::bytes::MaybeUninitWriter::new(&mut instruction_data, 4usize);
+            borsh::ser::BorshSerialize::serialize(self.amount, &mut writer).map_err(|_| Error::BorshIoError)?;
 
             let instruction = program::Instruction {
                 program_id: &program::pubkey!(#program_id),
@@ -239,8 +240,8 @@ mod tests {
             #(#metas),*
         };
         let expected = quote! {
-            program::ToMeta::to_meta(&self.test_account, true, false),
-            program::ToMeta::to_meta(&self.test_account2, false, true)
+            program::ToMeta::to_meta(self.test_account, true, false),
+            program::ToMeta::to_meta(self.test_account2, false, true)
         };
 
         assert_eq!(result.to_string(), expected.to_string());
@@ -261,11 +262,11 @@ mod tests {
 
     #[test]
     fn test_gen_instruction_result() {
-        let result_none = gen_instructionn_result(&None);
+        let result_none = gen_instruction_result(&None);
         let expected_none = quote!(program::ProgramResult);
         assert_eq!(result_none.to_string(), expected_none.to_string());
 
-        let result_some = gen_instructionn_result(&Some(IdlType::Bool));
+        let result_some = gen_instruction_result(&Some(IdlType::Bool));
         let expected_some = quote!(Result<bool, program::program_error::ProgramError>);
         assert_eq!(result_some.to_string(), expected_some.to_string());
     }

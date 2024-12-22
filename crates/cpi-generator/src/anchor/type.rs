@@ -1,7 +1,8 @@
 use {
     anchor_lang_idl_spec::{IdlArrayLen, IdlGenericArg, IdlType},
+    proc_macro2::Span,
     quote::quote,
-    syn::{parse_quote, Type},
+    syn::{parse_quote, Ident, Type},
 };
 
 pub fn gen_type(idl_ty: &IdlType) -> Type {
@@ -31,14 +32,15 @@ pub fn gen_type(idl_ty: &IdlType) -> Type {
             parse_quote!(Vec<#ty>)
         }
         IdlType::Defined { name, generics } => {
+            let ident = Ident::new(name, Span::call_site());
             if generics.is_empty() {
-                parse_quote!(#name)
+                parse_quote!(#ident)
             } else {
                 let generic_types = generics.iter().map(|g| match g {
                     IdlGenericArg::Type { ty } => gen_type(ty),
                     IdlGenericArg::Const { value } => parse_quote!(#value),
                 });
-                parse_quote!(#name<#(#generic_types),*>)
+                parse_quote!(#ident<#(#generic_types),*>)
             }
         }
         IdlType::Array(inner, len) => {
@@ -81,14 +83,15 @@ pub fn gen_type_ref(idl_ty: &IdlType) -> Type {
             parse_quote!(&'a [#ty])
         }
         IdlType::Defined { name, generics } => {
+            let ident = Ident::new(name, Span::call_site());
             if generics.is_empty() {
-                parse_quote!(&'a #name)
+                parse_quote!(&'a #ident)
             } else {
                 let generic_types = generics.iter().map(|g| match g {
                     IdlGenericArg::Type { ty } => gen_type_ref(ty),
                     IdlGenericArg::Const { value } => parse_quote!(#value),
                 });
-                parse_quote!(&'a #name<#(#generic_types),*>)
+                parse_quote!(&'a #ident<#(#generic_types),*>)
             }
         }
         IdlType::U256 | IdlType::I256 | IdlType::Generic(_) => unimplemented!(),

@@ -10,7 +10,11 @@ pub use {
 pub type RawAccountInfo = account_info::AccountInfo;
 pub type SignerSeeds<'a, 'b> = instruction::Signer<'a, 'b>;
 
-pub use pinocchio_pubkey::declare_id;
+pub use {
+    instruction::Instruction,
+    pinocchio::program::{invoke, invoke_signed},
+    pinocchio_pubkey::declare_id,
+};
 
 #[macro_export]
 macro_rules! program_entrypoint {

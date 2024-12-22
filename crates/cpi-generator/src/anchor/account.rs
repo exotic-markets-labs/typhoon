@@ -4,12 +4,15 @@ use {
         Idl, IdlDefinedFields, IdlEnumVariant, IdlRepr, IdlReprModifier, IdlSerialization, IdlType,
         IdlTypeDefTy,
     },
+    heck::ToUpperCamelCase,
     proc_macro2::Span,
     quote::quote,
     syn::Ident,
 };
 
 pub fn gen_accounts(idl: &Idl) -> proc_macro2::TokenStream {
+    let program_name = &idl.metadata.name.to_upper_camel_case();
+    let program_ident = Ident::new(&format!("{program_name}Program"), Span::call_site());
     let types = idl.types.iter().map(|i| {
         let ident = Ident::new(&i.name, Span::call_site());
         let repr = i.repr.as_ref().map(gen_repr);
@@ -29,7 +32,7 @@ pub fn gen_accounts(idl: &Idl) -> proc_macro2::TokenStream {
 
                 quote! {
                     impl Owner for #ident {
-                        const OWNER: program::pubkey::Pubkey = ID;
+                        const OWNER: program::pubkey::Pubkey = #program_ident::ID;
                     }
 
                     impl Discriminator for #ident {

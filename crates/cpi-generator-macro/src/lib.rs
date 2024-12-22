@@ -1,9 +1,10 @@
-use std::{fs::read_to_string, path::Path};
-
-use anchor_lang_idl_spec::Idl;
-use proc_macro::TokenStream;
-use syn::{parse::Parse, parse_macro_input, LitStr};
-use typhoon_cpi_generator::anchor::gen_cpi;
+use {
+    anchor_lang_idl_spec::Idl,
+    proc_macro::TokenStream,
+    std::{fs::read_to_string, path::PathBuf},
+    syn::{parse::Parse, parse_macro_input, LitStr},
+    typhoon_cpi_generator::anchor::gen_cpi,
+};
 
 #[proc_macro]
 pub fn anchor_cpi(input: TokenStream) -> TokenStream {
@@ -21,7 +22,12 @@ impl Parse for IdlFile {
         let path: LitStr = input.parse()?;
         let path_str = path.value();
 
-        let content = read_to_string(&path_str)
+        let var = std::env::var("CARGO_MANIFEST_DIR")
+            .map_err(|err| syn::Error::new(input.span(), err.to_string()))?;
+        let mut so_path = PathBuf::from(var);
+        so_path.push(path_str);
+
+        let content = read_to_string(so_path)
             .map_err(|_| syn::Error::new(path.span(), "Unable to read file"))?;
 
         Ok(IdlFile { content })
