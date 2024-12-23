@@ -79,8 +79,10 @@ impl ToTokens for Context {
 
         let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
         let new_lifetime: Lifetime = parse_quote!('info);
-        let (mut name_list, accounts_assign) = self.accounts.split_for_impl();
+        let (name_list, accounts_assign) = self.accounts.split_for_impl();
         let args_ident = format_ident!("args");
+
+        let mut struct_fields = name_list.to_owned();
 
         let (args_struct, args_assign) = if let Some(ref args) = self.args {
             let name = args.get_name(name);
@@ -95,7 +97,7 @@ impl ToTokens for Context {
                 let args = Args::<#name>::from_entrypoint(accounts, instruction_data)?;
             };
 
-            name_list.add(&args_ident);
+            struct_fields.push(&args_ident);
 
             (args_struct, Some(assign))
         } else {
@@ -109,9 +111,9 @@ impl ToTokens for Context {
 
             impl #impl_generics HandlerContext<#new_lifetime> for #name #ty_generics #where_clause {
                 fn from_entrypoint(
-                    accounts: &mut &'info [program::RawAccountInfo],
+                    accounts: &mut &'info [typhoon_program::RawAccountInfo],
                     instruction_data: &mut &'info [u8],
-                ) -> Result<Self, program::program_error::ProgramError> {
+                ) -> Result<Self, typhoon_program::program_error::ProgramError> {
                     let [#name_list, rem @ ..] = accounts else {
                         return Err(ProgramError::NotEnoughAccountKeys);
                     };
@@ -121,7 +123,7 @@ impl ToTokens for Context {
 
                     *accounts = rem;
 
-                    Ok(#name { #name_list })
+                    Ok(#name { #(#struct_fields),*})
                 }
             }
         };

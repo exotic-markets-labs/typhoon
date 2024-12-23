@@ -2,6 +2,7 @@ pub use {
     pinocchio::{
         account_info::{self, Ref, RefMut},
         entrypoint,
+        instruction::Instruction,
         instruction::{self, AccountMeta},
         msg as log,
         program::{self, invoke, invoke_signed},

@@ -17,7 +17,7 @@ fn read_program(name: &str) -> Vec<u8> {
 }
 
 #[test]
-fn test() {
+fn anchor_cpi_test() {
     let mut svm = LiteSVM::new();
     let admin_kp = Keypair::new();
     let admin_pk = admin_kp.pubkey();

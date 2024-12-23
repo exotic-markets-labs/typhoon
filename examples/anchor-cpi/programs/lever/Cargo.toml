@@ -16,6 +16,7 @@ no-entrypoint = []
 no-idl = []
 no-log-ix-name = []
 idl-build = ["anchor-lang/idl-build"]
+pinocchio = []
 
 [dependencies]
 anchor-lang = "0.30.1"

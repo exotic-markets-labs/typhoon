@@ -2,6 +2,7 @@ use {
     crate::constraints::Constraints,
     proc_macro2::{Span, TokenStream},
     quote::{quote, ToTokens},
+    std::ops::Deref,
     syn::{spanned::Spanned, visit_mut::VisitMut, Field, Ident, PathSegment, Type, TypePath},
 };
 
@@ -39,12 +40,6 @@ impl TryFrom<&mut Field> for Account {
 
 pub struct NameList<'a>(Vec<&'a Ident>);
 
-impl<'a> NameList<'a> {
-    pub fn add(&mut self, name: &'a Ident) {
-        self.0.push(name);
-    }
-}
-
 impl ToTokens for NameList<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let names = &self.0;
@@ -53,6 +48,14 @@ impl ToTokens for NameList<'_> {
         };
 
         expanded.to_tokens(tokens);
+    }
+}
+
+impl<'a> Deref for NameList<'a> {
+    type Target = Vec<&'a Ident>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 

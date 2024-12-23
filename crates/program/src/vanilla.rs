@@ -24,7 +24,7 @@ macro_rules! program_entrypoint {
         use solana_nostd_entrypoint::NoStdAccountInfo;
 
         $crate::entrypoint_nostd!(process_instruction, 32);
-        $crate::noalloc_allocator!();
+        // $crate::noalloc_allocator!();
         $crate::basic_panic_impl!();
     };
 }

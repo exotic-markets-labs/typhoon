@@ -9,7 +9,7 @@ use {
 
 fn read_program() -> Vec<u8> {
     let mut so_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    so_path.push("../../target/deploy/hello_world.so");
+    so_path.push("target/deploy/hello_world.so");
 
     std::fs::read(so_path).unwrap()
 }
