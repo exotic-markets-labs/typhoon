@@ -39,6 +39,12 @@ impl TryFrom<&mut Field> for Account {
 
 pub struct NameList<'a>(Vec<&'a Ident>);
 
+impl<'a> NameList<'a> {
+    pub fn add(&mut self, name: &'a Ident) {
+        self.0.push(name);
+    }
+}
+
 impl ToTokens for NameList<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let names = &self.0;

@@ -1,8 +1,8 @@
 use syn::{parse_quote, visit_mut::VisitMut, PathArguments};
 
-pub struct InjectLifetime;
+pub struct LifetimeInjector;
 
-impl VisitMut for InjectLifetime {
+impl VisitMut for LifetimeInjector {
     fn visit_generics_mut(&mut self, i: &mut syn::Generics) {
         i.params.push(parse_quote!('info));
     }

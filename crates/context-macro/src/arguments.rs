@@ -51,44 +51,42 @@ pub enum Arguments {
 }
 
 impl Arguments {
-    pub fn split_for_impl(&self, base_name: &Ident) -> (TokenStream, TokenStream, TokenStream) {
-        let (struct_name, generated_struct) = match self {
-            Arguments::Struct(Argument::Struct { name }) => (quote! {#name}, quote!()),
-            Arguments::Values(list) => {
-                let struct_name = format_ident!("{}Args", base_name);
-
-                let fields = list.iter().map(|arg| {
-                    if let Argument::Value { name, ty } = arg {
-                        let name = &name;
-                        let ty = &ty.clone().unwrap().ident;
-                        quote! {
-                            pub #name: #ty,
-                        }
-                    } else {
-                        quote!()
-                    }
-                });
-
-                let generated_struct = quote! {
-                    #[repr(C)]
-                    #[derive(Clone, Copy, Debug, PartialEq, bytemuck::Pod, bytemuck::Zeroable)]
-                    pub struct #struct_name {
-                        #(#fields)*
-                    }
-                };
-
-                (quote! {#struct_name}, generated_struct)
-            }
+    pub fn get_name(&self, base_name: &Ident) -> Ident {
+        match self {
+            Arguments::Struct(Argument::Struct { name }) => name.to_owned(),
+            Arguments::Values(_) => format_ident!("{}Args", base_name),
             _ => {
-                panic!("Can't determine if args are values or a struct",)
+                panic!("Can't determine if args are values or a struct")
             }
-        };
+        }
+    }
 
-        let assign = quote! {
-            let args = Args::<#struct_name>::from_entrypoint(accounts, instruction_data)?;
-        };
+    pub fn generate_struct(&self, struct_name: &Ident) -> Option<TokenStream> {
+        if let Arguments::Values(list) = self {
+            let fields = list.iter().map(|arg| {
+                if let Argument::Value { name, ty } = arg {
+                    let name = &name;
+                    let ty = &ty.clone().unwrap().ident;
+                    quote! {
+                        pub #name: #ty,
+                    }
+                } else {
+                    quote!()
+                }
+            });
 
-        (struct_name, generated_struct, assign)
+            let generated_struct = quote! {
+                #[repr(C)]
+                #[derive(Clone, Copy, Debug, PartialEq, bytemuck::Pod, bytemuck::Zeroable)]
+                pub struct #struct_name {
+                    #(#fields)*
+                }
+            };
+
+            Some(generated_struct)
+        } else {
+            None
+        }
     }
 }
 
