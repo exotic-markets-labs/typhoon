@@ -15,8 +15,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
-        with:
-          extra-key: cargo-checks
       - name: Install protobuf compiler # delete this once we get to solana 2.1
         run: sudo apt-get install protobuf-compiler
       - name: Rustup install nightly
@@ -35,13 +33,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
-        with:
-          extra-key: examples-tests
       - name: Install cargo-make
         uses: baptiste0928/cargo-install@v3
         with:
           crate: cargo-make
           version: "0.37.23"
+      - name: Install protobuf compiler
+        run: sudo apt-get install protobuf-compiler
       - name: Install Solana CLI
         run: |
           sh -c "$(curl -sSfL https://release.anza.xyz/v2.1.6/install)"
@@ -60,7 +58,5 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
-        with:
-          extra-key: basic-tests
       - name: Run tests
         run: cargo test
