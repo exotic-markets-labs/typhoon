@@ -40,6 +40,7 @@ jobs:
       run:
         working-directory: ./examples
     steps:
+      - uses: actions/checkout@v4
       - name: Build for no-std
         run: cargo make build
       - name: Tests
@@ -53,5 +54,6 @@ jobs:
     needs: install_cargo_make
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - name: Run tests
         run: cargo test
