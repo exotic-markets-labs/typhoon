@@ -24,23 +24,18 @@ jobs:
         run: cargo +nightly fmt --all -- --check
       - name: Run Cargo clippy
         run: cargo clippy --all-targets --all-features
-  install_cargo_make:
-    needs: run_cargo_checks
-    runs-on: ubuntu-latest
-    steps:
-      - name: Install cargo-make
-        uses: baptiste0928/cargo-install@v3
-        with:
-          crate: cargo-make
-          version: "0.37.23"
   run_examples_tests:
-    needs: install_cargo_make
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./examples
     steps:
       - uses: actions/checkout@v4
+      - name: Install cargo-make
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-make
+          version: "0.37.23"
       - name: Build for no-std
         run: cargo make build
       - name: Tests
@@ -51,7 +46,6 @@ jobs:
         run: cargo make test
 
   run_basic_tests:
-    needs: install_cargo_make
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
