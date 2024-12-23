@@ -5,9 +5,7 @@ pub mod macros {
     };
 }
 
-pub mod program {
-    pub use typhoon_program::*;
-}
+pub use typhoon_program;
 
 pub mod lib {
     pub use {typhoon_accounts::*, typhoon_context::*, typhoon_errors::*, typhoon_traits::*};
@@ -15,7 +13,7 @@ pub mod lib {
 
 pub mod prelude {
     pub use {
-        super::{lib::*, macros::*, program},
-        program::{msg, program_error::ProgramError},
+        super::{lib::*, macros::*, typhoon_program},
+        typhoon_program::{msg, program_error::ProgramError},
     };
 }

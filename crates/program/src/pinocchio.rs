@@ -1,20 +1,19 @@
 pub use {
+    pinocchio::program::{invoke, invoke_signed},
     pinocchio::{
+        account_info,
         account_info::{Ref, RefMut},
+        instruction,
         instruction::AccountMeta,
-        *,
+        msg as log, program, program_error, pubkey, sysvars,
     },
+    pinocchio_log,
+    pinocchio_pubkey::declare_id,
     pinocchio_system as system_program,
 };
 
 pub type RawAccountInfo = account_info::AccountInfo;
 pub type SignerSeeds<'a, 'b> = instruction::Signer<'a, 'b>;
-
-pub use {
-    instruction::Instruction,
-    pinocchio::program::{invoke, invoke_signed},
-    pinocchio_pubkey::declare_id,
-};
 
 #[macro_export]
 macro_rules! program_entrypoint {
@@ -33,4 +32,16 @@ impl crate::ToMeta for RawAccountInfo {
 
 pub const fn pubkey_from_array(pubkey_array: [u8; 32]) -> pubkey::Pubkey {
     pubkey_array
+}
+
+#[macro_export]
+macro_rules! msg {
+    ($msg:expr) => {
+        typhoon_program::log!($msg);
+    };
+    ($($arg:tt)*) => {{
+        use typhoon_program::pinocchio_log;
+
+        typhoon_program::pinocchio_log::log!($($arg)*);
+    }};
 }

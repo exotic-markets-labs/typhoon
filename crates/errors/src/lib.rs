@@ -68,8 +68,7 @@ impl ToPrimitive for Error {
 
 impl From<Error> for ProgramError {
     fn from(value: Error) -> Self {
-        let error_msg = format!("[ERROR] {}", value);
-        msg!(&error_msg);
+        msg!(&format!("[ERROR] {}", value));
         ProgramError::Custom(value.to_u32().unwrap())
     }
 }

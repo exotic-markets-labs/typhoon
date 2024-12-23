@@ -26,7 +26,7 @@ pub fn gen_instructions(idl: &Idl) -> TokenStream {
             /// Used for Cross-Program Invocation (CPI) calls.
             #docs
             pub struct #ident<'a> {
-                #(pub #accounts: &'a program::RawAccountInfo,)*
+                #(pub #accounts: &'a typhoon_program::RawAccountInfo,)*
                 #(#arg_fields)*
             }
 
@@ -36,11 +36,11 @@ pub fn gen_instructions(idl: &Idl) -> TokenStream {
                     self.invoke_signed(&[])
                 }
 
-                pub fn invoke_signed(&self, seeds: &[program::SignerSeeds]) -> #program_result {
+                pub fn invoke_signed(&self, seeds: &[typhoon_program::SignerSeeds]) -> #program_result {
                     #account_metas
                     #instruction_data
 
-                    program::invoke_signed(
+                    typhoon_program::invoke_signed(
                         &instruction,
                         &[#(self.#accounts),*],
                         seeds
@@ -79,26 +79,26 @@ fn gen_instruction_data(
 
     let instruction_data = if arg_ser.is_empty() {
         quote! {
-            let mut instruction_data = [program::bytes::UNINIT_BYTE; #discriminator_len];
+            let mut instruction_data = [typhoon_program::bytes::UNINIT_BYTE; #discriminator_len];
 
-            program::bytes::write_bytes(&mut instruction_data, #discriminator_expr);
+            typhoon_program::bytes::write_bytes(&mut instruction_data, #discriminator_expr);
 
-            let instruction = program::Instruction {
-                program_id: &program::pubkey_from_array([#(#id_array),*]),
+            let instruction = typhoon_program::Instruction {
+                program_id: &typhoon_program::pubkey_from_array([#(#id_array),*]),
                 accounts: &account_metas,
                 data: unsafe { std::slice::from_raw_parts(instruction_data.as_ptr() as _, #discriminator_len) },
             };
         }
     } else {
         quote! {
-            let mut instruction_data = [program::bytes::UNINIT_BYTE; #buffer_size];
-            program::bytes::write_bytes(&mut instruction_data, #discriminator_expr);
+            let mut instruction_data = [typhoon_program::bytes::UNINIT_BYTE; #buffer_size];
+            typhoon_program::bytes::write_bytes(&mut instruction_data, #discriminator_expr);
 
-            let mut writer = program::bytes::MaybeUninitWriter::new(&mut instruction_data, #discriminator_len);
+            let mut writer = typhoon_program::bytes::MaybeUninitWriter::new(&mut instruction_data, #discriminator_len);
             #(#arg_ser)*
 
-            let instruction = program::Instruction {
-                program_id: &program::pubkey_from_array([#(#id_array),*]),
+            let instruction = typhoon_program::Instruction {
+                program_id: &typhoon_program::pubkey_from_array([#(#id_array),*]),
                 accounts: &account_metas,
                 data: writer.initialized(),
             };
@@ -112,9 +112,9 @@ fn gen_instruction_result(returns: &Option<IdlType>) -> TokenStream {
     match returns {
         Some(ty) => {
             let result_ty = gen_type(ty);
-            quote!(Result<#result_ty, program::program_error::ProgramError>)
+            quote!(Result<#result_ty, typhoon_program::program_error::ProgramError>)
         }
-        None => quote!(program::ProgramResult),
+        None => quote!(typhoon_program::ProgramResult),
     }
 }
 
@@ -138,7 +138,7 @@ fn gen_account_instruction(
                 let is_signer = account.signer;
 
                 metas.push(quote! {
-                    program::ToMeta::to_meta(self.#ident, #is_writable, #is_signer)
+                    typhoon_program::ToMeta::to_meta(self.#ident, #is_writable, #is_signer)
                 });
                 fields.push(ident);
             }
@@ -153,7 +153,7 @@ fn gen_account_metas(metas: &[TokenStream]) -> TokenStream {
     let len = metas.len();
 
     quote! {
-        let account_metas: [program::AccountMeta; #len] = [#(#metas),*];
+        let account_metas: [typhoon_program::AccountMeta; #len] = [#(#metas),*];
     }
 }
 
@@ -169,12 +169,12 @@ mod tests {
 
         let (fields, data) = gen_instruction_data(&args, &discriminator, program_id);
         let expected_data = quote! {
-            let mut instruction_data = [program::bytes::UNINIT_BYTE; 4usize];
+            let mut instruction_data = [typhoon_program::bytes::UNINIT_BYTE; 4usize];
 
-            program::bytes::write_bytes(&mut instruction_data, &[1u8, 2u8, 3u8, 4u8]);
+            typhoon_program::bytes::write_bytes(&mut instruction_data, &[1u8, 2u8, 3u8, 4u8]);
 
-            let instruction = program::Instruction {
-                program_id: &program::pubkey!(#program_id),
+            let instruction = typhoon_program::Instruction {
+                program_id: &typhoon_program::pubkey!(#program_id),
                 accounts: &account_metas,
                 data: unsafe { std::slice::from_raw_parts(instruction_data.as_ptr() as _, 4usize) },
             };
@@ -192,14 +192,14 @@ mod tests {
 
         let (fields, data) = gen_instruction_data(&args, &discriminator, program_id);
         let expected_data = quote! {
-            let mut instruction_data = [program::bytes::UNINIT_BYTE; 1228usize];
-            program::bytes::write_bytes(&mut instruction_data, &[1u8, 2u8, 3u8, 4u8]);
+            let mut instruction_data = [typhoon_program::bytes::UNINIT_BYTE; 1228usize];
+            typhoon_program::bytes::write_bytes(&mut instruction_data, &[1u8, 2u8, 3u8, 4u8]);
 
-            let mut writer = program::bytes::MaybeUninitWriter::new(&mut instruction_data, 4usize);
+            let mut writer = typhoon_program::bytes::MaybeUninitWriter::new(&mut instruction_data, 4usize);
             borsh::ser::BorshSerialize::serialize(self.amount, &mut writer).map_err(|_| Error::BorshIoError)?;
 
-            let instruction = program::Instruction {
-                program_id: &program::pubkey!(#program_id),
+            let instruction = typhoon_program::Instruction {
+                program_id: &typhoon_program::pubkey!(#program_id),
                 accounts: &account_metas,
                 data: writer.initialized(),
             };
@@ -240,8 +240,8 @@ mod tests {
             #(#metas),*
         };
         let expected = quote! {
-            program::ToMeta::to_meta(self.test_account, true, false),
-            program::ToMeta::to_meta(self.test_account2, false, true)
+            typhoon_program::ToMeta::to_meta(self.test_account, true, false),
+            typhoon_program::ToMeta::to_meta(self.test_account2, false, true)
         };
 
         assert_eq!(result.to_string(), expected.to_string());
@@ -254,7 +254,7 @@ mod tests {
         let metas = vec![quote!(meta1), quote!(meta2)];
         let result = gen_account_metas(&metas);
         let expected = quote! {
-            let account_metas: [program::AccountMeta; 2usize] = [meta1, meta2];
+            let account_metas: [typhoon_program::AccountMeta; 2usize] = [meta1, meta2];
         };
 
         assert_eq!(result.to_string(), expected.to_string());
@@ -263,11 +263,11 @@ mod tests {
     #[test]
     fn test_gen_instruction_result() {
         let result_none = gen_instruction_result(&None);
-        let expected_none = quote!(program::ProgramResult);
+        let expected_none = quote!(typhoon_program::ProgramResult);
         assert_eq!(result_none.to_string(), expected_none.to_string());
 
         let result_some = gen_instruction_result(&Some(IdlType::Bool));
-        let expected_some = quote!(Result<bool, program::program_error::ProgramError>);
+        let expected_some = quote!(Result<bool, typhoon_program::program_error::ProgramError>);
         assert_eq!(result_some.to_string(), expected_some.to_string());
     }
 }
