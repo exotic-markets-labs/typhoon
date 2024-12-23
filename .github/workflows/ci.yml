@@ -53,5 +53,5 @@ jobs:
     needs: install_cargo_make
     runs-on: ubuntu-latest
     steps:
-      - Run tests:
+      - name: Run tests
         run: cargo test
