@@ -33,18 +33,18 @@ impl ToTokens for Handlers {
         });
 
         let expanded = quote! {
-            program::program_entrypoint!(process_instruction);
+            typhoon_program::program_entrypoint!(process_instruction);
 
             pub fn process_instruction(
-                _program_id: &program::pubkey::Pubkey,
-                accounts: &[program::RawAccountInfo],
+                _program_id: &typhoon_program::pubkey::Pubkey,
+                accounts: &[typhoon_program::RawAccountInfo],
                 instruction_data: &[u8],
-            ) -> program::ProgramResult {
+            ) -> typhoon_program::ProgramResult {
                 let (instruction_discriminant, instruction_data_inner) = instruction_data.split_at(1);
                 match instruction_discriminant[0] {
                     #(#instructions)*
                     _ => {
-                        program::msg!("Error: unknown instruction") //TODO
+                        typhoon_program::msg!("Error: unknown instruction") //TODO
                     },
                 }
                 Ok(())

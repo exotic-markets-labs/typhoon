@@ -1,10 +1,11 @@
 pub use {
     pinocchio::{
         account_info::{self, Ref, RefMut},
+        entrypoint,
         instruction::{self, AccountMeta},
         msg as log,
         program::{self, invoke, invoke_signed},
-        program_error, pubkey, sysvars,
+        program_error, pubkey, sysvars, ProgramResult,
     },
     pinocchio_log,
     pinocchio_pubkey::declare_id,
@@ -17,7 +18,7 @@ pub type SignerSeeds<'a, 'b> = instruction::Signer<'a, 'b>;
 #[macro_export]
 macro_rules! program_entrypoint {
     ($name: ident) => {
-        use program::entrypoint;
+        use typhoon_program::entrypoint;
 
         $crate::entrypoint!(process_instruction);
     };
