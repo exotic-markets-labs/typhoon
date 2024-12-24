@@ -4,7 +4,8 @@ use {
     std::marker::PhantomData,
     typhoon_errors::Error,
     typhoon_program::{
-        bytes::try_from_bytes, program_error::ProgramError, pubkey::Pubkey, RawAccountInfo, Ref,
+        bytes::try_from_bytes, program_error::ProgramError, pubkey::Pubkey, system_program,
+        RawAccountInfo, Ref,
     },
 };
 
@@ -21,8 +22,22 @@ where
     T: Owner + Pod + Discriminator,
 {
     fn try_from_info(info: &'a RawAccountInfo) -> Result<Self, ProgramError> {
+        if info.owner() == &system_program::ID && *info.try_borrow_lamports()? == 0 {
+            return Err(ProgramError::UninitializedAccount);
+        }
+
         if info.owner() != &T::OWNER {
             return Err(Error::AccountOwnedByWrongProgram.into());
+        }
+
+        let account_data = info.try_borrow_data()?;
+
+        if account_data.len() < T::DISCRIMINATOR.len() {
+            return Err(ProgramError::AccountDataTooSmall);
+        }
+
+        if T::DISCRIMINATOR != &account_data[..T::DISCRIMINATOR.len()] {
+            return Err(Error::AccountDiscriminatorMismatch.into());
         }
 
         Ok(Account {

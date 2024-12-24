@@ -1,7 +1,9 @@
 use {
     crate::{Discriminator, FromAccountInfo, Owner, ReadableAccount},
     typhoon_errors::Error,
-    typhoon_program::{program_error::ProgramError, pubkey::Pubkey, RawAccountInfo, Ref},
+    typhoon_program::{
+        program_error::ProgramError, pubkey::Pubkey, system_program, RawAccountInfo, Ref,
+    },
 };
 
 pub struct BorshAccount<'a, T>
@@ -26,11 +28,20 @@ where
     T: Owner + Discriminator + borsh::BorshSerialize + borsh::BorshDeserialize,
 {
     fn try_from_info(info: &'a RawAccountInfo) -> Result<Self, ProgramError> {
+        if info.owner() == &system_program::ID && *info.try_borrow_lamports()? == 0 {
+            return Err(ProgramError::UninitializedAccount);
+        }
+
         if info.owner() != &T::OWNER {
             return Err(Error::AccountOwnedByWrongProgram.into());
         }
 
         let account_data = info.try_borrow_data()?;
+
+        if account_data.len() < T::DISCRIMINATOR.len() {
+            return Err(ProgramError::AccountDataTooSmall);
+        }
+
         let (discriminator, mut data) = account_data.split_at(T::DISCRIMINATOR.len());
 
         if T::DISCRIMINATOR != discriminator {
