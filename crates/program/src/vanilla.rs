@@ -3,7 +3,10 @@ pub use {
     nostd_system_program as system_program,
     solana_nostd_entrypoint::{
         basic_panic_impl, entrypoint_nostd, noalloc_allocator,
-        solana_program::{entrypoint::ProgramResult, *},
+        solana_program::{
+            entrypoint::{ProgramResult, SUCCESS},
+            *,
+        },
         Ref, RefMut,
     },
 };

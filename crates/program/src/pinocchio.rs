@@ -14,6 +14,7 @@ pub use {
 
 pub type RawAccountInfo = account_info::AccountInfo;
 pub type SignerSeeds<'a, 'b> = instruction::Signer<'a, 'b>;
+pub type SignerSeed<'a> = instruction::Seed<'a>;
 
 #[macro_export]
 macro_rules! program_entrypoint {

@@ -1,20 +1,29 @@
 use syn::{
     parse::{Parse, ParseStream},
+    punctuated::Punctuated,
     visit_mut::VisitMut,
     Expr, Ident, Token,
 };
 
+mod bump;
 mod init;
+mod keys;
 mod payer;
+mod seeded;
+mod seeds;
 mod space;
 
-use {init::*, payer::*, space::*};
+use {bump::*, init::*, keys::*, payer::*, seeded::*, seeds::*, space::*};
 
 //TODO rewrite it to add custom constraint for users
 pub enum Constraint {
     Init(ConstraintInit),
     Payer(ConstraintPayer),
     Space(ConstraintSpace),
+    Seeded(ConstraintSeeded),
+    Keys(ConstraintKeys),
+    Seeds(ConstraintSeeds),
+    Bump(ConstraintBump),
 }
 
 #[derive(Default)]
@@ -62,6 +71,57 @@ impl Constraints {
             }
         })
     }
+
+    pub fn get_seeds(&self) -> Option<&Punctuated<Expr, Token![,]>> {
+        self.0.iter().find_map(|c| {
+            if let Constraint::Seeds(ConstraintSeeds { seeds }) = c {
+                Some(seeds)
+            } else {
+                None
+            }
+        })
+    }
+
+    pub fn get_bump(&self, account_name: &Ident) -> Option<Expr> {
+        self.0.iter().find_map(|c| {
+            if let Constraint::Bump(bump_constraint) = c {
+                if bump_constraint.is_some() {
+                    if let Some(bump) = &bump_constraint.bump {
+                        Some(bump.clone())
+                    } else {
+                        syn::parse_str::<Expr>(&format!("{}_bump", account_name)).ok()
+                    }
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        })
+    }
+
+    pub fn is_seeded(&self) -> bool {
+        self.0
+            .iter()
+            .find_map(|c| {
+                if let Constraint::Seeded(_) = c {
+                    Some(true)
+                } else {
+                    None
+                }
+            })
+            .is_some()
+    }
+
+    pub fn get_keys(&self) -> Option<&Punctuated<Expr, Token![,]>> {
+        self.0.iter().find_map(|c| {
+            if let Constraint::Keys(ConstraintKeys { keys }) = c {
+                Some(keys)
+            } else {
+                None
+            }
+        })
+    }
 }
 
 pub fn parse_constraints(input: ParseStream) -> syn::Result<Vec<Constraint>> {
@@ -78,6 +138,18 @@ pub fn parse_constraints(input: ParseStream) -> syn::Result<Vec<Constraint>> {
             }
             "space" => {
                 constraints.push(Constraint::Space(ConstraintSpace::parse(input)?));
+            }
+            "seeds" => {
+                constraints.push(Constraint::Seeds(ConstraintSeeds::parse(input)?));
+            }
+            "bump" => {
+                constraints.push(Constraint::Bump(ConstraintBump::parse(input)?));
+            }
+            "seeded" => {
+                constraints.push(Constraint::Seeded(ConstraintSeeded));
+            }
+            "keys" => {
+                constraints.push(Constraint::Keys(ConstraintKeys::parse(input)?));
             }
             _ => return Err(syn::Error::new(input.span(), "Unknow constraint.")),
         }

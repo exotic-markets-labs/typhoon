@@ -58,8 +58,10 @@ fn integration_test() {
         &[&admin_kp, &buffer_a_kp],
         svm.latest_blockhash(),
     );
-    let res = svm.send_transaction(tx).unwrap();
-    assert_eq!(res.logs[3], format!("Program log: {}", init_args.value));
+    svm.send_transaction(tx).unwrap();
+    let raw_account = svm.get_account(&buffer_a_pk).unwrap();
+    let buffer_account = bytemuck::try_from_bytes::<Buffer>(raw_account.data.as_slice()).unwrap();
+    assert!(buffer_account.value1 == init_args.value);
 
     let tx = Transaction::new_signed_with_payer(
         &[Instruction {
@@ -80,6 +82,9 @@ fn integration_test() {
         svm.latest_blockhash(),
     );
     svm.send_transaction(tx).unwrap();
+    let raw_account = svm.get_account(&buffer_b_pk).unwrap();
+    let buffer_account = bytemuck::try_from_bytes::<Buffer>(raw_account.data.as_slice()).unwrap();
+    assert!(buffer_account.value1 == init_args.value);
 
     let ix_a_args = SetValueContextArgs {
         value: 10,
@@ -101,11 +106,11 @@ fn integration_test() {
         &[&admin_kp],
         svm.latest_blockhash(),
     );
-    let res = svm.send_transaction(tx).unwrap();
+    svm.send_transaction(tx).unwrap();
     let raw_account = svm.get_account(&buffer_a_pk).unwrap();
     let buffer_account = bytemuck::try_from_bytes::<Buffer>(raw_account.data.as_slice()).unwrap();
-    assert_eq!(res.logs[1], format!("Program log: {}", more_args));
-    assert!(buffer_account.value == ix_a_args.value);
+    assert!(buffer_account.value1 == ix_a_args.value);
+    assert!(buffer_account.value2 == more_args);
 
     let ix_b_args = SetValueContextArgs {
         value: 50,
@@ -127,11 +132,11 @@ fn integration_test() {
         &[&admin_kp],
         svm.latest_blockhash(),
     );
-    let res = svm.send_transaction(tx).unwrap();
+    svm.send_transaction(tx).unwrap();
     let raw_account = svm.get_account(&buffer_b_pk).unwrap();
     let buffer_account = bytemuck::try_from_bytes::<Buffer>(raw_account.data.as_slice()).unwrap();
-    assert_eq!(res.logs[1], format!("Program log: {}", more_args));
-    assert!(buffer_account.value == ix_b_args.value);
+    assert!(buffer_account.value1 == ix_b_args.value);
+    assert!(buffer_account.value2 == more_args);
 
     let ix_a_args = SetValueContextArgs {
         value: 6,
@@ -159,9 +164,10 @@ fn integration_test() {
         &[&admin_kp],
         svm.latest_blockhash(),
     );
-    let res = svm.send_transaction(tx).unwrap();
-    assert_eq!(
-        res.logs[1],
-        format!("Program log: {}", ix_a_args.value + ix_b_args.value)
-    );
+    svm.send_transaction(tx).unwrap();
+
+    let raw_account = svm.get_account(&buffer_a_pk).unwrap();
+    let buffer_account = bytemuck::try_from_bytes::<Buffer>(raw_account.data.as_slice()).unwrap();
+    assert!(buffer_account.value1 == ix_a_args.value);
+    assert!(buffer_account.value2 == ix_a_args.value + ix_b_args.value);
 }
