@@ -45,8 +45,6 @@ fn integration_test() {
     // Create the counter
     let (counter_pk, counter_bump) =
         Pubkey::find_program_address(&Counter::derive(&admin_pk.to_bytes()), &program_id);
-    println!("{:?} {:?}", counter_bump, counter_pk.to_bytes());
-    println!("{:?}", Counter::derive(&admin_pk.to_bytes()));
 
     let ix = Instruction {
         program_id,

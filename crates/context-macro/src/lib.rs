@@ -57,7 +57,17 @@ impl Parse for Context {
                     .map(Account::try_from)
                     .collect::<Result<Vec<Account>, syn::Error>>()?;
 
-                let bumps = Bumps::try_from(&accounts).ok();
+                let bumps = {
+                    if let Ok(bumps) = Bumps::try_from(&accounts) {
+                        if !bumps.0.is_empty() {
+                            Some(bumps)
+                        } else {
+                            None
+                        }
+                    } else {
+                        None
+                    }
+                };
 
                 Ok(Context {
                     ident: item_struct.ident.to_owned(),
@@ -87,6 +97,7 @@ impl ToTokens for Context {
         let new_lifetime: Lifetime = parse_quote!('info);
         let (name_list, accounts_assign) = self.accounts.split_for_impl();
         let args_ident = format_ident!("args");
+        let bumps_ident = format_ident!("bumps");
 
         let mut struct_fields = name_list.to_owned();
 
@@ -111,15 +122,16 @@ impl ToTokens for Context {
         };
 
         let (bumps_struct, bumps_checks, bumps_assign) = if let Some(ref bumps) = self.bumps {
+            let bumps_name = bumps.get_name(name);
             FieldInjector::new(parse_quote! {
-                pub bumps: #name
+                pub bumps: #bumps_name
             })
             .visit_item_mut(account_struct);
 
             let bumps_struct = bumps.generate_struct(name);
             let (checks, assigns) = bumps.get_checks_and_assigns(name);
 
-            struct_fields.push(&args_ident);
+            struct_fields.push(&bumps_ident);
 
             (Some(bumps_struct), Some(checks), Some(assigns))
         } else {

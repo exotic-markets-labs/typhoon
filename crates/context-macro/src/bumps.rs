@@ -5,7 +5,7 @@ use {
     syn::{Expr, Ident},
 };
 
-pub struct Bumps(Vec<(Ident, Expr, TokenStream)>);
+pub struct Bumps(pub Vec<(Ident, Expr, TokenStream)>);
 
 impl Bumps {
     pub fn get_name(&self, context_name: &Ident) -> Ident {
@@ -22,7 +22,7 @@ impl Bumps {
 
         quote! {
             #[repr(C)]
-            #[derive(Clone, Copy, Debug, PartialEq, Pod, Zeroable)]
+            #[derive(Clone, Copy, Debug, PartialEq, bytemuck::Pod, bytemuck::Zeroable)]
             pub struct #struct_name {
                 #(#fields)*
             }
@@ -36,7 +36,7 @@ impl Bumps {
 
             let computed_bump = (
                 (quote! {
-                    let (#pk, #bump) = typhoon::program::pubkey::find_program_address(&[#seeds], &crate::ID);
+                    let (#pk, #bump) = typhoon_program::pubkey::find_program_address(&[#seeds], &crate::ID);
                 },
                 quote ! {
                     if #name.key() != &#pk {
@@ -49,7 +49,7 @@ impl Bumps {
             let provided_bump = (
                 (quote! {},
                 quote! {
-                    let #pk = typhoon::program::pubkey::create_program_address(&[#seeds, &[#value]], &crate::ID)?;
+                    let #pk = typhoon_program::pubkey::create_program_address(&[#seeds, &[#value]], &crate::ID)?;
                     if #name.key() != &#pk {
                         return Err(ProgramError::InvalidSeeds);
                     }
