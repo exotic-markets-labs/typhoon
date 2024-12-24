@@ -2,10 +2,10 @@ use {
     crate::accounts::Account,
     proc_macro2::TokenStream,
     quote::{format_ident, quote},
-    syn::{punctuated::Punctuated, Expr, Ident, Token},
+    syn::{Expr, Ident},
 };
 
-pub struct Bumps(Vec<(Ident, Expr, Punctuated<Expr, Token![,]>)>);
+pub struct Bumps(Vec<(Ident, Expr, TokenStream)>);
 
 impl Bumps {
     pub fn get_name(&self, context_name: &Ident) -> Ident {
@@ -37,7 +37,7 @@ impl Bumps {
             let computed_bump = (
                 (quote! {
                     let (#pk, #bump) = typhoon::program::pubkey::find_program_address(&[#seeds], &crate::ID);
-                }, 
+                },
                 quote ! {
                     if #name.key() != &#pk {
                         return Err(ProgramError::InvalidSeeds);
@@ -53,16 +53,16 @@ impl Bumps {
                     if #name.key() != &#pk {
                         return Err(ProgramError::InvalidSeeds);
                     }
-                }), 
+                }),
                 quote! {
                     #name: #value,
                 },
             );
-            
+
             match value {
                 Expr::Path(e) => {
                     if let Some(ident) = e.path.get_ident() {
-                        if ident.to_string() == bump.to_string() {
+                        if  bump == *ident {
                             computed_bump
                         } else {
                             provided_bump
@@ -84,16 +84,13 @@ impl Bumps {
         let struct_name = self.get_name(context_name);
         let assign = quote! {
             #(#creation)*
-            
+
             let bumps = #struct_name {
                 #(#values)*
             };
         };
 
-        (
-            checks,
-            assign,
-        )
+        (checks, assign)
     }
 }
 
@@ -104,17 +101,42 @@ impl TryFrom<&Vec<Account>> for Bumps {
         Ok(Bumps(
             accounts
                 .iter()
-                .filter(|a| {
-                    a.constraints.has_init()
-                        && a.constraints.get_bump(&a.name).is_some()
+                .filter_map(|a| {
+                    if !a.constraints.has_init() {
+                        None
+                    } else if a.constraints.get_bump(&a.name).is_some()
                         && a.constraints.get_seeds().is_some()
-                })
-                .map(|a| {
-                    (
-                        a.name.clone(),
-                        a.constraints.get_bump(&a.name).unwrap().clone(),
-                        a.constraints.get_seeds().unwrap().clone(),
-                    )
+                    {
+                        let seeds = a.constraints.get_seeds().unwrap().clone();
+                        Some((
+                            a.name.clone(),
+                            a.constraints.get_bump(&a.name).unwrap().clone(),
+                            quote! { #seeds },
+                        ))
+                    } else if a.constraints.is_seeded() && a.constraints.get_keys().is_some() {
+                        let ident = format_ident!("{}_bump", a.name);
+                        let keys = a.constraints.get_keys().unwrap().clone();
+                        let name = a.name.to_string();
+                        Some((
+                            a.name.clone(),
+                            Expr::Path(syn::ExprPath {
+                                attrs: Vec::new(),
+                                qself: None,
+                                path: syn::Path {
+                                    leading_colon: None,
+                                    segments: vec![syn::PathSegment {
+                                        ident,
+                                        arguments: syn::PathArguments::None,
+                                    }]
+                                    .into_iter()
+                                    .collect(),
+                                },
+                            }),
+                            quote! { #name.as_bytes(), #keys },
+                        ))
+                    } else {
+                        None
+                    }
                 })
                 .collect(),
         ))

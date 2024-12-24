@@ -7,17 +7,21 @@ use syn::{
 
 mod bump;
 mod init;
+mod keys;
 mod payer;
+mod seeded;
 mod seeds;
 mod space;
 
-use {bump::*, init::*, payer::*, seeds::*, space::*};
+use {bump::*, init::*, keys::*, payer::*, seeded::*, seeds::*, space::*};
 
 //TODO rewrite it to add custom constraint for users
 pub enum Constraint {
     Init(ConstraintInit),
     Payer(ConstraintPayer),
     Space(ConstraintSpace),
+    Seeded(ConstraintSeeded),
+    Keys(ConstraintKeys),
     Seeds(ConstraintSeeds),
     Bump(ConstraintBump),
 }
@@ -95,6 +99,29 @@ impl Constraints {
             }
         })
     }
+
+    pub fn is_seeded(&self) -> bool {
+        self.0
+            .iter()
+            .find_map(|c| {
+                if let Constraint::Seeded(_) = c {
+                    Some(true)
+                } else {
+                    None
+                }
+            })
+            .is_some()
+    }
+
+    pub fn get_keys(&self) -> Option<&Punctuated<Expr, Token![,]>> {
+        self.0.iter().find_map(|c| {
+            if let Constraint::Keys(ConstraintKeys { keys }) = c {
+                Some(keys)
+            } else {
+                None
+            }
+        })
+    }
 }
 
 pub fn parse_constraints(input: ParseStream) -> syn::Result<Vec<Constraint>> {
@@ -117,6 +144,12 @@ pub fn parse_constraints(input: ParseStream) -> syn::Result<Vec<Constraint>> {
             }
             "bump" => {
                 constraints.push(Constraint::Bump(ConstraintBump::parse(input)?));
+            }
+            "seeded" => {
+                constraints.push(Constraint::Seeded(ConstraintSeeded));
+            }
+            "keys" => {
+                constraints.push(Constraint::Keys(ConstraintKeys::parse(input)?));
             }
             _ => return Err(syn::Error::new(input.span(), "Unknow constraint.")),
         }

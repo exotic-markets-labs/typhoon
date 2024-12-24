@@ -71,7 +71,7 @@ impl Parse for Context {
             Item::Enum(_item_enum) => todo!(), // TODO multiple context condition
             _ => Err(syn::Error::new(
                 item.span(),
-                "#[context] is only implemented for struct and enum",
+                "#[context] is only implemented for struct",
             )),
         }
     }
@@ -116,8 +116,8 @@ impl ToTokens for Context {
             })
             .visit_item_mut(account_struct);
 
-            let bumps_struct = bumps.generate_struct(&name);
-            let (checks, assigns) = bumps.get_checks_and_assigns(&name);
+            let bumps_struct = bumps.generate_struct(name);
+            let (checks, assigns) = bumps.get_checks_and_assigns(name);
 
             struct_fields.push(&args_ident);
 

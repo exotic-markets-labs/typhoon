@@ -4,8 +4,8 @@ use {
     quote::{quote, ToTokens},
     std::ops::Deref,
     syn::{
-        spanned::Spanned, visit_mut::VisitMut, Expr, ExprArray, Field, Ident, PathSegment, Type,
-        TypePath,
+        spanned::Spanned, visit_mut::VisitMut, Field, GenericArgument, Ident, PathArguments,
+        PathSegment, Type, TypePath,
     },
 };
 
@@ -75,11 +75,61 @@ impl ToTokens for Assign<'_> {
                     return syn::Error::new(name.span(), "Not found payer or space for the init constraint").to_compile_error()
                 };
 
-                if let (Some(punctuated_seeds), Some(bump)) = (c.get_seeds(), c.get_bump(name)) {
+                if let Some(punctuated_seeds) = c.get_seeds() {
                     quote! {
                         let #name: #ty = {
                             let system_acc = <typhoon::lib::Mut<typhoon::lib::SystemAccount> as typhoon::lib::FromAccountInfo>::try_from_info(#name)?;
-                            let signer_seeds = [#punctuated_seeds, &[#bump as u8]];
+                            // TODO: avoid reusing seeds here and in verifications
+                            let signer_seeds = [#punctuated_seeds, &[bumps.#name as u8]];
+                            msg!("{:?}", signer_seeds);
+                            // TODO: make it work when not using pinocchio
+                            let seeds_vec = &signer_seeds.into_iter().map(|seed| typhoon::program::SignerSeed::from(seed)).collect::<Vec<typhoon::program::SignerSeed>>()[..];
+                            let signer: typhoon::program::SignerSeeds = typhoon::program::SignerSeeds::from(&seeds_vec[..]);
+                            typhoon::lib::SystemCpi::create_account(&system_acc, &#payer, &crate::ID, #space as u64, Some(&[typhoon::program::SignerSeeds::from(signer)]))?;
+                            Mut::try_from_info(#name)?
+                        };
+                    }
+                } else if c.is_seeded() {
+                    let Some(keys) = c.get_keys() else {
+                        return syn::Error::new(name.span(), "Seeded accounts require `keys` to be passed on init").to_compile_error()
+                    };
+
+                    fn get_subsegments(segment: &PathSegment) -> Vec<PathSegment> {
+                        if let PathArguments::AngleBracketed(arguments) = &segment.arguments {
+                            arguments.args.iter().filter_map(|a| match a {
+                                GenericArgument::Type(Type::Path(p)) => Some(p.path.segments.clone()),
+                                _ => None,
+                            }).flatten().collect()
+                        } else {
+                            vec![]
+                        }
+                    }
+
+                    let mut segment = (*ty).clone();
+                    let mut subsegments = get_subsegments(ty);
+                    let error = syn::Error::new(ty.span(), "Unexpected type structure").to_compile_error();
+                    while segment.ident != "Account" {
+                        let Some(s) = subsegments.first() else {
+                            return error
+                        };
+
+                        segment = s.clone().clone();
+                        subsegments = get_subsegments(&segment);
+                    }
+                    let Some(s) = subsegments.first() else {
+                        return error
+                    };
+                    let account_ty = &s.ident;
+
+
+                    quote! {
+                        let #name: #ty = {
+                            let system_acc = <typhoon::lib::Mut<typhoon::lib::SystemAccount> as typhoon::lib::FromAccountInfo>::try_from_info(#name)?;
+                            // TODO: avoid reusing seeds here and in verifications
+                            let bump = [bumps.#name as u8];
+                            let signer_seeds = #account_ty::derive_with_bump(#keys, &bump);
+                            msg!("{:?}", signer_seeds);
+                            msg!("{:?}", system_acc.key());
                             // TODO: make it work when not using pinocchio
                             let seeds_vec = &signer_seeds.into_iter().map(|seed| typhoon::program::SignerSeed::from(seed)).collect::<Vec<typhoon::program::SignerSeed>>()[..];
                             let signer: typhoon::program::SignerSeeds = typhoon::program::SignerSeeds::from(&seeds_vec[..]);
@@ -106,7 +156,6 @@ impl ToTokens for Assign<'_> {
         let expanded = quote! {
             #(#assign_fields)*
         };
-
         expanded.to_tokens(tokens);
     }
 }

@@ -1,0 +1,18 @@
+[package]
+name = "seeded"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+[dependencies]
+bytemuck = { workspace = true, features = ["derive"] }
+pinocchio.workspace = true
+pinocchio-pubkey.workspace = true
+typhoon = { workspace = true, features = ["pinocchio"] }
+
+[dev-dependencies]
+litesvm.workspace = true
+solana-sdk.workspace = true
