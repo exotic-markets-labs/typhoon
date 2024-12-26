@@ -1,11 +1,12 @@
-use std::path::PathBuf;
-
-use codama_attributes::Attributes;
-use codama_korok_visitors::KorokVisitable;
-use codama_koroks::{CrateKorok, ItemKorok};
-use codama_stores::CrateStore;
-use crayfish_metadata_extractor::visitors::FilterByImplsVisitor;
-use syn::{parse_quote, File};
+use {
+    codama_attributes::Attributes,
+    codama_korok_visitors::KorokVisitable,
+    codama_koroks::{CrateKorok, ItemKorok},
+    codama_stores::CrateStore,
+    std::path::PathBuf,
+    syn::{parse_quote, File},
+    typhoon_metadata_extractor::visitors::FilterByImplsVisitor,
+};
 
 #[test]
 fn it_apply_marker_node() {
