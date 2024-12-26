@@ -1,14 +1,13 @@
-use codama::{
-    ApplyCodamaAttributesVisitor, CombineModulesVisitor, CombineTypesVisitor,
-    SetProgramMetadataVisitor,
+use {
+    crate::helpers::AttributesHelper,
+    codama::{CombineModulesVisitor, CombineTypesVisitor, SetProgramMetadataVisitor},
+    codama_korok_plugins::KorokPlugin,
+    codama_korok_visitors::{
+        ComposeVisitor, FilterItemsVisitor, KorokVisitable, SetBorshTypesVisitor,
+        SetLinkTypesVisitor,
+    },
+    codama_koroks::KorokTrait,
 };
-use codama_korok_plugins::KorokPlugin;
-use codama_korok_visitors::{
-    ComposeVisitor, FilterItemsVisitor, KorokVisitable, SetBorshTypesVisitor, SetLinkTypesVisitor,
-};
-use codama_koroks::KorokTrait;
-
-use crate::helpers::AttributesHelper;
 
 pub struct TyphoonPlugin;
 
@@ -28,7 +27,7 @@ pub fn get_default_visitor<'a>() -> ComposeVisitor<'a> {
                 .add(SetLinkTypesVisitor::new()),
         ))
         .add(SetProgramMetadataVisitor::new())
-        .add(ApplyCodamaAttributesVisitor::new())
+        // .add(ApplyCodamaAttributesVisitor::new())
         .add(FilterItemsVisitor::new(
             |item| item.attributes().unwrap().has_any_codama_derive(),
             CombineTypesVisitor::new(),

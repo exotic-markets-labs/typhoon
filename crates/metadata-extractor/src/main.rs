@@ -1,4 +1,4 @@
-use {codama::Codama, crayfish_metadata_extractor::plugin::TyphoonPlugin, std::path::Path};
+use {codama::Codama, std::path::Path, typhoon_metadata_extractor::plugin::TyphoonPlugin};
 
 pub fn main() {
     // let manifest_dir = env!("CARGO_MANIFEST_DIR");

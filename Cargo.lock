@@ -53,9 +53,9 @@ dependencies = [
 
 [[package]]
 name = "bytemuck_derive"
-version = "1.9.2"
+version = "1.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2ff22c2722516255d1823ce3cc4bc0b154dbc9364be5c905d6baa6eccbbc8774"
+checksum = "3fa76293b4f7bb636ab88fd78228235b5248b4d05cc589aed610f954af5d7c7a"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -74,6 +74,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "cargo_toml"
+version = "0.20.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "88da5a13c620b4ca0078845707ea9c3faf11edbc3ffd8497d11d686211cd1ac0"
+dependencies = [
+ "serde",
+ "toml",
+]
+
+[[package]]
 name = "cfg-if"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -84,6 +94,148 @@ name = "cfg_aliases"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "613afe47fcd5fac7ccf1db93babcb082c5994d996f20b8b159f2ad1658eb5724"
+
+[[package]]
+name = "codama"
+version = "0.3.0"
+source = "git+https://github.com/codama-idl/codama-rs#8cba8cec2cc57c55a4add3bea850068d4803ca55"
+dependencies = [
+ "codama-errors",
+ "codama-korok-plugins",
+ "codama-korok-visitors",
+ "codama-koroks",
+ "codama-macros",
+ "codama-nodes",
+ "codama-stores",
+ "proc-macro2",
+]
+
+[[package]]
+name = "codama-attributes"
+version = "0.3.0"
+source = "git+https://github.com/codama-idl/codama-rs#8cba8cec2cc57c55a4add3bea850068d4803ca55"
+dependencies = [
+ "codama-errors",
+ "codama-nodes",
+ "codama-syn-helpers",
+ "derive_more",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "codama-errors"
+version = "0.3.0"
+source = "git+https://github.com/codama-idl/codama-rs#8cba8cec2cc57c55a4add3bea850068d4803ca55"
+dependencies = [
+ "cargo_toml",
+ "proc-macro2",
+ "serde_json",
+ "syn",
+ "thiserror",
+]
+
+[[package]]
+name = "codama-korok-plugins"
+version = "0.3.0"
+source = "git+https://github.com/codama-idl/codama-rs#8cba8cec2cc57c55a4add3bea850068d4803ca55"
+dependencies = [
+ "codama-errors",
+ "codama-korok-visitors",
+ "codama-koroks",
+]
+
+[[package]]
+name = "codama-korok-visitors"
+version = "0.3.0"
+source = "git+https://github.com/codama-idl/codama-rs#8cba8cec2cc57c55a4add3bea850068d4803ca55"
+dependencies = [
+ "cargo_toml",
+ "codama-attributes",
+ "codama-errors",
+ "codama-koroks",
+ "codama-nodes",
+ "codama-syn-helpers",
+ "syn",
+]
+
+[[package]]
+name = "codama-koroks"
+version = "0.3.0"
+source = "git+https://github.com/codama-idl/codama-rs#8cba8cec2cc57c55a4add3bea850068d4803ca55"
+dependencies = [
+ "codama-attributes",
+ "codama-errors",
+ "codama-nodes",
+ "codama-stores",
+ "codama-syn-helpers",
+ "derive_more",
+ "proc-macro2",
+ "syn",
+]
+
+[[package]]
+name = "codama-macros"
+version = "0.3.0"
+source = "git+https://github.com/codama-idl/codama-rs#8cba8cec2cc57c55a4add3bea850068d4803ca55"
+dependencies = [
+ "codama-attributes",
+ "codama-errors",
+ "codama-koroks",
+ "codama-stores",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "codama-nodes"
+version = "0.3.0"
+source = "git+https://github.com/codama-idl/codama-rs#8cba8cec2cc57c55a4add3bea850068d4803ca55"
+dependencies = [
+ "codama-errors",
+ "codama-nodes-derive",
+ "derive_more",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "codama-nodes-derive"
+version = "0.3.0"
+source = "git+https://github.com/codama-idl/codama-rs#8cba8cec2cc57c55a4add3bea850068d4803ca55"
+dependencies = [
+ "codama-errors",
+ "codama-syn-helpers",
+ "derive_more",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "codama-stores"
+version = "0.3.0"
+source = "git+https://github.com/codama-idl/codama-rs#8cba8cec2cc57c55a4add3bea850068d4803ca55"
+dependencies = [
+ "cargo_toml",
+ "codama-errors",
+ "proc-macro2",
+ "syn",
+]
+
+[[package]]
+name = "codama-syn-helpers"
+version = "0.3.0"
+source = "git+https://github.com/codama-idl/codama-rs#8cba8cec2cc57c55a4add3bea850068d4803ca55"
+dependencies = [
+ "codama-errors",
+ "derive_more",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
 
 [[package]]
 name = "cpufeatures"
@@ -102,6 +254,26 @@ checksum = "1bfb12502f3fc46cca1bb51ac28df9d618d813cdc3d2f25b9fe775a34af26bb3"
 dependencies = [
  "generic-array",
  "typenum",
+]
+
+[[package]]
+name = "derive_more"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4a9b99b9cbbe49445b21764dc0625032a89b145a2642e67603e1c936f5458d05"
+dependencies = [
+ "derive_more-impl",
+]
+
+[[package]]
+name = "derive_more-impl"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cb7330aeadfbe296029522e6c40f315320aba36fc43a5b3632f3795348f3bd22"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -573,7 +745,15 @@ dependencies = [
 name = "typhoon-metadata-extractor"
 version = "0.1.0"
 dependencies = [
- "cargo-manifest",
+ "codama",
+ "codama-attributes",
+ "codama-korok-plugins",
+ "codama-korok-visitors",
+ "codama-koroks",
+ "codama-nodes",
+ "codama-stores",
+ "codama-syn-helpers",
+ "five8_const",
  "syn",
 ]
 

@@ -1,8 +1,9 @@
-use std::collections::HashSet;
-
-use codama_korok_visitors::KorokVisitor;
-use codama_syn_helpers::extensions::{PathExtension, TypeExtension};
-use syn::Item;
+use {
+    codama_korok_visitors::KorokVisitor,
+    codama_syn_helpers::extensions::{PathExtension, TypeExtension},
+    std::collections::HashSet,
+    syn::Item,
+};
 
 #[derive(Debug)]
 pub struct FilterByImplsVisitor<'a> {
