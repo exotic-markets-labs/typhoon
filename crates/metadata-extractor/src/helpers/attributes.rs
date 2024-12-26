@@ -1,5 +1,4 @@
-use codama_attributes::Attributes;
-use codama_syn_helpers::extensions::PathExtension;
+use {codama_attributes::Attributes, codama_syn_helpers::extensions::PathExtension};
 
 pub trait AttributesHelper {
     fn has_attribute(&self, last: &str) -> bool;
