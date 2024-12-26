@@ -5,17 +5,18 @@ use {
     syn::Item,
 };
 
-#[derive(Debug)]
 pub struct FilterByImplsVisitor<'a> {
     pub traits: &'a [&'static str],
     pub struct_cache: HashSet<String>,
+    pub visitor: Box<dyn KorokVisitor + 'a>,
 }
 
 impl<'a> FilterByImplsVisitor<'a> {
-    pub fn new(traits: &'a [&'static str]) -> Self {
+    pub fn new<T: KorokVisitor + 'a>(traits: &'a [&'static str], visitor: T) -> Self {
         FilterByImplsVisitor {
             traits,
             struct_cache: HashSet::new(),
+            visitor: Box::new(visitor),
         }
     }
 }
@@ -50,6 +51,10 @@ impl KorokVisitor for FilterByImplsVisitor<'_> {
             return;
         }
 
-        if self.struct_cache.contains(&korok.ast.ident.to_string()) {}
+        if self.struct_cache.contains(&korok.ast.ident.to_string()) {
+            self.visitor.visit_struct(korok);
+        } else {
+            self.visit_children(korok);
+        }
     }
 }
