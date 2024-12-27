@@ -9,7 +9,6 @@ use {
     },
 };
 
-#[derive(Clone, Debug)]
 pub enum Argument {
     Value {
         name: Ident,
@@ -44,7 +43,6 @@ impl Parse for Argument {
     }
 }
 
-#[derive(Clone, Debug)]
 pub enum Arguments {
     Values(Vec<Argument>),
     Struct(Argument),

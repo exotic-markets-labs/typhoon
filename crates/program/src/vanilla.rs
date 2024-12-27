@@ -19,6 +19,7 @@ pub mod sysvars {
 pub type RawAccountInfo = solana_nostd_entrypoint::NoStdAccountInfo;
 pub type Account = solana_nostd_entrypoint::AccountInfoC;
 pub type SignerSeeds<'a, 'b> = &'a [&'b [u8]];
+pub type SignerSeed<'a> = &'a [u8];
 pub type AccountMeta = solana_nostd_entrypoint::AccountMetaC;
 
 #[macro_export]
@@ -127,4 +128,23 @@ pub fn invoke_signed<const ACCOUNTS: usize>(
 
 pub const fn pubkey_from_array(pubkey_array: [u8; 32]) -> pubkey::Pubkey {
     pubkey::Pubkey::new_from_array(pubkey_array)
+}
+
+pub mod pubkey {
+    pub use solana_nostd_entrypoint::solana_program::pubkey::*;
+
+    pub fn find_program_address(seeds: &[&[u8]], program_id: &Pubkey) -> (Pubkey, u8) {
+        Pubkey::find_program_address(seeds, program_id)
+    }
+
+    pub fn try_find_program_address(seeds: &[&[u8]], program_id: &Pubkey) -> Option<(Pubkey, u8)> {
+        Pubkey::try_find_program_address(seeds, program_id)
+    }
+
+    pub fn create_program_address(
+        seeds: &[&[u8]],
+        program_id: &Pubkey,
+    ) -> Result<Pubkey, super::ProgramError> {
+        Ok(Pubkey::create_program_address(seeds, program_id)?)
+    }
 }

@@ -115,7 +115,13 @@ impl TryFrom<&Vec<Account>> for Bumps {
                         ))
                     } else if a.constraints.is_seeded() && a.constraints.get_keys().is_some() {
                         let ident = format_ident!("{}_bump", a.name);
-                        let keys = a.constraints.get_keys().unwrap().clone();
+                        let keys = a
+                            .constraints
+                            .get_keys()
+                            .unwrap()
+                            .iter()
+                            .map(|k| quote! { #k.as_ref() })
+                            .collect::<syn::punctuated::Punctuated<_, syn::Token![,]>>();
                         let name = a.name.to_string();
                         Some((
                             a.name.clone(),

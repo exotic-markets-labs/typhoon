@@ -4,7 +4,8 @@ use {
     solana_sdk::{
         instruction::{AccountMeta, Instruction},
         native_token::LAMPORTS_PER_SOL,
-        pubkey::{self, Pubkey},
+        pubkey,
+        pubkey::Pubkey,
         signature::Keypair,
         signer::Signer,
         system_program,
@@ -31,7 +32,7 @@ fn integration_test() {
     svm.airdrop(&random_kp.pubkey(), 10 * LAMPORTS_PER_SOL)
         .unwrap();
 
-    let program_id = pubkey::Pubkey::new_from_array(seeds::id());
+    let program_id = pubkey!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
     let program_bytes = read_program();
 
     svm.add_program(program_id, &program_bytes);
@@ -51,7 +52,7 @@ fn integration_test() {
             .iter()
             .chain(
                 bytemuck::bytes_of(&InitContextArgs {
-                    admin: admin_pk.to_bytes(),
+                    admin: admin_pk.to_bytes().into(),
                     bump: counter_bump as u64,
                 })
                 .iter(),

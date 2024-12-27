@@ -127,7 +127,6 @@ impl ToTokens for Assign<'_> {
                             // TODO: avoid reusing seeds here and in verifications
                             let bump = [bumps.#name as u8];
                             let signer_seeds = #account_ty::derive_with_bump(#keys, &bump);
-                            // TODO: make it work when not using pinocchio
                             let seeds_vec = &signer_seeds.into_iter().map(|seed| typhoon_program::SignerSeed::from(seed)).collect::<Vec<typhoon_program::SignerSeed>>()[..];
                             let signer: typhoon_program::SignerSeeds = typhoon_program::SignerSeeds::from(&seeds_vec[..]);
                             typhoon::lib::SystemCpi::create_account(&system_acc, &#payer, &crate::ID, #space as u64, Some(&[typhoon_program::SignerSeeds::from(signer)]))?;

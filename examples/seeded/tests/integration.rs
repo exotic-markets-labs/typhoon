@@ -4,7 +4,8 @@ use {
     solana_sdk::{
         instruction::{AccountMeta, Instruction},
         native_token::LAMPORTS_PER_SOL,
-        pubkey::{self, Pubkey},
+        pubkey,
+        pubkey::Pubkey,
         signature::Keypair,
         signer::Signer,
         system_program,
@@ -23,13 +24,7 @@ fn read_program() -> Vec<u8> {
 #[test]
 fn integration_test() {
     let mut svm = LiteSVM::new();
-    let admin_kp = Keypair::from_bytes(&[
-        35, 190, 87, 153, 12, 242, 115, 151, 78, 131, 143, 11, 42, 72, 45, 131, 24, 226, 189, 63,
-        29, 245, 110, 221, 154, 251, 128, 23, 5, 104, 81, 252, 87, 35, 192, 0, 88, 162, 112, 230,
-        147, 6, 3, 146, 94, 238, 186, 210, 129, 176, 229, 25, 231, 237, 16, 221, 59, 52, 232, 224,
-        99, 137, 14, 105,
-    ])
-    .unwrap();
+    let admin_kp = Keypair::new();
     let admin_pk = admin_kp.pubkey();
     let random_kp = Keypair::new();
 
@@ -37,14 +32,14 @@ fn integration_test() {
     svm.airdrop(&random_kp.pubkey(), 10 * LAMPORTS_PER_SOL)
         .unwrap();
 
-    let program_id = pubkey::Pubkey::new_from_array(seeded::id());
+    let program_id = pubkey!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
     let program_bytes = read_program();
 
     svm.add_program(program_id, &program_bytes);
 
     // Create the counter
     let (counter_pk, counter_bump) =
-        Pubkey::find_program_address(&Counter::derive(&admin_pk.to_bytes()), &program_id);
+        Pubkey::find_program_address(&Counter::derive(&admin_pk.to_bytes().into()), &program_id);
 
     let ix = Instruction {
         program_id,
@@ -57,7 +52,7 @@ fn integration_test() {
             .iter()
             .chain(
                 bytemuck::bytes_of(&InitContextArgs {
-                    admin: admin_pk.to_bytes(),
+                    admin: admin_pk.to_bytes().into(),
                     bump: counter_bump as u64,
                 })
                 .iter(),

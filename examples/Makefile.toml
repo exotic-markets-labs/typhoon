@@ -6,5 +6,7 @@ CARGO_MAKE_CRATE_WORKSPACE_MEMBERS = [
     "counter",
     "hello-world",
     "instruction-data",
+    "seeded",
+    "seeds",
     "transfer-sol",
 ]
