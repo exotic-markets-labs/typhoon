@@ -16,7 +16,7 @@ use {
 
 fn read_program() -> Vec<u8> {
     let mut so_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    so_path.push("../../target/deploy/seeded.so");
+    so_path.push("target/deploy/seeded.so");
 
     std::fs::read(so_path).unwrap()
 }
