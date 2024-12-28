@@ -2,20 +2,20 @@ use {
     codama_korok_visitors::KorokVisitor,
     codama_koroks::StructKorok,
     codama_syn_helpers::extensions::{PathExtension, TypeExtension},
-    std::collections::HashSet,
+    std::{cell::RefCell, collections::HashSet, rc::Rc},
     syn::Item,
 };
 
 pub struct FilterByImplsVisitor<'a> {
     traits: &'a [&'static str],
-    cache: &'a mut HashSet<String>,
+    cache: Rc<RefCell<HashSet<String>>>,
     visitor: Box<dyn KorokVisitor + 'a>,
 }
 
 impl<'a> FilterByImplsVisitor<'a> {
     pub fn new<T: KorokVisitor + 'a>(
         traits: &'a [&'static str],
-        cache: &'a mut HashSet<String>,
+        cache: Rc<RefCell<HashSet<String>>>,
         visitor: T,
     ) -> Self {
         FilterByImplsVisitor {
@@ -47,7 +47,7 @@ impl KorokVisitor for FilterByImplsVisitor<'_> {
         }
 
         if let Ok(impl_path) = impl_item.self_ty.as_path() {
-            self.cache.insert(impl_path.last_str());
+            self.cache.borrow_mut().insert(impl_path.last_str());
         }
     }
 
@@ -56,7 +56,7 @@ impl KorokVisitor for FilterByImplsVisitor<'_> {
             return;
         }
 
-        if self.cache.contains(&korok.ast.ident.to_string()) {
+        if self.cache.borrow().contains(&korok.ast.ident.to_string()) {
             self.visitor.visit_struct(korok);
         } else {
             self.visit_children(korok);

@@ -1,12 +1,13 @@
 use {
-    crate::{helpers::AttributesHelper, visitors::SetProgramIdVisitor},
-    codama::{CombineModulesVisitor, CombineTypesVisitor, SetProgramMetadataVisitor},
+    crate::{
+        helpers::ItemHelper,
+        visitors::{CacheByImplsVisitor, FilterItemsVisitor, SetProgramIdVisitor},
+    },
+    codama::{CombineModulesVisitor, SetProgramMetadataVisitor},
     codama_korok_plugins::KorokPlugin,
     codama_korok_visitors::{
-        ComposeVisitor, FilterItemsVisitor, KorokVisitable, SetBorshTypesVisitor,
-        SetLinkTypesVisitor,
+        ComposeVisitor, KorokVisitable, SetBorshTypesVisitor, SetLinkTypesVisitor,
     },
-    codama_koroks::KorokTrait,
 };
 
 pub struct TyphoonPlugin;
@@ -15,22 +16,36 @@ impl KorokPlugin for TyphoonPlugin {
     fn run(&self, visitable: &mut dyn KorokVisitable, next: &dyn Fn(&mut dyn KorokVisitable)) {
         next(visitable);
 
+        let mut cache = CacheByImplsVisitor::new(&["Owner"]);
+        visitable.accept(&mut cache);
+
+        let struct_cache = cache.get_cache();
+
         let compose_visitor = || {
             ComposeVisitor::new()
                 .add(SetBorshTypesVisitor::new())
                 .add(SetLinkTypesVisitor::new())
         };
 
+        let cache_slice = struct_cache.as_slice();
         let mut default_visitor = ComposeVisitor::new()
             .add(FilterItemsVisitor::new(
-                |item| item.attributes().unwrap().has_attribute("account"),
+                move |item| {
+                    item.has_name_in_cache(cache_slice)
+                        || item.has_attribute("account")
+                        || item.has_attribute("context")
+                },
                 compose_visitor(),
             ))
             .add(SetProgramIdVisitor::new())
             .add(SetProgramMetadataVisitor::new())
             .add(FilterItemsVisitor::new(
-                |item| item.attributes().unwrap().has_attribute("account"),
-                CombineTypesVisitor::new(),
+                move |item| {
+                    item.has_name_in_cache(cache_slice)
+                        || item.has_attribute("account")
+                        || item.has_attribute("context")
+                },
+                compose_visitor(),
             ))
             .add(CombineModulesVisitor::new());
 
