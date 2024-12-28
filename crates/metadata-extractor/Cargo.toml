@@ -22,3 +22,6 @@ syn = { workspace = true, features = [
     "visit",
     "extra-traits",
 ] } #TODO remove extra-traits
+
+[dev-dependencies]
+quote.workspace = true

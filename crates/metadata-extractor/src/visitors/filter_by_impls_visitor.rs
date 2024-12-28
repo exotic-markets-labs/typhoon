@@ -1,22 +1,27 @@
 use {
     codama_korok_visitors::KorokVisitor,
+    codama_koroks::StructKorok,
     codama_syn_helpers::extensions::{PathExtension, TypeExtension},
     std::collections::HashSet,
     syn::Item,
 };
 
 pub struct FilterByImplsVisitor<'a> {
-    pub traits: &'a [&'static str],
-    pub struct_cache: HashSet<String>,
-    pub visitor: Box<dyn KorokVisitor + 'a>,
+    traits: &'a [&'static str],
+    cache: &'a mut HashSet<String>,
+    visitor: Box<dyn KorokVisitor + 'a>,
 }
 
 impl<'a> FilterByImplsVisitor<'a> {
-    pub fn new<T: KorokVisitor + 'a>(traits: &'a [&'static str], visitor: T) -> Self {
+    pub fn new<T: KorokVisitor + 'a>(
+        traits: &'a [&'static str],
+        cache: &'a mut HashSet<String>,
+        visitor: T,
+    ) -> Self {
         FilterByImplsVisitor {
             traits,
-            struct_cache: HashSet::new(),
             visitor: Box::new(visitor),
+            cache,
         }
     }
 }
@@ -42,16 +47,16 @@ impl KorokVisitor for FilterByImplsVisitor<'_> {
         }
 
         if let Ok(impl_path) = impl_item.self_ty.as_path() {
-            self.struct_cache.insert(impl_path.last_str());
+            self.cache.insert(impl_path.last_str());
         }
     }
 
-    fn visit_struct(&mut self, korok: &mut codama_koroks::StructKorok) {
+    fn visit_struct(&mut self, korok: &mut StructKorok) {
         if korok.node.is_some() {
             return;
         }
 
-        if self.struct_cache.contains(&korok.ast.ident.to_string()) {
+        if self.cache.contains(&korok.ast.ident.to_string()) {
             self.visitor.visit_struct(korok);
         } else {
             self.visit_children(korok);
