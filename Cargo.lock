@@ -1290,7 +1290,8 @@ dependencies = [
  "codama-stores",
  "codama-syn-helpers",
  "five8_const",
- "syn 2.0.100",
+ "quote",
+ "syn 2.0.91",
 ]
 
 [[package]]
