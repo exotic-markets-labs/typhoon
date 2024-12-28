@@ -1,14 +1,12 @@
 use {
-    crate::constraints::Constraints,
+    crate::{constraints::Constraints, extractor::AccountExtractor},
     proc_macro2::{Span, TokenStream},
     quote::{quote, ToTokens},
     std::ops::Deref,
-    syn::{
-        spanned::Spanned, visit_mut::VisitMut, Field, GenericArgument, Ident, PathArguments,
-        PathSegment, Type, TypePath,
-    },
+    syn::{spanned::Spanned, visit_mut::VisitMut, Field, Ident, PathSegment, Type, TypePath},
 };
 
+#[derive(Clone)]
 pub struct Account {
     pub(crate) name: Ident,
     pub(crate) constraints: Constraints,
@@ -81,7 +79,6 @@ impl ToTokens for Assign<'_> {
                             let system_acc = <typhoon::lib::Mut<typhoon::lib::SystemAccount> as typhoon::lib::FromAccountInfo>::try_from_info(#name)?;
                             // TODO: avoid reusing seeds here and in verifications
                             let signer_seeds = [#punctuated_seeds, &[bumps.#name as u8]];
-                            // TODO: make it work when not using pinocchio
                             let seeds_vec = &signer_seeds.into_iter().map(|seed| typhoon_program::SignerSeed::from(seed)).collect::<Vec<typhoon_program::SignerSeed>>()[..];
                             let signer: typhoon_program::SignerSeeds = typhoon_program::SignerSeeds::from(&seeds_vec[..]);
                             typhoon::lib::SystemCpi::create_account(&system_acc, &#payer, &crate::ID, #space as u64, Some(&[typhoon_program::SignerSeeds::from(signer)]))?;
@@ -93,33 +90,7 @@ impl ToTokens for Assign<'_> {
                         return syn::Error::new(name.span(), "Seeded accounts require `keys` to be passed on init").to_compile_error()
                     };
 
-                    fn get_subsegments(segment: &PathSegment) -> Vec<PathSegment> {
-                        if let PathArguments::AngleBracketed(arguments) = &segment.arguments {
-                            arguments.args.iter().filter_map(|a| match a {
-                                GenericArgument::Type(Type::Path(p)) => Some(p.path.segments.clone()),
-                                _ => None,
-                            }).flatten().collect()
-                        } else {
-                            vec![]
-                        }
-                    }
-
-                    let mut segment = (*ty).clone();
-                    let mut subsegments = get_subsegments(ty);
-                    let error = syn::Error::new(ty.span(), "Unexpected type structure").to_compile_error();
-                    while segment.ident != "Account" {
-                        let Some(s) = subsegments.first() else {
-                            return error
-                        };
-
-                        segment = s.clone().clone();
-                        subsegments = get_subsegments(&segment);
-                    }
-                    let Some(s) = subsegments.first() else {
-                        return error
-                    };
-                    let account_ty = &s.ident;
-
+                    let account_ty = AccountExtractor(ty).get_account_type();
 
                     quote! {
                         let #name: #ty = {

@@ -3,6 +3,7 @@ use syn::{
     Expr, Token,
 };
 
+#[derive(Clone)]
 pub struct ConstraintPayer {
     pub target: Expr,
 }

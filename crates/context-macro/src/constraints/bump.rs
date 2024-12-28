@@ -3,6 +3,7 @@ use syn::{
     Expr, Token,
 };
 
+#[derive(Clone)]
 pub struct ConstraintBump {
     pub bump: Option<Expr>,
     pub find_canonical: bool,

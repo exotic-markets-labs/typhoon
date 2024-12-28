@@ -1,11 +1,11 @@
 use {
-    crate::accounts::Account,
+    crate::{accounts::Account, extractor::AccountExtractor},
     proc_macro2::TokenStream,
     quote::{format_ident, quote},
-    syn::{Expr, Ident},
+    syn::Ident,
 };
 
-pub struct Bumps(pub Vec<(Ident, Expr, TokenStream)>);
+pub struct Bumps(pub Vec<Account>);
 
 impl Bumps {
     pub fn get_name(&self, context_name: &Ident) -> Ident {
@@ -13,9 +13,14 @@ impl Bumps {
     }
 
     pub fn generate_struct(&self, context_name: &Ident) -> TokenStream {
-        let fields = self.0.iter().map(|(name, _, _)| {
-            quote! {
-                pub #name: u64, // TODO: fix alignment issues
+        let fields = self.0.iter().filter_map(|a| {
+            if a.constraints.is_seeded() && !a.constraints.has_init() {
+                None
+            } else {
+                let name = &a.name;
+                Some(quote! {
+                    pub #name: u64, // TODO: fix alignment issues
+                })
             }
         });
         let struct_name = self.get_name(context_name);
@@ -29,68 +34,97 @@ impl Bumps {
         }
     }
 
-    pub fn get_checks_and_assigns(&self, context_name: &Ident) -> (TokenStream, TokenStream) {
-        let ((creation, checks), values): ((Vec<TokenStream>, Vec<TokenStream>), Vec<TokenStream>) = self.0.iter().map(|(name, value, seeds)| {
-            let pk = format_ident!("{}_pk", name);
-            let bump = format_ident!("{}_bump", name);
+    pub fn get_checks(&self) -> TokenStream {
+        let checks = self
+            .0
+            .iter()
+            .map(|a| {
+                let c = &a.constraints;
+                let name = &a.name;
+                let pk_ident = format_ident!("{}_pk", name);
 
-            let computed_bump = (
-                (quote! {
-                    let (#pk, #bump) = typhoon_program::pubkey::find_program_address(&[#seeds], &crate::ID);
-                },
-                quote ! {
-                    if #name.key() != &#pk {
-                        return Err(ProgramError::InvalidSeeds);
-                    }
-                }), quote! {
-                    #name: #bump as u64, // TODO: Fix alignment
-                },
-            );
-            let provided_bump = (
-                (quote! {},
-                quote! {
-                    let #pk = typhoon_program::pubkey::create_program_address(&[#seeds, &[#value]], &crate::ID)?;
-                    if #name.key() != &#pk {
-                        return Err(ProgramError::InvalidSeeds);
-                    }
-                }),
-                quote! {
-                    #name: #value,
-                },
-            );
-
-            match value {
-                Expr::Path(e) => {
-                    if let Some(ident) = e.path.get_ident() {
-                        if  bump == *ident {
-                            computed_bump
-                        } else {
-                            provided_bump
+                if c.must_find_canonical_bump() || (c.is_seeded() && c.has_init()) {
+                    quote! {
+                        if #name.key() != &#pk_ident {
+                            return Err(ProgramError::InvalidSeeds);
                         }
-                    } else {
-                        provided_bump
                     }
-                },
-                _ => {
-                    provided_bump
+                } else if c.is_seeded() && !c.has_init() {
+                    quote! {
+                        let (#pk_ident, _) = typhoon_program::pubkey::find_program_address(&#name.data()?.seeds(), &crate::ID);
+                        if #name.key() != &#pk_ident {
+                            return Err(ProgramError::InvalidSeeds);
+                        }
+                    }
+                } else if let (Some(seeds), Some(bump)) = (c.get_seeds(), c.get_bump(name)) {
+                    quote! {
+                        let #pk_ident = typhoon_program::pubkey::create_program_address(&[#seeds, &[#bump]], &crate::ID)?;
+                        if #name.key() != &#pk_ident {
+                            return Err(ProgramError::InvalidSeeds);
+                        }
+                    }
+                } else {
+                    quote!()
                 }
+            })
+            .collect::<Vec<TokenStream>>();
+
+        quote! {
+            #(#checks)*
+        }
+    }
+
+    pub fn get_assign(&self, context_name: &Ident) -> TokenStream {
+        let (creations, values): (Vec<TokenStream>, Vec<TokenStream>) = self.0.iter().map(|a| {
+            let c = &a.constraints;
+            let name = &a.name;
+            let pk_ident = format_ident!("{}_pk", name);
+            let bump_ident = format_ident!("{}_bump", name);
+
+            // TODO: do not always compute the bump when account is seeded
+            if c.is_seeded() {
+                if let Some(keys) = c.get_keys() {
+                    let account_ty = AccountExtractor(&a.ty).get_account_type();
+
+                    (quote! {
+                        let (#pk_ident, #bump_ident) = typhoon_program::pubkey::find_program_address(&#account_ty::derive(#keys), &crate::ID);
+                    }, quote! {
+                        #name: #bump_ident as u64, // TODO: Fix alignment
+                    })
+                } else {
+                    (quote!(), quote!())
+                }
+            } else if c.must_find_canonical_bump() {
+                (if let Some(seeds) = c.get_seeds() {
+                    quote! {
+                        let (#pk_ident, #bump_ident) = typhoon_program::pubkey::find_program_address(&[#seeds], &crate::ID);
+                    }
+                } else {
+                    syn::Error::new(a.name.span(), "Seeds must be provided to generate bump assignments").to_compile_error()
+                }, quote! {
+                    #name: #bump_ident as u64, // TODO: Fix alignment
+                })
+            } else {
+                (quote!(),
+                if let Some(bump) = a.constraints.get_bump(name) {
+                    quote! {
+                        #name: #bump,
+                    }
+                } else {
+                    syn::Error::new(a.name.span(), "A bump must be provided to generate key checks").to_compile_error()
+                })
             }
         }).unzip();
 
-        let checks = quote! {
-            #(#checks)*
-        };
-
         let struct_name = self.get_name(context_name);
-        let assign = quote! {
-            #(#creation)*
+
+        quote! {
+            #(#creations)*
 
             let bumps = #struct_name {
                 #(#values)*
             };
-        };
-
-        (checks, assign)
+        }
     }
 }
 
@@ -102,44 +136,9 @@ impl TryFrom<&Vec<Account>> for Bumps {
             accounts
                 .iter()
                 .filter_map(|a| {
-                    if !a.constraints.has_init() {
-                        None
-                    } else if a.constraints.get_bump(&a.name).is_some()
-                        && a.constraints.get_seeds().is_some()
-                    {
-                        let seeds = a.constraints.get_seeds().unwrap().clone();
-                        Some((
-                            a.name.clone(),
-                            a.constraints.get_bump(&a.name).unwrap().clone(),
-                            quote! { #seeds },
-                        ))
-                    } else if a.constraints.is_seeded() && a.constraints.get_keys().is_some() {
-                        let ident = format_ident!("{}_bump", a.name);
-                        let keys = a
-                            .constraints
-                            .get_keys()
-                            .unwrap()
-                            .iter()
-                            .map(|k| quote! { #k.as_ref() })
-                            .collect::<syn::punctuated::Punctuated<_, syn::Token![,]>>();
-                        let name = a.name.to_string();
-                        Some((
-                            a.name.clone(),
-                            Expr::Path(syn::ExprPath {
-                                attrs: Vec::new(),
-                                qself: None,
-                                path: syn::Path {
-                                    leading_colon: None,
-                                    segments: vec![syn::PathSegment {
-                                        ident,
-                                        arguments: syn::PathArguments::None,
-                                    }]
-                                    .into_iter()
-                                    .collect(),
-                                },
-                            }),
-                            quote! { #name.as_bytes(), #keys },
-                        ))
+                    let c = &a.constraints;
+                    if (c.has_init() && c.get_seeds().is_some()) || c.is_seeded() {
+                        Some(a.clone())
                     } else {
                         None
                     }

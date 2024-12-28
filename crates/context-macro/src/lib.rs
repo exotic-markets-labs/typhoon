@@ -16,6 +16,7 @@ mod accounts;
 mod arguments;
 mod bumps;
 mod constraints;
+mod extractor;
 mod injector;
 mod remover;
 
@@ -129,7 +130,8 @@ impl ToTokens for Context {
             .visit_item_mut(account_struct);
 
             let bumps_struct = bumps.generate_struct(name);
-            let (checks, assigns) = bumps.get_checks_and_assigns(name);
+            let checks = bumps.get_checks();
+            let assigns = bumps.get_assign(name);
 
             struct_fields.push(&bumps_ident);
 

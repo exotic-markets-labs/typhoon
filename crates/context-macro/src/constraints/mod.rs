@@ -16,6 +16,7 @@ mod space;
 use {bump::*, init::*, keys::*, payer::*, seeded::*, seeds::*, space::*};
 
 //TODO rewrite it to add custom constraint for users
+#[derive(Clone)]
 pub enum Constraint {
     Init(ConstraintInit),
     Payer(ConstraintPayer),
@@ -26,7 +27,7 @@ pub enum Constraint {
     Bump(ConstraintBump),
 }
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub struct Constraints(Vec<Constraint>);
 
 impl VisitMut for Constraints {
@@ -98,6 +99,23 @@ impl Constraints {
                 None
             }
         })
+    }
+
+    pub fn must_find_canonical_bump(&self) -> bool {
+        self.0
+            .iter()
+            .find_map(|c| {
+                if let Constraint::Bump(bump_constraint) = c {
+                    if bump_constraint.find_canonical {
+                        Some(true)
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            })
+            .is_some()
     }
 
     pub fn is_seeded(&self) -> bool {

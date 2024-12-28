@@ -4,6 +4,7 @@ use syn::{
     Expr, Token,
 };
 
+#[derive(Clone)]
 pub struct ConstraintKeys {
     pub keys: Punctuated<Expr, Token![,]>,
 }
