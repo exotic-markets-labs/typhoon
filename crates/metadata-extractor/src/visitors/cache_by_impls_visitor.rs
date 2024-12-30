@@ -1,8 +1,9 @@
-use std::{borrow::BorrowMut, collections::HashSet};
-
-use codama::KorokVisitor;
-use codama_syn_helpers::extensions::{PathExtension, TypeExtension};
-use syn::Item;
+use {
+    codama::KorokVisitor,
+    codama_syn_helpers::extensions::{PathExtension, TypeExtension},
+    std::{borrow::BorrowMut, collections::HashSet},
+    syn::Item,
+};
 
 pub struct CacheByImplsVisitor<'a> {
     traits: &'a [&'static str],
