@@ -11,9 +11,9 @@ pub struct ConstraintKeys {
 
 impl Parse for ConstraintKeys {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let _punct: Token![=] = input.parse()?;
+        input.parse::<Token![=]>()?;
         let content;
-        let _bracket_token = syn::bracketed!(content in input);
+        syn::bracketed!(content in input);
 
         let mut keys = content.parse_terminated(Expr::parse, Token![,])?;
 

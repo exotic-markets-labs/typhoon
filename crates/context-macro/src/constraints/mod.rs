@@ -173,7 +173,7 @@ pub fn parse_constraints(input: ParseStream) -> syn::Result<Vec<Constraint>> {
         }
 
         if input.peek(Token![,]) {
-            let _punct: Token![,] = input.parse()?;
+            input.parse::<Token![,]>()?;
         }
     }
 

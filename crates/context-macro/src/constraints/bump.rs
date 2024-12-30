@@ -23,7 +23,7 @@ impl Parse for ConstraintBump {
                 find_canonical: true,
             })
         } else {
-            let _punct: Token![=] = input.parse()?;
+            input.parse::<Token![=]>()?;
             let bump = input.parse()?;
 
             Ok(ConstraintBump {

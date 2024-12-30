@@ -39,7 +39,7 @@ pub fn account(
         }
     }
 
-    let expanded = quote! {
+    quote! {
         #[derive(bytemuck::Pod, bytemuck::Zeroable, Clone, Copy)]
         #[repr(C)]
         #cleaned_item
@@ -54,6 +54,6 @@ pub fn account(
 
         #seeded_trait
     }
-    .into_token_stream();
-    expanded.into()
+    .into_token_stream()
+    .into()
 }
