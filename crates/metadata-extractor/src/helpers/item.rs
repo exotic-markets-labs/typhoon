@@ -1,6 +1,7 @@
-use codama::{ItemKorok, KorokTrait};
-
-use super::AttributesHelper;
+use {
+    super::AttributesHelper,
+    codama::{ItemKorok, KorokTrait},
+};
 
 pub trait ItemHelper {
     fn has_attribute(&self, last: &str) -> bool;
