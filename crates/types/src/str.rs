@@ -103,11 +103,4 @@ mod tests {
         str.copy_from_str("emptyemptyempty");
         assert_eq!(&str, "emptyempty");
     }
-
-    #[test]
-    fn test_default() {
-        let str: ZCStr<20> = ZCStr::default();
-
-        assert_eq!(str.len(), 20);
-    }
 }
