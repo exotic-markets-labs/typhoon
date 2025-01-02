@@ -8,6 +8,6 @@ authors.workspace = true
 repository.workspace = true
 
 [dependencies]
-bytemuck.workspace = true
 typhoon-program.workspace = true
 paste.workspace = true
+zerocopy.workspace = true

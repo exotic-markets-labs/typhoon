@@ -27,10 +27,7 @@ cargo add typhoon
 
 Here’s a quick example to show how Typhoon simplifies Solana program development:
 ```rust
-use {
-    bytemuck::{Pod, Zeroable},
-    typhoon::prelude::*,
-};
+use typhoon::prelude::*;
 
 program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 

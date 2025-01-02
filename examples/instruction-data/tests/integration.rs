@@ -1,3 +1,4 @@
+use zerocopy::{FromBytes, IntoBytes};
 use {
     instruction_data::{Buffer, InitArgs, SetValueContextArgs},
     litesvm::LiteSVM,
@@ -39,7 +40,6 @@ fn integration_test() {
     let buffer_b_pk = buffer_b_kp.pubkey();
 
     let init_args = InitArgs { value: 42 };
-
     let tx = Transaction::new_signed_with_payer(
         &[Instruction {
             program_id,
@@ -48,9 +48,10 @@ fn integration_test() {
                 AccountMeta::new(buffer_a_pk, true),
                 AccountMeta::new_readonly(system_program::ID, false),
             ],
-            data: [0]
+            data: 0u64
+                .as_bytes()
                 .iter()
-                .chain(bytemuck::bytes_of(&init_args).iter())
+                .chain(init_args.as_bytes())
                 .cloned()
                 .collect(),
         }],
@@ -60,7 +61,7 @@ fn integration_test() {
     );
     svm.send_transaction(tx).unwrap();
     let raw_account = svm.get_account(&buffer_a_pk).unwrap();
-    let buffer_account = bytemuck::try_from_bytes::<Buffer>(raw_account.data.as_slice()).unwrap();
+    let buffer_account = Buffer::read_from_bytes(raw_account.data.as_slice()).unwrap();
     assert!(buffer_account.value1 == init_args.value);
 
     let tx = Transaction::new_signed_with_payer(
@@ -71,9 +72,10 @@ fn integration_test() {
                 AccountMeta::new(buffer_b_pk, true),
                 AccountMeta::new_readonly(system_program::ID, false),
             ],
-            data: [0]
+            data: 0u64
+                .as_bytes()
                 .iter()
-                .chain(bytemuck::bytes_of(&init_args).iter())
+                .chain(init_args.as_bytes())
                 .cloned()
                 .collect(),
         }],
@@ -83,7 +85,7 @@ fn integration_test() {
     );
     svm.send_transaction(tx).unwrap();
     let raw_account = svm.get_account(&buffer_b_pk).unwrap();
-    let buffer_account = bytemuck::try_from_bytes::<Buffer>(raw_account.data.as_slice()).unwrap();
+    let buffer_account = Buffer::read_from_bytes(raw_account.data.as_slice()).unwrap();
     assert!(buffer_account.value1 == init_args.value);
 
     let ix_a_args = SetValueContextArgs {
@@ -95,10 +97,11 @@ fn integration_test() {
         &[Instruction {
             program_id,
             accounts: vec![AccountMeta::new(buffer_a_pk, false)],
-            data: [1]
+            data: 1u64
+                .as_bytes()
                 .iter()
-                .chain(bytemuck::bytes_of(&ix_a_args).iter())
-                .chain(bytemuck::bytes_of(&more_args).iter())
+                .chain(ix_a_args.as_bytes())
+                .chain(more_args.as_bytes())
                 .cloned()
                 .collect(),
         }],
@@ -108,7 +111,7 @@ fn integration_test() {
     );
     svm.send_transaction(tx).unwrap();
     let raw_account = svm.get_account(&buffer_a_pk).unwrap();
-    let buffer_account = bytemuck::try_from_bytes::<Buffer>(raw_account.data.as_slice()).unwrap();
+    let buffer_account = Buffer::read_from_bytes(raw_account.data.as_slice()).unwrap();
     assert!(buffer_account.value1 == ix_a_args.value);
     assert!(buffer_account.value2 == more_args);
 
@@ -121,10 +124,11 @@ fn integration_test() {
         &[Instruction {
             program_id,
             accounts: vec![AccountMeta::new(buffer_b_pk, false)],
-            data: [1]
+            data: 1u64
+                .as_bytes()
                 .iter()
-                .chain(bytemuck::bytes_of(&ix_b_args).iter())
-                .chain(bytemuck::bytes_of(&more_args).iter())
+                .chain(ix_b_args.as_bytes())
+                .chain(more_args.as_bytes())
                 .cloned()
                 .collect(),
         }],
@@ -134,7 +138,7 @@ fn integration_test() {
     );
     svm.send_transaction(tx).unwrap();
     let raw_account = svm.get_account(&buffer_b_pk).unwrap();
-    let buffer_account = bytemuck::try_from_bytes::<Buffer>(raw_account.data.as_slice()).unwrap();
+    let buffer_account = Buffer::read_from_bytes(raw_account.data.as_slice()).unwrap();
     assert!(buffer_account.value1 == ix_b_args.value);
     assert!(buffer_account.value2 == more_args);
 
@@ -153,10 +157,11 @@ fn integration_test() {
                 AccountMeta::new(buffer_a_pk, false),
                 AccountMeta::new(buffer_b_pk, false),
             ],
-            data: [2]
+            data: 2u64
+                .as_bytes()
                 .iter()
-                .chain(bytemuck::bytes_of(&ix_a_args).iter())
-                .chain(bytemuck::bytes_of(&ix_b_args).iter())
+                .chain(ix_a_args.as_bytes())
+                .chain(ix_b_args.as_bytes())
                 .cloned()
                 .collect(),
         }],
@@ -167,7 +172,7 @@ fn integration_test() {
     svm.send_transaction(tx).unwrap();
 
     let raw_account = svm.get_account(&buffer_a_pk).unwrap();
-    let buffer_account = bytemuck::try_from_bytes::<Buffer>(raw_account.data.as_slice()).unwrap();
+    let buffer_account = Buffer::read_from_bytes(raw_account.data.as_slice()).unwrap();
     assert!(buffer_account.value1 == ix_a_args.value);
     assert!(buffer_account.value2 == ix_a_args.value + ix_b_args.value);
 }

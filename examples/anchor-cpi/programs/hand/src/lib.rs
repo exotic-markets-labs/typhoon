@@ -1,4 +1,3 @@
-use podded::pod::PodStr;
 use typhoon::prelude::*;
 
 program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
@@ -7,7 +6,7 @@ handlers! {
     pull_lever,
 }
 
-pub fn pull_lever(ctx: PullLever, name: Args<PodStr<50>>) -> Result<(), ProgramError> {
+pub fn pull_lever(ctx: PullLever, name: Args<ZCStr<50>>) -> Result<(), ProgramError> {
     crate::cpi::SwitchPower {
         power: ctx.power.as_ref(),
         name: name.as_ref(),

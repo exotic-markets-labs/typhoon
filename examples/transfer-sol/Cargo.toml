@@ -12,7 +12,6 @@ default = ["solana-nostd-entrypoint", "solana-program"]
 pinocchio = ["dep:pinocchio", "typhoon/pinocchio"]
 
 [dependencies]
-bytemuck = "1.19"
 pinocchio = { git = "https://github.com/febo/pinocchio", optional = true }
 solana-nostd-entrypoint = { git = "https://github.com/cavemanloverboy/solana-nostd-entrypoint", optional = true }
 solana-program = { version = "1.18", optional = true }

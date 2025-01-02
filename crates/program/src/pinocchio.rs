@@ -35,6 +35,10 @@ pub const fn pubkey_from_array(pubkey_array: [u8; 32]) -> pubkey::Pubkey {
     pubkey_array
 }
 
+pub const fn pubkey_to_bytes(value: pubkey::Pubkey) -> [u8; 32] {
+    value
+}
+
 #[macro_export]
 macro_rules! msg {
     ($msg:expr) => {

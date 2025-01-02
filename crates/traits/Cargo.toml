@@ -8,6 +8,5 @@ authors.workspace = true
 repository.workspace = true
 
 [dependencies]
-bytemuck.workspace = true
 typhoon-accounts.workspace = true
 typhoon-program.workspace = true

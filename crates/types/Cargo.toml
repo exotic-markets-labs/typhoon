@@ -1,5 +1,5 @@
 [package]
-name = "typhoon-accounts"
+name = "typhoon-types"
 version.workspace = true
 rust-version.workspace = true
 edition.workspace = true
@@ -7,11 +7,6 @@ license.workspace = true
 authors.workspace = true
 repository.workspace = true
 
-[features]
-borsh = ["dep:borsh"]
-
 [dependencies]
-borsh = { workspace = true, optional = true }
-typhoon-errors.workspace = true
 typhoon-program.workspace = true
-zerocopy.workspace = true
+zerocopy = { workspace = true, features = ["derive"] }

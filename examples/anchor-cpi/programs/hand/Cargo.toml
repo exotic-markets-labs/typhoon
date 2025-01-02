@@ -13,9 +13,8 @@ pinocchio = ["dep:pinocchio", "typhoon/pinocchio"]
 
 [dependencies]
 borsh = "1.5"
-bytemuck = "1.19"
 pinocchio = { git = "https://github.com/febo/pinocchio", optional = true }
 solana-nostd-entrypoint = { git = "https://github.com/cavemanloverboy/solana-nostd-entrypoint", optional = true }
-podded = "0.5.2"
 solana-program = { version = "1.18", optional = true }
 typhoon = { path = "../../../../crates/lib", features = ["borsh"] }
+zerocopy = { version = "0.8.14", features = ["derive"] }

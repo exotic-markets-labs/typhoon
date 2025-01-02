@@ -11,6 +11,7 @@ use {
         transaction::Transaction,
     },
     std::path::PathBuf,
+    zerocopy::{FromBytes, IntoBytes},
 };
 
 fn read_program() -> Vec<u8> {
@@ -43,7 +44,7 @@ fn integration_test() {
             AccountMeta::new(counter_pk, true),
             AccountMeta::new_readonly(system_program::ID, false),
         ],
-        data: vec![0],
+        data: 0u64.as_bytes().to_vec(),
     };
     let hash = svm.latest_blockhash();
     let tx =
@@ -51,7 +52,7 @@ fn integration_test() {
     svm.send_transaction(tx).unwrap();
 
     let raw_account = svm.get_account(&counter_pk).unwrap();
-    let counter_account: &Counter = bytemuck::try_from_bytes(raw_account.data.as_slice()).unwrap();
+    let counter_account = Counter::read_from_bytes(raw_account.data.as_slice()).unwrap();
     assert!(counter_account.count == 0);
 
     // Increment the counter
@@ -62,13 +63,13 @@ fn integration_test() {
             is_signer: false,
             is_writable: true,
         }],
-        data: vec![1],
+        data: 1u64.as_bytes().to_vec(),
     };
     let hash = svm.latest_blockhash();
     let tx = Transaction::new_signed_with_payer(&[ix], Some(&admin_pk), &[&admin_kp], hash);
     svm.send_transaction(tx).unwrap();
 
     let raw_account = svm.get_account(&counter_pk).unwrap();
-    let counter_account: &Counter = bytemuck::try_from_bytes(raw_account.data.as_slice()).unwrap();
+    let counter_account = Counter::read_from_bytes(raw_account.data.as_slice()).unwrap();
     assert!(counter_account.count == 1);
 }

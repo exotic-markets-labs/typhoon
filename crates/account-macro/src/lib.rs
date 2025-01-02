@@ -40,8 +40,7 @@ pub fn account(
     }
 
     quote! {
-        #[derive(bytemuck::Pod, bytemuck::Zeroable, Clone, Copy)]
-        #[repr(C)]
+        #[derive(zerocopy::KnownLayout, zerocopy::IntoBytes, zerocopy::Immutable, zerocopy::FromBytes)]
         #cleaned_item
 
         impl Owner for #name #ty_generics #where_clause {

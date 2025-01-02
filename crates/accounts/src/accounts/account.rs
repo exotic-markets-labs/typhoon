@@ -1,17 +1,16 @@
 use {
     crate::{Discriminator, FromAccountInfo, Owner, ReadableAccount},
-    bytemuck::Pod,
     std::marker::PhantomData,
     typhoon_errors::Error,
     typhoon_program::{
-        bytes::try_from_bytes, program_error::ProgramError, pubkey::Pubkey, system_program,
-        RawAccountInfo, Ref,
+        program_error::ProgramError, pubkey::Pubkey, system_program, RawAccountInfo, Ref,
     },
+    zerocopy::{FromBytes, Immutable, KnownLayout},
 };
 
 pub struct Account<'a, T>
 where
-    T: Pod + Discriminator,
+    T: Discriminator,
 {
     info: &'a RawAccountInfo,
     _phantom: PhantomData<T>,
@@ -19,7 +18,7 @@ where
 
 impl<'a, T> FromAccountInfo<'a> for Account<'a, T>
 where
-    T: Owner + Pod + Discriminator,
+    T: Owner + Discriminator,
 {
     fn try_from_info(info: &'a RawAccountInfo) -> Result<Self, ProgramError> {
         if info.owner() == &system_program::ID && *info.try_borrow_lamports()? == 0 {
@@ -49,7 +48,7 @@ where
 
 impl<T> AsRef<RawAccountInfo> for Account<'_, T>
 where
-    T: Pod + Discriminator,
+    T: Discriminator,
 {
     fn as_ref(&self) -> &RawAccountInfo {
         self.info
@@ -58,7 +57,7 @@ where
 
 impl<T> ReadableAccount for Account<'_, T>
 where
-    T: Pod + Discriminator,
+    T: FromBytes + KnownLayout + Immutable + Discriminator,
 {
     type DataType = T;
 
@@ -79,7 +78,7 @@ where
         let data = self.info.try_borrow_data()?;
 
         Ref::filter_map(data, |data| {
-            try_from_bytes(&data[dis_len..std::mem::size_of::<T>() + dis_len])
+            T::ref_from_bytes(&data[dis_len..std::mem::size_of::<T>() + dis_len]).ok()
         })
         .map_err(|_| ProgramError::InvalidAccountData)
     }

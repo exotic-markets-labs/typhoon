@@ -10,6 +10,7 @@ use {
         transaction::Transaction,
     },
     std::path::PathBuf,
+    typhoon::prelude::*,
 };
 
 fn read_program() -> Vec<u8> {
@@ -43,10 +44,6 @@ fn integration_test() {
     // Transfer with CPI
 
     let amount = LAMPORTS_PER_SOL;
-    let amount_bytes = bytemuck::bytes_of(&amount);
-    let mut data = vec![0];
-    data.extend_from_slice(amount_bytes);
-
     let ix = Instruction {
         accounts: vec![
             AccountMeta::new(admin_pk, true),
@@ -54,7 +51,12 @@ fn integration_test() {
             AccountMeta::new_readonly(system_program::ID, false),
         ],
         program_id,
-        data,
+        data: 0u64
+            .as_bytes()
+            .iter()
+            .chain(amount.as_bytes())
+            .cloned()
+            .collect(),
     };
 
     let hash = svm.latest_blockhash();
@@ -82,17 +84,18 @@ fn integration_test() {
     );
 
     let amount = LAMPORTS_PER_SOL;
-    let amount_bytes = bytemuck::bytes_of(&amount);
-    let mut data = vec![1];
-    data.extend_from_slice(amount_bytes);
-
     let ix = Instruction {
         accounts: vec![
             AccountMeta::new(program_acc_pk, true),
             AccountMeta::new(admin_pk, false),
         ],
         program_id,
-        data,
+        data: 1u64
+            .as_bytes()
+            .iter()
+            .chain(amount.as_bytes())
+            .cloned()
+            .collect(),
     };
 
     let hash = svm.latest_blockhash();

@@ -27,7 +27,7 @@ impl Bumps {
 
         quote! {
             #[repr(C)]
-            #[derive(Clone, Copy, Debug, PartialEq, bytemuck::Pod, bytemuck::Zeroable)]
+            #[derive(Debug, PartialEq, zerocopy::KnownLayout, zerocopy::IntoBytes, zerocopy::Immutable, zerocopy::FromBytes)]
             pub struct #struct_name {
                 #(#fields)*
             }

@@ -11,4 +11,10 @@ pub struct TestState {
     pub foo: u64,
 }
 
+#[account]
+pub struct TestAnotherState {
+    #[key]
+    pub foo: ZCPubkey,
+}
+
 pub fn main() {}

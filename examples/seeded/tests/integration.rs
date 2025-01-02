@@ -1,3 +1,5 @@
+use typhoon::lib::ZCPubkey;
+use zerocopy::{FromBytes, IntoBytes};
 use {
     litesvm::LiteSVM,
     seeded::{Counter, InitContextArgs},
@@ -38,9 +40,14 @@ fn integration_test() {
     svm.add_program(program_id, &program_bytes);
 
     // Create the counter
+    let admin_key = ZCPubkey::new(admin_pk.to_bytes());
     let (counter_pk, counter_bump) =
-        Pubkey::find_program_address(&Counter::derive(&admin_pk.to_bytes().into()), &program_id);
+        Pubkey::find_program_address(&Counter::derive(&admin_key), &program_id);
 
+    let arg = InitContextArgs {
+        admin: admin_key,
+        bump: counter_bump as u64,
+    };
     let ix = Instruction {
         program_id,
         accounts: vec![
@@ -48,15 +55,10 @@ fn integration_test() {
             AccountMeta::new(counter_pk, false),
             AccountMeta::new(system_program::ID, false),
         ],
-        data: [0]
+        data: 0u64
+            .as_bytes()
             .iter()
-            .chain(
-                bytemuck::bytes_of(&InitContextArgs {
-                    admin: admin_pk.to_bytes().into(),
-                    bump: counter_bump as u64,
-                })
-                .iter(),
-            )
+            .chain(arg.as_bytes())
             .cloned()
             .collect(),
     };
@@ -70,14 +72,14 @@ fn integration_test() {
             AccountMeta::new_readonly(admin_pk, true),
             AccountMeta::new(counter_pk, false),
         ],
-        data: vec![1],
+        data: 1u64.as_bytes().to_vec(),
     };
     let hash = svm.latest_blockhash();
     let tx = Transaction::new_signed_with_payer(&[ix], Some(&admin_pk), &[&admin_kp], hash);
     svm.send_transaction(tx).unwrap();
 
     let raw_account = svm.get_account(&counter_pk).unwrap();
-    let counter_account: &Counter = bytemuck::try_from_bytes(raw_account.data.as_slice()).unwrap();
+    let counter_account = Counter::read_from_bytes(raw_account.data.as_slice()).unwrap();
     assert!(counter_account.count == 1);
 
     let ix = Instruction {
@@ -86,7 +88,7 @@ fn integration_test() {
             AccountMeta::new_readonly(random_kp.pubkey(), true),
             AccountMeta::new(counter_pk, false),
         ],
-        data: vec![1],
+        data: 1u64.as_bytes().to_vec(),
     };
     let hash = svm.latest_blockhash();
     let tx =

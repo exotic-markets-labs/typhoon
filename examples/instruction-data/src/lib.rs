@@ -1,12 +1,9 @@
-use {
-    bytemuck::{Pod, Zeroable},
-    typhoon::prelude::*,
-};
+use typhoon::prelude::*;
 
 program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
 #[repr(C)]
-#[derive(Clone, Copy, Debug, PartialEq, Pod, Zeroable)]
+#[derive(Debug, PartialEq, FromBytes, IntoBytes, Immutable, KnownLayout)]
 pub struct InitArgs {
     pub value: u64,
 }
