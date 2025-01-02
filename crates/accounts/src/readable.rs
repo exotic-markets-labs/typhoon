@@ -18,7 +18,12 @@ where
     T: IntoBytes + KnownLayout + FromBytes + Discriminator,
 {
     fn read_mut(data: &mut [u8]) -> Option<&mut Self> {
-        let dis_len = T::DISCRIMINATOR.len();
-        T::mut_from_bytes(&mut data[dis_len..std::mem::size_of::<Self>() + dis_len]).ok()
+        let (dis, state) = T::mut_from_suffix(data).ok()?;
+
+        if T::DISCRIMINATOR.len() != dis.len() {
+            return None;
+        }
+
+        Some(state)
     }
 }

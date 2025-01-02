@@ -74,11 +74,16 @@ where
     }
 
     fn data(&self) -> Result<Ref<Self::DataType>, ProgramError> {
-        let dis_len = T::DISCRIMINATOR.len();
         let data = self.info.try_borrow_data()?;
 
         Ref::filter_map(data, |data| {
-            T::ref_from_bytes(&data[dis_len..std::mem::size_of::<T>() + dis_len]).ok()
+            let (dis, state) = T::ref_from_suffix(data).ok()?;
+
+            if T::DISCRIMINATOR.len() != dis.len() {
+                return None;
+            }
+
+            Some(state)
         })
         .map_err(|_| ProgramError::InvalidAccountData)
     }
