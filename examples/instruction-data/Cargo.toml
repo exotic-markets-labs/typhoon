@@ -19,5 +19,5 @@ typhoon = { path = "../../crates/lib" }
 zerocopy = { version = "0.8.14", features = ["derive"] }
 
 [dev-dependencies]
-litesvm = "0.3.0"
-solana-sdk = "2.0"
+litesvm = "0.4.0"
+solana-sdk = "2.1"
