@@ -4,11 +4,11 @@ use {
     typhoon_program::{program_error::ProgramError, pubkey::Pubkey, RawAccountInfo, Ref, RefMut},
 };
 
-pub struct Mut<T: ReadableAccount + AsRef<RawAccountInfo>>(T);
+pub struct Mut<T: ReadableAccount>(T);
 
 impl<'a, T> FromAccountInfo<'a> for Mut<T>
 where
-    T: FromAccountInfo<'a> + ReadableAccount + AsRef<RawAccountInfo>,
+    T: FromAccountInfo<'a> + ReadableAccount,
 {
     fn try_from_info(info: &'a RawAccountInfo) -> Result<Self, ProgramError> {
         if !info.is_writable() {
@@ -21,7 +21,7 @@ where
 
 impl<T> AsRef<RawAccountInfo> for Mut<T>
 where
-    T: ReadableAccount + AsRef<RawAccountInfo>,
+    T: ReadableAccount,
 {
     fn as_ref(&self) -> &RawAccountInfo {
         self.0.as_ref()
@@ -30,7 +30,7 @@ where
 
 impl<T> ReadableAccount for Mut<T>
 where
-    T: ReadableAccount + AsRef<RawAccountInfo>,
+    T: ReadableAccount,
 {
     type DataType = T::DataType;
 
@@ -53,7 +53,7 @@ where
 
 impl<T, U> WritableAccount for Mut<T>
 where
-    T: ReadableAccount<DataType = U> + AsRef<RawAccountInfo>,
+    T: ReadableAccount<DataType = U>,
     U: ReadMut + ?Sized,
 {
     fn realloc(&self, new_len: usize, zero_init: bool) -> Result<(), ProgramError> {
