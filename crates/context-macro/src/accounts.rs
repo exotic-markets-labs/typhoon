@@ -78,7 +78,7 @@ impl ToTokens for Assign<'_> {
                         let #name: #ty = {
                             let system_acc = <typhoon::lib::Mut<typhoon::lib::SystemAccount> as typhoon::lib::FromAccountInfo>::try_from_info(#name)?;
                             // TODO: avoid reusing seeds here and in verifications
-                            let signer_seeds = [#punctuated_seeds, &[bumps.#name as u8]];
+                            let signer_seeds = [#punctuated_seeds, &[bumps.#name]];
                             let seeds_vec = &signer_seeds.into_iter().map(|seed| typhoon_program::SignerSeed::from(seed)).collect::<Vec<typhoon_program::SignerSeed>>()[..];
                             let signer: typhoon_program::SignerSeeds = typhoon_program::SignerSeeds::from(&seeds_vec[..]);
                             typhoon::lib::SystemCpi::create_account(&system_acc, &#payer, &crate::ID, #space as u64, Some(&[typhoon_program::SignerSeeds::from(signer)]))?;
@@ -96,7 +96,7 @@ impl ToTokens for Assign<'_> {
                         let #name: #ty = {
                             let system_acc = <typhoon::lib::Mut<typhoon::lib::SystemAccount> as typhoon::lib::FromAccountInfo>::try_from_info(#name)?;
                             // TODO: avoid reusing seeds here and in verifications
-                            let bump = [bumps.#name as u8];
+                            let bump = [bumps.#name];
                             let signer_seeds = #account_ty::derive_with_bump(#keys, &bump);
                             let seeds_vec = &signer_seeds.into_iter().map(|seed| typhoon_program::SignerSeed::from(seed)).collect::<Vec<typhoon_program::SignerSeed>>()[..];
                             let signer: typhoon_program::SignerSeeds = typhoon_program::SignerSeeds::from(&seeds_vec[..]);

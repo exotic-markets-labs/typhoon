@@ -29,17 +29,16 @@ impl AccountExtractor<'_> {
 }
 
 fn get_subsegments(segment: &PathSegment) -> Vec<PathSegment> {
-    if let PathArguments::AngleBracketed(arguments) = &segment.arguments {
-        arguments
-            .args
-            .iter()
-            .filter_map(|a| match a {
-                GenericArgument::Type(Type::Path(p)) => Some(p.path.segments.clone()),
-                _ => None,
-            })
-            .flatten()
-            .collect()
-    } else {
-        vec![]
+    match &segment.arguments {
+        PathArguments::AngleBracketed(arguments) => {
+            let mut segments = Vec::with_capacity(arguments.args.len());
+            for arg in arguments.args.iter() {
+                if let GenericArgument::Type(Type::Path(p)) = arg {
+                    segments.extend(p.path.segments.iter().cloned());
+                }
+            }
+            segments
+        }
+        _ => Vec::new(),
     }
 }

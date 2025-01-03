@@ -84,61 +84,41 @@ impl Constraints {
     }
 
     pub fn get_bump(&self, account_name: &Ident) -> Option<Expr> {
-        self.0.iter().find_map(|c| {
-            if let Constraint::Bump(bump_constraint) = c {
-                if bump_constraint.is_some() {
-                    if let Some(bump) = &bump_constraint.bump {
-                        Some(bump.clone())
-                    } else {
-                        syn::parse_str::<Expr>(&format!("{}_bump", account_name)).ok()
-                    }
-                } else {
-                    None
-                }
-            } else {
-                None
+        if let Some(Constraint::Bump(bump_constraint)) =
+            self.0.iter().find(|c| matches!(c, Constraint::Bump(_)))
+        {
+            if !bump_constraint.is_some() {
+                return None;
             }
-        })
+
+            if let Some(bump) = &bump_constraint.bump {
+                Some(bump.clone())
+            } else {
+                syn::parse_str::<Expr>(&format!("{}_bump", account_name)).ok()
+            }
+        } else {
+            None
+        }
     }
 
     pub fn must_find_canonical_bump(&self) -> bool {
-        self.0
-            .iter()
-            .find_map(|c| {
-                if let Constraint::Bump(bump_constraint) = c {
-                    if bump_constraint.find_canonical {
-                        Some(true)
-                    } else {
-                        None
-                    }
-                } else {
-                    None
-                }
-            })
-            .is_some()
+        self.0.iter().any(
+            |c| matches!(c, Constraint::Bump(bump_constraint) if bump_constraint.find_canonical),
+        )
     }
 
     pub fn is_seeded(&self) -> bool {
-        self.0
-            .iter()
-            .find_map(|c| {
-                if let Constraint::Seeded(_) = c {
-                    Some(true)
-                } else {
-                    None
-                }
-            })
-            .is_some()
+        self.0.iter().any(|c| matches!(c, Constraint::Seeded(_)))
     }
 
     pub fn get_keys(&self) -> Option<&Punctuated<Expr, Token![,]>> {
-        self.0.iter().find_map(|c| {
-            if let Constraint::Keys(ConstraintKeys { keys }) = c {
-                Some(keys)
-            } else {
-                None
-            }
-        })
+        self.0
+            .iter()
+            .find(|c| matches!(c, Constraint::Keys(_)))
+            .and_then(|c| match c {
+                Constraint::Keys(ConstraintKeys { keys }) => Some(keys),
+                _ => None,
+            })
     }
 }
 

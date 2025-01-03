@@ -19,15 +19,14 @@ impl Bumps {
             } else {
                 let name = &a.name;
                 Some(quote! {
-                    pub #name: u64, // TODO: fix alignment issues
+                    pub #name: u8,
                 })
             }
         });
         let struct_name = self.get_name(context_name);
 
         quote! {
-            #[repr(C)]
-            #[derive(Debug, PartialEq, zerocopy::KnownLayout, zerocopy::IntoBytes, zerocopy::Immutable, zerocopy::FromBytes)]
+            #[derive(Debug, PartialEq)]
             pub struct #struct_name {
                 #(#fields)*
             }
@@ -38,33 +37,35 @@ impl Bumps {
         let checks = self
             .0
             .iter()
-            .map(|a| {
+            .filter_map(|a| {
                 let c = &a.constraints;
                 let name = &a.name;
                 let pk_ident = format_ident!("{}_pk", name);
 
-                if c.must_find_canonical_bump() || (c.is_seeded() && c.has_init()) {
-                    quote! {
+                match (c.must_find_canonical_bump(), c.is_seeded(), c.has_init()) {
+                    (true, _, _) | (_, true, true) => Some(quote! {
                         if #name.key() != &#pk_ident {
                             return Err(ProgramError::InvalidSeeds);
                         }
-                    }
-                } else if c.is_seeded() && !c.has_init() {
-                    quote! {
+                    }),
+                    (_, true, false) => Some(quote! {
                         let (#pk_ident, _) = typhoon_program::pubkey::find_program_address(&#name.data()?.seeds(), &crate::ID);
                         if #name.key() != &#pk_ident {
                             return Err(ProgramError::InvalidSeeds);
                         }
-                    }
-                } else if let (Some(seeds), Some(bump)) = (c.get_seeds(), c.get_bump(name)) {
-                    quote! {
-                        let #pk_ident = typhoon_program::pubkey::create_program_address(&[#seeds, &[#bump]], &crate::ID)?;
-                        if #name.key() != &#pk_ident {
-                            return Err(ProgramError::InvalidSeeds);
+                    }),
+                    _ => {
+                        if let (Some(seeds), Some(bump)) = (c.get_seeds(), c.get_bump(name)) {
+                            Some(quote! {
+                                let #pk_ident = typhoon_program::pubkey::create_program_address(&[#seeds, &[#bump]], &crate::ID)?;
+                                if #name.key() != &#pk_ident {
+                                    return Err(ProgramError::InvalidSeeds);
+                                }
+                            })
+                        } else {
+                            None
                         }
                     }
-                } else {
-                    quote!()
                 }
             })
             .collect::<Vec<TokenStream>>();
@@ -89,7 +90,7 @@ impl Bumps {
                     (quote! {
                         let (#pk_ident, #bump_ident) = typhoon_program::pubkey::find_program_address(&#account_ty::derive(#keys), &crate::ID);
                     }, quote! {
-                        #name: #bump_ident as u64, // TODO: Fix alignment
+                        #name: #bump_ident,
                     })
                 } else {
                     (quote!(), quote!())
@@ -102,7 +103,7 @@ impl Bumps {
                 } else {
                     syn::Error::new(a.name.span(), "Seeds must be provided to generate bump assignments").to_compile_error()
                 }, quote! {
-                    #name: #bump_ident as u64, // TODO: Fix alignment
+                    #name: #bump_ident,
                 })
             } else {
                 (quote!(),
@@ -132,18 +133,13 @@ impl TryFrom<&Vec<Account>> for Bumps {
     type Error = syn::Error;
 
     fn try_from(accounts: &Vec<Account>) -> Result<Self, Self::Error> {
-        Ok(Bumps(
-            accounts
-                .iter()
-                .filter_map(|a| {
-                    let c = &a.constraints;
-                    if (c.has_init() && c.get_seeds().is_some()) || c.is_seeded() {
-                        Some(a.clone())
-                    } else {
-                        None
-                    }
-                })
-                .collect(),
-        ))
+        let mut filtered = Vec::with_capacity(accounts.len());
+        for account in accounts {
+            let c = &account.constraints;
+            if (c.has_init() && c.get_seeds().is_some()) || c.is_seeded() {
+                filtered.push(account.clone());
+            }
+        }
+        Ok(Bumps(filtered))
     }
 }
