@@ -322,7 +322,7 @@ dependencies = [
  "proc-macro-crate 3.2.0",
  "proc-macro2",
  "quote",
- "syn 2.0.91",
+ "syn 2.0.93",
 ]
 
 [[package]]
@@ -408,7 +408,7 @@ checksum = "3fa76293b4f7bb636ab88fd78228235b5248b4d05cc589aed610f954af5d7c7a"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.91",
+ "syn 2.0.93",
 ]
 
 [[package]]
@@ -429,10 +429,20 @@ dependencies = [
 ]
 
 [[package]]
-name = "cc"
-version = "1.2.5"
+name = "cargo_toml"
+version = "0.20.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c31a0499c1dc64f458ad13872de75c0eb7e3fdb0e67964610c914b034fc5956e"
+checksum = "88da5a13c620b4ca0078845707ea9c3faf11edbc3ffd8497d11d686211cd1ac0"
+dependencies = [
+ "serde",
+ "toml 0.8.19",
+]
+
+[[package]]
+name = "cc"
+version = "1.2.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8d6dbb628b8f8555f86d0323c2eb39e3ec81901f4b83e091db8a6a76d316a333"
 dependencies = [
  "jobserver",
  "libc",
@@ -450,6 +460,146 @@ name = "cfg_aliases"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "613afe47fcd5fac7ccf1db93babcb082c5994d996f20b8b159f2ad1658eb5724"
+
+[[package]]
+name = "codama"
+version = "0.1.0"
+source = "git+https://github.com/codama-idl/codama-rs#67b7d4c1122683605c780e292737cc807992ac87"
+dependencies = [
+ "codama-errors",
+ "codama-korok-plugins",
+ "codama-korok-visitors",
+ "codama-koroks",
+ "codama-macros",
+ "codama-nodes",
+ "codama-stores",
+ "proc-macro2",
+]
+
+[[package]]
+name = "codama-attributes"
+version = "0.1.0"
+source = "git+https://github.com/codama-idl/codama-rs#67b7d4c1122683605c780e292737cc807992ac87"
+dependencies = [
+ "codama-errors",
+ "codama-nodes",
+ "codama-syn-helpers",
+ "derive_more",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.93",
+]
+
+[[package]]
+name = "codama-errors"
+version = "0.1.0"
+source = "git+https://github.com/codama-idl/codama-rs#67b7d4c1122683605c780e292737cc807992ac87"
+dependencies = [
+ "cargo_toml",
+ "proc-macro2",
+ "serde_json",
+ "syn 2.0.93",
+ "thiserror 2.0.9",
+]
+
+[[package]]
+name = "codama-korok-plugins"
+version = "0.1.0"
+source = "git+https://github.com/codama-idl/codama-rs#67b7d4c1122683605c780e292737cc807992ac87"
+dependencies = [
+ "codama-korok-visitors",
+ "codama-koroks",
+]
+
+[[package]]
+name = "codama-korok-visitors"
+version = "0.1.0"
+source = "git+https://github.com/codama-idl/codama-rs#67b7d4c1122683605c780e292737cc807992ac87"
+dependencies = [
+ "cargo_toml",
+ "codama-attributes",
+ "codama-koroks",
+ "codama-nodes",
+ "codama-syn-helpers",
+ "syn 2.0.93",
+]
+
+[[package]]
+name = "codama-koroks"
+version = "0.1.0"
+source = "git+https://github.com/codama-idl/codama-rs#67b7d4c1122683605c780e292737cc807992ac87"
+dependencies = [
+ "codama-attributes",
+ "codama-errors",
+ "codama-nodes",
+ "codama-stores",
+ "codama-syn-helpers",
+ "derive_more",
+ "proc-macro2",
+ "syn 2.0.93",
+]
+
+[[package]]
+name = "codama-macros"
+version = "0.1.0"
+source = "git+https://github.com/codama-idl/codama-rs#67b7d4c1122683605c780e292737cc807992ac87"
+dependencies = [
+ "codama-attributes",
+ "codama-errors",
+ "codama-koroks",
+ "codama-stores",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.93",
+]
+
+[[package]]
+name = "codama-nodes"
+version = "0.1.0"
+source = "git+https://github.com/codama-idl/codama-rs#67b7d4c1122683605c780e292737cc807992ac87"
+dependencies = [
+ "codama-errors",
+ "codama-nodes-derive",
+ "derive_more",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "codama-nodes-derive"
+version = "0.1.0"
+source = "git+https://github.com/codama-idl/codama-rs#67b7d4c1122683605c780e292737cc807992ac87"
+dependencies = [
+ "codama-errors",
+ "codama-syn-helpers",
+ "derive_more",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.93",
+]
+
+[[package]]
+name = "codama-stores"
+version = "0.1.0"
+source = "git+https://github.com/codama-idl/codama-rs#67b7d4c1122683605c780e292737cc807992ac87"
+dependencies = [
+ "cargo_toml",
+ "codama-errors",
+ "proc-macro2",
+ "syn 2.0.93",
+]
+
+[[package]]
+name = "codama-syn-helpers"
+version = "0.1.0"
+source = "git+https://github.com/codama-idl/codama-rs#67b7d4c1122683605c780e292737cc807992ac87"
+dependencies = [
+ "codama-errors",
+ "derive_more",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.93",
+]
 
 [[package]]
 name = "console_error_panic_hook"
@@ -563,6 +713,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "derive_more"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4a9b99b9cbbe49445b21764dc0625032a89b145a2642e67603e1c936f5458d05"
+dependencies = [
+ "derive_more-impl",
+]
+
+[[package]]
+name = "derive_more-impl"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cb7330aeadfbe296029522e6c40f315320aba36fc43a5b3632f3795348f3bd22"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.93",
+]
+
+[[package]]
 name = "digest"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -654,9 +824,9 @@ dependencies = [
 
 [[package]]
 name = "glob"
-version = "0.3.1"
+version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d2fabcfbdc87f4758337ca535fb41a6d701b65693ce38287d856d1674551ec9b"
+checksum = "a8d1add55171497b4705a648c6b583acafb01d58050a51727785f0b2c8e0a2b2"
 
 [[package]]
 name = "hashbrown"
@@ -927,7 +1097,7 @@ checksum = "ed3955f1a9c7c0c15e092f9c887db08b1fc683305fdf6eb6684f22555355e202"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.91",
+ "syn 2.0.93",
 ]
 
 [[package]]
@@ -1001,12 +1171,12 @@ dependencies = [
 [[package]]
 name = "pinocchio"
 version = "0.6.0"
-source = "git+https://github.com/febo/pinocchio#bda7ae494e2277882ead8b34b72b4895b6ca53cb"
+source = "git+https://github.com/febo/pinocchio#cf4f6613fe93b9a5950d0782cd9fd04c1640f615"
 
 [[package]]
 name = "pinocchio-log"
 version = "0.3.0"
-source = "git+https://github.com/febo/pinocchio#bda7ae494e2277882ead8b34b72b4895b6ca53cb"
+source = "git+https://github.com/febo/pinocchio#cf4f6613fe93b9a5950d0782cd9fd04c1640f615"
 dependencies = [
  "pinocchio-log-macro",
 ]
@@ -1014,7 +1184,7 @@ dependencies = [
 [[package]]
 name = "pinocchio-log-macro"
 version = "0.3.0"
-source = "git+https://github.com/febo/pinocchio#bda7ae494e2277882ead8b34b72b4895b6ca53cb"
+source = "git+https://github.com/febo/pinocchio#cf4f6613fe93b9a5950d0782cd9fd04c1640f615"
 dependencies = [
  "quote",
  "regex",
@@ -1024,7 +1194,7 @@ dependencies = [
 [[package]]
 name = "pinocchio-pubkey"
 version = "0.2.1"
-source = "git+https://github.com/febo/pinocchio#bda7ae494e2277882ead8b34b72b4895b6ca53cb"
+source = "git+https://github.com/febo/pinocchio#cf4f6613fe93b9a5950d0782cd9fd04c1640f615"
 dependencies = [
  "five8_const",
  "pinocchio",
@@ -1033,7 +1203,7 @@ dependencies = [
 [[package]]
 name = "pinocchio-system"
 version = "0.2.0"
-source = "git+https://github.com/febo/pinocchio#bda7ae494e2277882ead8b34b72b4895b6ca53cb"
+source = "git+https://github.com/febo/pinocchio#cf4f6613fe93b9a5950d0782cd9fd04c1640f615"
 dependencies = [
  "pinocchio",
  "pinocchio-pubkey",
@@ -1077,9 +1247,9 @@ dependencies = [
 
 [[package]]
 name = "quote"
-version = "1.0.37"
+version = "1.0.38"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b5b9d34b8991d19d98081b46eacdd8eb58c6f2b201139f7c5f643cc155a633af"
+checksum = "0e4dccaaaf89514f546c693ddc140f729f958c247918a13380cccc6078391acc"
 dependencies = [
  "proc-macro2",
 ]
@@ -1239,9 +1409,9 @@ dependencies = [
 
 [[package]]
 name = "rustversion"
-version = "1.0.18"
+version = "1.0.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0e819f2bc632f285be6d7cd36e25940d45b2391dd6d9b939e79de557f7014248"
+checksum = "f7c45b9784283f1b2e7fb61b42047c2fd678ef0960d4f6f1eba131594cc369d4"
 
 [[package]]
 name = "ryu"
@@ -1263,9 +1433,9 @@ checksum = "3cb6eb87a131f756572d7fb904f6e7b68633f09cca868c5df1c4b8d1a694bbba"
 
 [[package]]
 name = "serde"
-version = "1.0.216"
+version = "1.0.217"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0b9781016e935a97e8beecf0c933758c97a5520d32930e460142b4cd80c6338e"
+checksum = "02fc4265df13d6fa1d00ecff087228cc0a2b5f3c0e87e258d8b94a156e984c70"
 dependencies = [
  "serde_derive",
 ]
@@ -1281,13 +1451,13 @@ dependencies = [
 
 [[package]]
 name = "serde_derive"
-version = "1.0.216"
+version = "1.0.217"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "46f859dbbf73865c6627ed570e78961cd3ac92407a2d117204c49232485da55e"
+checksum = "5a9bf7cf98d04a2b28aead066b7496853d4779c9cc183c440dbac457641e19a0"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.91",
+ "syn 2.0.93",
 ]
 
 [[package]]
@@ -1401,7 +1571,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "rustc_version",
- "syn 2.0.91",
+ "syn 2.0.93",
 ]
 
 [[package]]
@@ -1477,7 +1647,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "rustversion",
- "syn 2.0.91",
+ "syn 2.0.93",
 ]
 
 [[package]]
@@ -1499,9 +1669,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "2.0.91"
+version = "2.0.93"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d53cbcb5a243bd33b7858b1d7f4aca2153490815872d86d955d6ea29f743c035"
+checksum = "9c786062daee0d6db1132800e623df74274a0a87322d8e183338e01b3d98d058"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1549,7 +1719,7 @@ checksum = "4fee6c4efc90059e10f81e6d42c60a18f76588c3d74cb83a0b242a2b6c7504c1"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.91",
+ "syn 2.0.93",
 ]
 
 [[package]]
@@ -1560,7 +1730,7 @@ checksum = "7b50fa271071aae2e6ee85f842e2e28ba8cd2c5fb67f11fcb1fd70b276f9e7d4"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.91",
+ "syn 2.0.93",
 ]
 
 [[package]]
@@ -1686,7 +1856,7 @@ version = "0.1.0"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.91",
+ "syn 2.0.93",
  "trybuild",
  "typhoon",
  "zerocopy 0.8.14",
@@ -1717,7 +1887,7 @@ version = "0.1.0"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.91",
+ "syn 2.0.93",
 ]
 
 [[package]]
@@ -1729,7 +1899,7 @@ dependencies = [
  "heck",
  "proc-macro2",
  "quote",
- "syn 2.0.91",
+ "syn 2.0.93",
 ]
 
 [[package]]
@@ -1738,7 +1908,7 @@ version = "0.1.0"
 dependencies = [
  "anchor-lang-idl-spec",
  "serde_json",
- "syn 2.0.91",
+ "syn 2.0.93",
  "typhoon-cpi-generator",
 ]
 
@@ -1757,7 +1927,7 @@ version = "0.1.0"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.91",
+ "syn 2.0.93",
 ]
 
 [[package]]
@@ -1771,8 +1941,17 @@ dependencies = [
 name = "typhoon-metadata-extractor"
 version = "0.1.0"
 dependencies = [
- "cargo-manifest",
- "syn 2.0.91",
+ "codama",
+ "codama-attributes",
+ "codama-korok-plugins",
+ "codama-korok-visitors",
+ "codama-koroks",
+ "codama-nodes",
+ "codama-stores",
+ "codama-syn-helpers",
+ "five8_const",
+ "quote",
+ "syn 2.0.93",
 ]
 
 [[package]]
@@ -1796,7 +1975,7 @@ dependencies = [
  "heck",
  "proc-macro2",
  "quote",
- "syn 2.0.91",
+ "syn 2.0.93",
 ]
 
 [[package]]
@@ -1869,7 +2048,7 @@ dependencies = [
  "log",
  "proc-macro2",
  "quote",
- "syn 2.0.91",
+ "syn 2.0.93",
  "wasm-bindgen-shared",
 ]
 
@@ -1891,7 +2070,7 @@ checksum = "30d7a95b763d3c45903ed6c81f156801839e5ee968bb07e534c44df0fcd330c2"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.91",
+ "syn 2.0.93",
  "wasm-bindgen-backend",
  "wasm-bindgen-shared",
 ]
@@ -2030,7 +2209,7 @@ checksum = "fa4f8080344d4671fb4e831a13ad1e68092748387dfc4f55e356242fae12ce3e"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.91",
+ "syn 2.0.93",
 ]
 
 [[package]]
@@ -2061,5 +2240,5 @@ checksum = "ce36e65b0d2999d2aafac989fb249189a141aee1f53c612c1f37d72631959f69"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.91",
+ "syn 2.0.93",
 ]
