@@ -1,6 +1,4 @@
-use bytemuck::Pod;
-
-use crate::Discriminator;
+use {crate::Discriminator, bytemuck::Pod};
 
 pub trait ReadMut {
     fn read_mut(data: &mut [u8]) -> Option<&mut Self>;

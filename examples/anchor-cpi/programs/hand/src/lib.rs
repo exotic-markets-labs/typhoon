@@ -1,5 +1,4 @@
-use podded::pod::PodStr;
-use typhoon::prelude::*;
+use {podded::pod::PodStr, typhoon::prelude::*};
 
 program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
