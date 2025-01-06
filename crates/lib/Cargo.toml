@@ -22,5 +22,3 @@ typhoon-handler-macro.workspace = true
 typhoon-program.workspace = true
 typhoon-program-id-macro.workspace = true
 typhoon-traits.workspace = true
-typhoon-types.workspace = true
-zerocopy.workspace = true

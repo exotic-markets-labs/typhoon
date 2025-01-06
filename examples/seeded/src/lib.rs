@@ -8,7 +8,7 @@ handlers! {
 }
 
 #[context]
-#[args(admin: ZCPubkey, bump: u64)]
+#[args(admin: Pubkey, bump: u8)]
 pub struct InitContext {
     pub payer: Signer,
     #[constraint(
@@ -39,7 +39,7 @@ pub fn initialize(ctx: InitContext) -> Result<(), ProgramError> {
 }
 
 pub fn increment(ctx: IncrementContext) -> Result<(), ProgramError> {
-    if *ctx.payer.key() != *ctx.counter.data()?.admin {
+    if *ctx.payer.key() != ctx.counter.data()?.admin {
         return Err(ProgramError::IllegalOwner);
     }
 
@@ -51,7 +51,7 @@ pub fn increment(ctx: IncrementContext) -> Result<(), ProgramError> {
 #[account]
 pub struct Counter {
     #[key]
-    pub admin: ZCPubkey,
+    pub admin: Pubkey,
     pub count: u64,
 }
 

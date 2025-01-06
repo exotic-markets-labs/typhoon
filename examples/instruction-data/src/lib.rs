@@ -1,11 +1,32 @@
+use bytemuck::{Pod, Zeroable};
 use typhoon::prelude::*;
 
 program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
-#[repr(C)]
-#[derive(Debug, PartialEq, FromBytes, IntoBytes, Immutable, KnownLayout)]
+#[repr(C, packed)]
+#[derive(Debug, PartialEq, Pod, Zeroable, Copy, Clone)]
 pub struct InitArgs {
-    pub value: u64,
+    pub value: PodU64,
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Pod, Zeroable)]
+#[repr(transparent)]
+pub struct PodU64(pub [u8; 8]);
+
+impl PodU64 {
+    pub const fn from_primitive(n: u64) -> Self {
+        Self(n.to_le_bytes())
+    }
+}
+impl From<u64> for PodU64 {
+    fn from(n: u64) -> Self {
+        Self::from_primitive(n)
+    }
+}
+impl From<PodU64> for u64 {
+    fn from(pod: PodU64) -> Self {
+        Self::from_le_bytes(pod.0)
+    }
 }
 
 #[context]
@@ -22,7 +43,7 @@ pub struct InitContext {
 }
 
 #[context]
-#[args(value: u64, other_value: u64)]
+#[args(value: PodU64, other_value: PodU64)]
 pub struct SetValueContext {
     pub buffer: Mut<Account<Buffer>>,
 }
@@ -34,15 +55,15 @@ handlers! {
 }
 
 pub fn initialize(ctx: InitContext) -> Result<(), ProgramError> {
-    ctx.buffer.mut_data()?.value1 = ctx.args.value;
+    ctx.buffer.mut_data()?.value1 = ctx.args.value.into();
 
     Ok(())
 }
 
-pub fn set_value(ctx: SetValueContext, more_args: Args<u64>) -> Result<(), ProgramError> {
+pub fn set_value(ctx: SetValueContext, more_args: Args<PodU64>) -> Result<(), ProgramError> {
     let mut data = ctx.buffer.mut_data()?;
-    data.value1 = ctx.args.value;
-    data.value2 = *more_args;
+    data.value1 = ctx.args.value.into();
+    data.value2 = (*more_args).into();
 
     Ok(())
 }
@@ -51,9 +72,11 @@ pub fn set_and_add_values(
     ctx_a: SetValueContext,
     ctx_b: SetValueContext,
 ) -> Result<(), ProgramError> {
-    ctx_a.buffer.mut_data()?.value1 = ctx_a.args.value;
-    ctx_b.buffer.mut_data()?.value1 = ctx_b.args.value;
-    ctx_a.buffer.mut_data()?.value2 = ctx_a.args.value + ctx_b.args.value;
+    let value_a = ctx_a.args.value.into();
+    let value_b = ctx_b.args.value.into();
+    ctx_a.buffer.mut_data()?.value1 = value_a;
+    ctx_b.buffer.mut_data()?.value1 = value_b;
+    ctx_a.buffer.mut_data()?.value2 = value_a + value_b;
 
     Ok(())
 }

@@ -10,7 +10,6 @@ use {
         transaction::Transaction,
     },
     std::path::PathBuf,
-    typhoon::prelude::*,
 };
 
 fn read_program() -> Vec<u8> {
@@ -51,10 +50,9 @@ fn integration_test() {
             AccountMeta::new_readonly(system_program::ID, false),
         ],
         program_id,
-        data: 0u64
-            .as_bytes()
+        data: [0]
             .iter()
-            .chain(amount.as_bytes())
+            .chain(amount.to_le_bytes().iter())
             .cloned()
             .collect(),
     };
@@ -90,10 +88,9 @@ fn integration_test() {
             AccountMeta::new(admin_pk, false),
         ],
         program_id,
-        data: 1u64
-            .as_bytes()
+        data: [1]
             .iter()
-            .chain(amount.as_bytes())
+            .chain(amount.to_le_bytes().iter())
             .cloned()
             .collect(),
     };

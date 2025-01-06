@@ -1,11 +1,11 @@
 use {
     crate::{Discriminator, FromAccountInfo, Owner, ReadableAccount},
+    bytemuck::Pod,
     std::marker::PhantomData,
     typhoon_errors::Error,
     typhoon_program::{
         program_error::ProgramError, pubkey::Pubkey, system_program, RawAccountInfo, Ref,
     },
-    zerocopy::{FromBytes, Immutable, KnownLayout},
 };
 
 pub struct Account<'a, T>
@@ -57,7 +57,7 @@ where
 
 impl<T> ReadableAccount for Account<'_, T>
 where
-    T: FromBytes + KnownLayout + Immutable + Discriminator,
+    T: Pod + Discriminator,
 {
     type DataType = T;
 
@@ -77,13 +77,8 @@ where
         let data = self.info.try_borrow_data()?;
 
         Ref::filter_map(data, |data| {
-            let (dis, state) = T::ref_from_suffix(data).ok()?;
-
-            if T::DISCRIMINATOR.len() != dis.len() {
-                return None;
-            }
-
-            Some(state)
+            let dis_len = T::DISCRIMINATOR.len();
+            bytemuck::try_from_bytes(&data[dis_len..std::mem::size_of::<T>() + dis_len]).ok()
         })
         .map_err(|_| ProgramError::InvalidAccountData)
     }

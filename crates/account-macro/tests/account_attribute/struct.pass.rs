@@ -14,7 +14,7 @@ pub struct TestState {
 #[account]
 pub struct TestAnotherState {
     #[key]
-    pub foo: ZCPubkey,
+    pub foo: Pubkey,
 }
 
 pub fn main() {}

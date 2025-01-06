@@ -1,12 +1,11 @@
 use litesvm::LiteSVM;
+use podded::pod::PodStr;
 use solana_sdk::instruction::{AccountMeta, Instruction};
 use solana_sdk::system_program;
 use solana_sdk::transaction::Transaction;
 use solana_sdk::{native_token::LAMPORTS_PER_SOL, pubkey, signature::Keypair, signer::Signer};
 use std::path::PathBuf;
-use typhoon::prelude::*;
 use utils::{sighash, SIGHASH_GLOBAL_NAMESPACE};
-use zerocopy::IntoBytes;
 
 mod utils;
 
@@ -54,16 +53,15 @@ fn anchor_cpi_test() {
     svm.send_transaction(tx).unwrap();
 
     // Pull the lever
-    let arg: ZCStr<50> = ZCStr::from("Chris");
+    let arg: PodStr<50> = PodStr::from("Chris");
     let ix = Instruction {
         accounts: vec![
             AccountMeta::new(power_kp.pubkey(), false),
             AccountMeta::new_readonly(lever_id, false),
         ],
-        data: 0u64
-            .as_bytes()
+        data: [0]
             .iter()
-            .chain(arg.as_bytes())
+            .chain(bytemuck::bytes_of(&arg))
             .cloned()
             .collect(),
         program_id: hand_id,
@@ -81,16 +79,15 @@ fn anchor_cpi_test() {
         .contains(&"Program log: The power is now on.".to_string()));
 
     // Pull it again
-    let arg: ZCStr<50> = ZCStr::from("Ashley");
+    let arg: PodStr<50> = PodStr::from("Ashley");
     let ix = Instruction {
         accounts: vec![
             AccountMeta::new(power_kp.pubkey(), false),
             AccountMeta::new_readonly(lever_id, false),
         ],
-        data: 0u64
-            .as_bytes()
+        data: [0]
             .iter()
-            .chain(arg.as_bytes())
+            .chain(bytemuck::bytes_of(&arg))
             .cloned()
             .collect(),
         program_id: hand_id,

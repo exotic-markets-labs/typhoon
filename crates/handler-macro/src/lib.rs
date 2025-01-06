@@ -26,9 +26,9 @@ impl Parse for Handlers {
 impl ToTokens for Handlers {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         let instructions = self.instructions.iter().enumerate().map(|(i, val)| {
-            let i = i as u64;
+            let i = i as u8;
             quote! {
-                #i => handle(accounts, instruction_data_inner, #val)?,
+                #i => handle(accounts, data, #val)?,
             }
         });
 
@@ -36,12 +36,15 @@ impl ToTokens for Handlers {
             typhoon_program::program_entrypoint!(process_instruction);
 
             pub fn process_instruction(
-                _program_id: &typhoon_program::pubkey::Pubkey,
+                program_id: &typhoon_program::pubkey::Pubkey,
                 accounts: &[typhoon_program::RawAccountInfo],
                 instruction_data: &[u8],
             ) -> typhoon_program::ProgramResult {
-                let (discriminator, instruction_data_inner) =
-                u64::ref_from_prefix(instruction_data).map_err(|_| ProgramError::InvalidInstructionData)?;
+                if program_id != &crate::ID {
+                    return Err(ProgramError::IncorrectProgramId);
+                }
+
+                let (discriminator, data) = instruction_data.split_first().ok_or(ProgramError::InvalidInstructionData)?;
                 match discriminator {
                     #(#instructions)*
                     _ => {

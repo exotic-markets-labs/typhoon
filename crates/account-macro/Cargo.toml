@@ -16,6 +16,6 @@ quote.workspace = true
 proc-macro2.workspace = true
 
 [dev-dependencies]
+bytemuck = { workspace = true, features = ["derive"] }
 trybuild.workspace = true
 typhoon = { workspace = true, features = ["pinocchio"] }
-zerocopy = { workspace = true, features = ["derive"] }

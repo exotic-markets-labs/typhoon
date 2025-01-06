@@ -3,20 +3,13 @@ use {
     quote::{format_ident, quote},
     syn::{
         parse::{Parse, ParseStream},
-        parse2,
-        spanned::Spanned,
-        Attribute, Ident, Path, PathSegment, Token,
+        parse2, Attribute, Ident, Token, Type,
     },
 };
 
 pub enum Argument {
-    Value {
-        name: Ident,
-        ty: Option<PathSegment>,
-    },
-    Struct {
-        name: Ident,
-    },
+    Value { name: Ident, ty: Type },
+    Struct { name: Ident },
 }
 
 impl Parse for Argument {
@@ -27,18 +20,9 @@ impl Parse for Argument {
             Ok(Argument::Struct { name })
         } else {
             input.parse::<Token![:]>()?;
-            let ty: Path = input.parse()?;
-            let path_segment = ty
-                .segments
-                .first()
-                .ok_or_else(|| {
-                    syn::Error::new(ty.span(), "Expected at least one path segment for the type")
-                })?
-                .clone();
-            Ok(Argument::Value {
-                name,
-                ty: Some(path_segment),
-            })
+
+            let ty: Type = input.parse()?;
+            Ok(Argument::Value { name, ty })
         }
     }
 }
@@ -63,8 +47,6 @@ impl Arguments {
         if let Arguments::Values(list) = self {
             let fields = list.iter().map(|arg| {
                 if let Argument::Value { name, ty } = arg {
-                    let name = &name;
-                    let ty = &ty.clone().unwrap().ident;
                     quote! {
                         pub #name: #ty,
                     }
@@ -74,8 +56,8 @@ impl Arguments {
             });
 
             let generated_struct = quote! {
+                #[derive(Debug, PartialEq, bytemuck::Pod, bytemuck::Zeroable, Copy, Clone)]
                 #[repr(C)]
-                #[derive(Debug, PartialEq, zerocopy::KnownLayout, zerocopy::IntoBytes, zerocopy::Immutable, zerocopy::FromBytes)]
                 pub struct #struct_name {
                     #(#fields)*
                 }

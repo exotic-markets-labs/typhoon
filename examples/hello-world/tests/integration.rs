@@ -5,7 +5,6 @@ use {
         signer::Signer, transaction::Transaction,
     },
     std::path::PathBuf,
-    typhoon::prelude::*,
 };
 
 fn read_program() -> Vec<u8> {
@@ -31,7 +30,7 @@ fn integration_test() {
     let ix = Instruction {
         accounts: vec![],
         program_id,
-        data: 0u64.as_bytes().to_vec(),
+        data: vec![0],
     };
     let hash = svm.latest_blockhash();
     let tx = Transaction::new_signed_with_payer(&[ix], Some(&admin_pk), &[&admin_kp], hash);

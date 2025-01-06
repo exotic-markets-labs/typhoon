@@ -1,7 +1,6 @@
-use {
-    crate::Discriminator,
-    zerocopy::{FromBytes, IntoBytes, KnownLayout},
-};
+use bytemuck::Pod;
+
+use crate::Discriminator;
 
 pub trait ReadMut {
     fn read_mut(data: &mut [u8]) -> Option<&mut Self>;
@@ -15,15 +14,10 @@ impl ReadMut for [u8] {
 
 impl<T> ReadMut for T
 where
-    T: IntoBytes + KnownLayout + FromBytes + Discriminator,
+    T: Pod + Discriminator,
 {
     fn read_mut(data: &mut [u8]) -> Option<&mut Self> {
-        let (dis, state) = T::mut_from_suffix(data).ok()?;
-
-        if T::DISCRIMINATOR.len() != dis.len() {
-            return None;
-        }
-
-        Some(state)
+        let dis_len = T::DISCRIMINATOR.len();
+        bytemuck::try_from_bytes_mut(&mut data[dis_len..std::mem::size_of::<T>() + dis_len]).ok()
     }
 }

@@ -22,7 +22,7 @@ dependencies = [
  "cfg-if",
  "once_cell",
  "version_check",
- "zerocopy 0.7.35",
+ "zerocopy",
 ]
 
 [[package]]
@@ -1045,7 +1045,7 @@ version = "0.2.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77957b295656769bb8ad2b6a6b09d897d94f05c41b069aede1fcdaa675eaea04"
 dependencies = [
- "zerocopy 0.7.35",
+ "zerocopy",
 ]
 
 [[package]]
@@ -1676,20 +1676,18 @@ dependencies = [
  "typhoon-program",
  "typhoon-program-id-macro",
  "typhoon-traits",
- "typhoon-types",
- "zerocopy 0.8.14",
 ]
 
 [[package]]
 name = "typhoon-account-macro"
 version = "0.1.0"
 dependencies = [
+ "bytemuck",
  "proc-macro2",
  "quote",
  "syn 2.0.91",
  "trybuild",
  "typhoon",
- "zerocopy 0.8.14",
 ]
 
 [[package]]
@@ -1697,18 +1695,18 @@ name = "typhoon-accounts"
 version = "0.1.0"
 dependencies = [
  "borsh 1.5.3",
+ "bytemuck",
  "typhoon-errors",
  "typhoon-program",
- "zerocopy 0.8.14",
 ]
 
 [[package]]
 name = "typhoon-context"
 version = "0.1.0"
 dependencies = [
+ "bytemuck",
  "paste",
  "typhoon-program",
- "zerocopy 0.8.14",
 ]
 
 [[package]]
@@ -1805,14 +1803,6 @@ version = "0.1.0"
 dependencies = [
  "typhoon-accounts",
  "typhoon-program",
-]
-
-[[package]]
-name = "typhoon-types"
-version = "0.1.0"
-dependencies = [
- "typhoon-program",
- "zerocopy 0.8.14",
 ]
 
 [[package]]
@@ -2010,16 +2000,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1b9b4fd18abc82b8136838da5d50bae7bdea537c574d8dc1a34ed098d6c166f0"
 dependencies = [
  "byteorder",
- "zerocopy-derive 0.7.35",
-]
-
-[[package]]
-name = "zerocopy"
-version = "0.8.14"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a367f292d93d4eab890745e75a778da40909cab4d6ff8173693812f79c4a2468"
-dependencies = [
- "zerocopy-derive 0.8.14",
+ "zerocopy-derive",
 ]
 
 [[package]]
@@ -2027,17 +2008,6 @@ name = "zerocopy-derive"
 version = "0.7.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fa4f8080344d4671fb4e831a13ad1e68092748387dfc4f55e356242fae12ce3e"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.91",
-]
-
-[[package]]
-name = "zerocopy-derive"
-version = "0.8.14"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d3931cb58c62c13adec22e38686b559c86a30565e16ad6e8510a337cedc611e1"
 dependencies = [
  "proc-macro2",
  "quote",

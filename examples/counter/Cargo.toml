@@ -12,11 +12,11 @@ default = ["solana-nostd-entrypoint", "solana-program"]
 pinocchio = ["dep:pinocchio", "typhoon/pinocchio"]
 
 [dependencies]
+bytemuck = { version = "1.21.0", features = ["derive"] }
 pinocchio = { git = "https://github.com/febo/pinocchio", optional = true }
 solana-nostd-entrypoint = { git = "https://github.com/cavemanloverboy/solana-nostd-entrypoint", optional = true }
 solana-program = { version = "1.18", optional = true }
 typhoon = { path = "../../crates/lib" }
-zerocopy = { version = "0.8.14", features = ["derive"] }
 
 [dev-dependencies]
 litesvm = "0.4.0"

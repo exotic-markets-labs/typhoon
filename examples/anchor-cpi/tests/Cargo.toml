@@ -5,7 +5,8 @@ edition = "2021"
 publish = false
 
 [dev-dependencies]
+bytemuck = "1.21.0"
 litesvm = "0.4.0"
+podded = "0.5.2"
 typhoon = { path = "../../../crates/lib" }
 solana-sdk = "2.1"
-zerocopy = "0.8.14"

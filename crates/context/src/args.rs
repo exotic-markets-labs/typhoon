@@ -1,8 +1,8 @@
 use {
     crate::HandlerContext,
+    bytemuck::{try_from_bytes, Pod},
     std::ops::Deref,
     typhoon_program::{program_error::ProgramError, RawAccountInfo},
-    zerocopy::{Immutable, KnownLayout, TryFromBytes},
 };
 
 #[derive(Debug)]
@@ -24,14 +24,16 @@ impl<T> Deref for Args<'_, T> {
 
 impl<'a, T> HandlerContext<'a> for Args<'a, T>
 where
-    T: KnownLayout + Immutable + TryFromBytes,
+    T: Pod,
 {
     fn from_entrypoint(
         _accounts: &mut &'a [RawAccountInfo],
         instruction_data: &mut &'a [u8],
     ) -> Result<Self, ProgramError> {
-        let (arg, remaining) = T::try_ref_from_prefix(instruction_data)
+        let arg: &T = try_from_bytes(&instruction_data[..std::mem::size_of::<T>()])
             .map_err(|_| ProgramError::InvalidInstructionData)?;
+
+        let (_, remaining) = instruction_data.split_at(std::mem::size_of::<T>());
 
         *instruction_data = remaining;
 

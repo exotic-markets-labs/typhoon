@@ -12,6 +12,6 @@ borsh = ["dep:borsh"]
 
 [dependencies]
 borsh = { workspace = true, optional = true }
+bytemuck.workspace = true
 typhoon-errors.workspace = true
 typhoon-program.workspace = true
-zerocopy.workspace = true

@@ -18,7 +18,6 @@ impl PrimaryKey {
                 if let Some(ident) = path.path.get_ident() {
                     match ident.to_string().as_str() {
                         "Pubkey" => quote! { #name.as_ref() },
-                        "ZCPubkey" => quote! { #name.as_ref() }, // Remove when implemented to pubkey
                         "u64" | "u32" | "u16" | "u8" => quote! { #name.to_le_bytes().as_ref() },
                         _ => syn::Error::new(self.name.span(), "This type cannot be used as a key")
                             .to_compile_error(),
