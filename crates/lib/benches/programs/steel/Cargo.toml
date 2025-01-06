@@ -1,0 +1,13 @@
+[package]
+name = "steel"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+[dependencies]
+steel = "2.1.1"
+solana-program = "1.18"
+num_enum = "0.7.3"

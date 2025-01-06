@@ -33,6 +33,7 @@ typhoon-program-id-macro = { version = "0.1.0", path = "crates/program-id-macro"
 typhoon-syn = { version = "0.1.0", path = "crates/syn" }
 typhoon-traits = { version = "0.1.0", path = "crates/traits" }
 heck = "0.5.0"
+litesvm = "0.4.0"
 nostd-entrypoint-invoke = { git = "https://github.com/Aursen/nostdinfo-programs" }
 nostd-system-program = { git = "https://github.com/Aursen/nostdinfo-programs" }
 num-traits = "0.2"
@@ -43,8 +44,11 @@ pinocchio-pubkey = { git = "https://github.com/febo/pinocchio" }
 pinocchio-system = { git = "https://github.com/febo/pinocchio" }
 proc-macro2 = "1.0"
 quote = "1.0"
+serde = "1.0"
 serde_json = "1.0"
 solana-nostd-entrypoint = { git = "https://github.com/cavemanloverboy/solana-nostd-entrypoint" }
 solana-program = "1.18"
+solana-logger = "2.1"
+solana-sdk = "2.1"
 syn = "2.0"
 thiserror = "2.0"

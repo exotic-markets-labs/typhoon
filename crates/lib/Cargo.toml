@@ -11,6 +11,10 @@ repository.workspace = true
 borsh = ["typhoon-accounts/borsh"]
 pinocchio = ["typhoon-program/pinocchio"]
 
+[[bench]]
+name = "bench"
+harness = false
+
 [dependencies]
 typhoon-accounts.workspace = true
 typhoon-account-macro.workspace = true
