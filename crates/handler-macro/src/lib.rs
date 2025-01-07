@@ -47,9 +47,7 @@ impl ToTokens for Handlers {
                 let (discriminator, data) = instruction_data.split_first().ok_or(ProgramError::InvalidInstructionData)?;
                 match discriminator {
                     #(#instructions)*
-                    _ => {
-                        typhoon_program::msg!("Error: unknown instruction") //TODO
-                    },
+                    _ => Err(ProgramError::InvalidInstructionData),
                 }
                 Ok(())
             }
