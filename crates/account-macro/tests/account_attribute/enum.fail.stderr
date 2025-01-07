@@ -1,5 +1,5 @@
 error: Invalid account type
-  --> tests/account_attribute/enum.fail.rs:10:1
-   |
-10 | pub enum TestState {
-   | ^^^
+ --> tests/account_attribute/enum.fail.rs:9:1
+  |
+9 | pub enum TestState {
+  | ^^^
