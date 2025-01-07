@@ -20,6 +20,12 @@ impl<'a> FromAccountInfo<'a> for SystemAccount<'a> {
     }
 }
 
+impl<'a> From<SystemAccount<'a>> for &'a RawAccountInfo {
+    fn from(value: SystemAccount<'a>) -> Self {
+        value.info
+    }
+}
+
 impl AsRef<RawAccountInfo> for SystemAccount<'_> {
     fn as_ref(&self) -> &RawAccountInfo {
         self.info

@@ -28,6 +28,15 @@ where
     }
 }
 
+impl<'a, T> From<Mut<T>> for &'a RawAccountInfo
+where
+    T: ReadableAccount + Into<&'a RawAccountInfo>,
+{
+    fn from(value: Mut<T>) -> Self {
+        value.0.into()
+    }
+}
+
 impl<T> ReadableAccount for Mut<T>
 where
     T: ReadableAccount,

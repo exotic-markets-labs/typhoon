@@ -18,6 +18,12 @@ impl<'a> FromAccountInfo<'a> for Signer<'a> {
     }
 }
 
+impl<'a> From<Signer<'a>> for &'a RawAccountInfo {
+    fn from(value: Signer<'a>) -> Self {
+        value.info
+    }
+}
+
 impl AsRef<RawAccountInfo> for Signer<'_> {
     fn as_ref(&self) -> &RawAccountInfo {
         self.info

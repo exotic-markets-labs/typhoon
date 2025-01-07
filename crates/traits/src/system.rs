@@ -1,17 +1,21 @@
 use {
     typhoon_accounts::{
-        Mut, ReadableAccount, Signer as SignerAccount, SystemAccount, WritableAccount,
+        FromAccountInfo, Mut, ReadableAccount, Signer as SignerAccount, SystemAccount,
+        WritableAccount,
     },
     typhoon_program::{
         program_error::ProgramError,
         pubkey::Pubkey,
         system_program::instructions::{Allocate, Assign, CreateAccount, Transfer},
         sysvars::{rent::Rent, Sysvar},
-        SignerSeeds,
+        RawAccountInfo, SignerSeeds,
     },
 };
 
-pub trait SystemCpi: WritableAccount {
+pub trait SystemCpi<'a>: WritableAccount + Into<&'a RawAccountInfo>
+where
+    Self: Sized,
+{
     fn allocate(&self, new_space: u64) -> Result<(), ProgramError> {
         Allocate {
             account: self.as_ref(),
@@ -28,13 +32,13 @@ pub trait SystemCpi: WritableAccount {
         .invoke()
     }
 
-    fn create_account(
-        &self,
+    fn create_account<T: ReadableAccount + FromAccountInfo<'a>>(
+        self,
         payer: &impl ReadableAccount,
         owner: &Pubkey,
         space: u64,
         seeds: Option<&[SignerSeeds]>,
-    ) -> Result<(), ProgramError> {
+    ) -> Result<Mut<T>, ProgramError> {
         CreateAccount {
             from: payer.as_ref(),
             lamports: Rent::get()?.minimum_balance(space as usize),
@@ -42,7 +46,9 @@ pub trait SystemCpi: WritableAccount {
             space,
             to: self.as_ref(),
         }
-        .invoke_signed(seeds.unwrap_or_default())
+        .invoke_signed(seeds.unwrap_or_default())?;
+
+        Mut::try_from_info(self.into())
     }
 
     fn transfer(&self, to: &impl WritableAccount, amount: u64) -> Result<(), ProgramError> {
@@ -55,5 +61,5 @@ pub trait SystemCpi: WritableAccount {
     }
 }
 
-impl SystemCpi for Mut<SystemAccount<'_>> {}
-impl SystemCpi for Mut<SignerAccount<'_>> {}
+impl<'a> SystemCpi<'a> for Mut<SystemAccount<'a>> {}
+impl<'a> SystemCpi<'a> for Mut<SignerAccount<'a>> {}

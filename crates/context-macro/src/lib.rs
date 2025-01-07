@@ -58,17 +58,9 @@ impl Parse for Context {
                     .map(Account::try_from)
                     .collect::<Result<Vec<Account>, syn::Error>>()?;
 
-                let bumps = {
-                    if let Ok(bumps) = Bumps::try_from(&accounts) {
-                        if !bumps.0.is_empty() {
-                            Some(bumps)
-                        } else {
-                            None
-                        }
-                    } else {
-                        None
-                    }
-                };
+                let bumps = Bumps::try_from(&accounts)
+                    .ok()
+                    .filter(|bumps| !bumps.0.is_empty());
 
                 Ok(Context {
                     ident: item_struct.ident.to_owned(),

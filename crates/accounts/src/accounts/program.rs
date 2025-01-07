@@ -37,6 +37,15 @@ where
     }
 }
 
+impl<'a, T> From<Program<'a, T>> for &'a RawAccountInfo
+where
+    T: ProgramId,
+{
+    fn from(value: Program<'a, T>) -> Self {
+        value.info
+    }
+}
+
 impl<T> AsRef<RawAccountInfo> for Program<'_, T>
 where
     T: ProgramId,

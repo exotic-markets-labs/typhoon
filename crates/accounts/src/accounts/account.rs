@@ -46,6 +46,15 @@ where
     }
 }
 
+impl<'a, T> From<Account<'a, T>> for &'a RawAccountInfo
+where
+    T: Owner + Discriminator,
+{
+    fn from(value: Account<'a, T>) -> Self {
+        value.info
+    }
+}
+
 impl<T> AsRef<RawAccountInfo> for Account<'_, T>
 where
     T: Discriminator,

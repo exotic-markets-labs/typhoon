@@ -8,7 +8,7 @@ use {
 
 pub struct BorshAccount<'a, T>
 where
-    T: Discriminator + borsh::BorshSerialize + borsh::BorshDeserialize,
+    T: Discriminator,
 {
     info: &'a RawAccountInfo,
     data: T,
@@ -16,7 +16,7 @@ where
 
 impl<T> BorshAccount<'_, T>
 where
-    T: Owner + Discriminator + borsh::BorshSerialize + borsh::BorshDeserialize,
+    T: Owner + Discriminator,
 {
     pub fn data(&self) -> &T {
         &self.data
@@ -54,9 +54,18 @@ where
     }
 }
 
+impl<'a, T> From<BorshAccount<'a, T>> for &'a RawAccountInfo
+where
+    T: Owner + Discriminator,
+{
+    fn from(value: BorshAccount<'a, T>) -> Self {
+        value.info
+    }
+}
+
 impl<T> AsRef<RawAccountInfo> for BorshAccount<'_, T>
 where
-    T: borsh::BorshSerialize + borsh::BorshDeserialize + Discriminator,
+    T: Discriminator,
 {
     fn as_ref(&self) -> &RawAccountInfo {
         self.info
@@ -65,7 +74,7 @@ where
 
 impl<T> ReadableAccount for BorshAccount<'_, T>
 where
-    T: borsh::BorshSerialize + borsh::BorshDeserialize + Discriminator,
+    T: Discriminator,
 {
     type DataType = [u8];
 

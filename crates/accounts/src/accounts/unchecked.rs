@@ -13,6 +13,12 @@ impl<'a> FromAccountInfo<'a> for UncheckedAccount<'a> {
     }
 }
 
+impl<'a> From<UncheckedAccount<'a>> for &'a RawAccountInfo {
+    fn from(value: UncheckedAccount<'a>) -> Self {
+        value.info
+    }
+}
+
 impl AsRef<RawAccountInfo> for UncheckedAccount<'_> {
     fn as_ref(&self) -> &RawAccountInfo {
         self.info
