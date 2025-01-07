@@ -49,7 +49,6 @@ impl ToTokens for Handlers {
                     #(#instructions)*
                     _ => Err(ProgramError::InvalidInstructionData),
                 }
-                Ok(())
             }
         };
 
