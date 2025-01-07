@@ -6,17 +6,18 @@ pub use runner::*;
 
 use litesvm::LiteSVM;
 use solana_sdk::{
-    account::AccountSharedData,
+    hash,
     instruction::{AccountMeta, Instruction},
     pubkey::Pubkey,
     system_program,
 };
 
-pub fn setup(program_id: &Pubkey, name: &'static str) -> LiteSVM {
-    // std::env::set_var("SBF_OUT_DIR", "../target/deploy");
-    solana_logger::setup_with("");
+pub fn gen_anchor_dis(name: &str) -> [u8; 8] {
+    let preimage = format!("global:{name}");
 
-    LiteSVM::new()
+    let mut sighash = [0u8; 8];
+    sighash.copy_from_slice(&hash::hash(preimage.as_bytes()).to_bytes()[..8]);
+    sighash
 }
 
 pub enum ProgramInstruction {

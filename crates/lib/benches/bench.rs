@@ -6,7 +6,7 @@ pub fn main() {
     let typhoon_metrics = setup::runner("typhoon");
 
     panic!(
-        "{} {} {}",
+        "Pinocchio {}, Steel {}, Typhoon {}",
         serde_json::to_string(&pinocchio_metrics).unwrap(),
         serde_json::to_string(&steel_metrics).unwrap(),
         serde_json::to_string(&typhoon_metrics).unwrap()

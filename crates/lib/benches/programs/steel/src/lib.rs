@@ -12,6 +12,7 @@ pub enum Instructions {
     Ping = 0,
     Log = 1,
     Account = 2,
+    CreateAccount = 3,
 }
 
 pub fn process_instruction(
@@ -25,6 +26,7 @@ pub fn process_instruction(
         Instructions::Ping => ping()?,
         Instructions::Log => log()?,
         Instructions::Account => account(accounts, data)?,
+        Instructions::CreateAccount => c_account(accounts)?,
     }
 
     Ok(())

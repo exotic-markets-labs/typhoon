@@ -37,6 +37,10 @@ impl Bencher {
         }
     }
 
+    pub fn payer(&self) -> &Keypair {
+        &self.payer
+    }
+
     pub fn into_metrics(self) -> BenchResult {
         self.result
     }

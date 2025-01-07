@@ -26,3 +26,10 @@ typhoon-handler-macro.workspace = true
 typhoon-program.workspace = true
 typhoon-program-id-macro.workspace = true
 typhoon-traits.workspace = true
+
+[dev-dependencies]
+litesvm.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+solana-logger.workspace = true
+solana-sdk.workspace = true
