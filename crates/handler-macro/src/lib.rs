@@ -47,8 +47,10 @@ impl ToTokens for Handlers {
                 let (discriminator, data) = instruction_data.split_first().ok_or(ProgramError::InvalidInstructionData)?;
                 match discriminator {
                     #(#instructions)*
-                    _ => Err(ProgramError::InvalidInstructionData),
+                    _ => return Err(ProgramError::InvalidInstructionData),
                 }
+
+                Ok(())
             }
         };
 
