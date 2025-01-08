@@ -8,7 +8,9 @@ pub mod macros {
 pub use typhoon_program;
 
 pub mod lib {
-    pub use {typhoon_accounts::*, typhoon_context::*, typhoon_errors::*, typhoon_traits::*};
+    pub use {
+        typhoon_accounts::*, typhoon_context::*, typhoon_errors::*, typhoon_utility_traits::*,
+    };
 }
 
 pub mod prelude {
