@@ -30,7 +30,7 @@ where
 
         let account_data = info.try_borrow_data()?;
 
-        if account_data.len() < T::DISCRIMINATOR.len() {
+        if account_data.len() < T::DISCRIMINATOR.len() + std::mem::size_of::<T>() {
             return Err(ProgramError::AccountDataTooSmall);
         }
 
