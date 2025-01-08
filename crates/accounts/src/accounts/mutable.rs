@@ -1,5 +1,9 @@
 use {
-    crate::{FromAccountInfo, ReadMut, ReadableAccount, Signer, SignerAccount, WritableAccount},
+    super::{Account, Program, SystemAccount, UncheckedAccount},
+    crate::{
+        Discriminator, FromAccountInfo, ReadableAccount, RefFromBytes, Signer, SignerAccount,
+        WritableAccount,
+    },
     typhoon_errors::Error,
     typhoon_program::{program_error::ProgramError, pubkey::Pubkey, RawAccountInfo, Ref, RefMut},
 };
@@ -60,11 +64,29 @@ where
     }
 }
 
-impl<T, U> WritableAccount for Mut<T>
-where
-    T: ReadableAccount<DataType = U>,
-    U: ReadMut + ?Sized,
-{
+macro_rules! impl_writable {
+    ($name: ident) => {
+        impl WritableAccount for Mut<$name<'_>> {
+            fn realloc(&self, new_len: usize, zero_init: bool) -> Result<(), ProgramError> {
+                self.0.as_ref().realloc(new_len, zero_init)
+            }
+
+            fn mut_lamports(&self) -> Result<RefMut<u64>, ProgramError> {
+                self.0.as_ref().try_borrow_mut_lamports()
+            }
+
+            fn mut_data(&self) -> Result<RefMut<Self::DataType>, ProgramError> {
+                self.0.as_ref().try_borrow_mut_data()
+            }
+        }
+    };
+}
+
+impl_writable!(Signer);
+impl_writable!(SystemAccount);
+impl_writable!(UncheckedAccount);
+
+impl<T> WritableAccount for Mut<Program<'_, T>> {
     fn realloc(&self, new_len: usize, zero_init: bool) -> Result<(), ProgramError> {
         self.0.as_ref().realloc(new_len, zero_init)
     }
@@ -74,9 +96,21 @@ where
     }
 
     fn mut_data(&self) -> Result<RefMut<Self::DataType>, ProgramError> {
-        let data = self.0.as_ref().try_borrow_mut_data()?;
+        self.0.as_ref().try_borrow_mut_data()
+    }
+}
 
-        RefMut::filter_map(data, T::DataType::read_mut)
+impl<T: Discriminator + RefFromBytes> WritableAccount for Mut<Account<'_, T>> {
+    fn realloc(&self, new_len: usize, zero_init: bool) -> Result<(), ProgramError> {
+        self.0.as_ref().realloc(new_len, zero_init)
+    }
+
+    fn mut_lamports(&self) -> Result<RefMut<u64>, ProgramError> {
+        self.0.as_ref().try_borrow_mut_lamports()
+    }
+
+    fn mut_data(&self) -> Result<RefMut<Self::DataType>, ProgramError> {
+        RefMut::filter_map(self.0.as_ref().try_borrow_mut_data()?, T::read_mut)
             .map_err(|_| ProgramError::InvalidAccountData)
     }
 }

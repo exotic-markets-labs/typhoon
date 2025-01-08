@@ -9,10 +9,7 @@ use {
 /// Checks:
 /// * `account_info.key == expected_program`
 /// * `account_info.executable == true`
-pub struct Program<'a, T>
-where
-    T: ProgramId,
-{
+pub struct Program<'a, T> {
     info: &'a RawAccountInfo,
     _phantom: PhantomData<T>,
 }
@@ -37,28 +34,19 @@ where
     }
 }
 
-impl<'a, T> From<Program<'a, T>> for &'a RawAccountInfo
-where
-    T: ProgramId,
-{
+impl<'a, T> From<Program<'a, T>> for &'a RawAccountInfo {
     fn from(value: Program<'a, T>) -> Self {
         value.info
     }
 }
 
-impl<T> AsRef<RawAccountInfo> for Program<'_, T>
-where
-    T: ProgramId,
-{
+impl<T> AsRef<RawAccountInfo> for Program<'_, T> {
     fn as_ref(&self) -> &RawAccountInfo {
         self.info
     }
 }
 
-impl<T> ReadableAccount for Program<'_, T>
-where
-    T: ProgramId,
-{
+impl<T> ReadableAccount for Program<'_, T> {
     type DataType = [u8];
 
     fn key(&self) -> &Pubkey {
