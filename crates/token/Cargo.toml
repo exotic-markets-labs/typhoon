@@ -1,5 +1,5 @@
 [package]
-name = "typhoon-accounts"
+name = "typhoon-token"
 version.workspace = true
 rust-version.workspace = true
 edition.workspace = true
@@ -8,11 +8,10 @@ authors.workspace = true
 repository.workspace = true
 
 [features]
-borsh = ["dep:borsh"]
+default = ["pinocchio"]                                      # Wait for cavey to update it
+pinocchio = ["typhoon-program/pinocchio", "pinocchio-token"]
 
 [dependencies]
-borsh = { workspace = true, optional = true }
-bytemuck.workspace = true
-typhoon-errors.workspace = true
+pinocchio-token = { workspace = true, optional = true }
 typhoon-program.workspace = true
 typhoon-traits.workspace = true

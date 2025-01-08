@@ -1,7 +1,6 @@
 use {
     typhoon_accounts::{
-        Account, Discriminator, FromAccountInfo, Mut, Owner, RefFromBytes, Signer as SignerAccount,
-        SystemAccount, WritableAccount,
+        Account, FromAccountInfo, Mut, Signer as SignerAccount, SystemAccount, WritableAccount,
     },
     typhoon_errors::Error,
     typhoon_program::{
@@ -11,6 +10,7 @@ use {
         sysvars::rent::Rent,
         RawAccountInfo, SignerSeeds,
     },
+    typhoon_traits::{Discriminator, Owner, RefFromBytes},
 };
 
 pub trait SystemCpi<'a>: WritableAccount + Into<&'a RawAccountInfo>

@@ -22,3 +22,4 @@ typhoon-handler-macro.workspace = true
 typhoon-program.workspace = true
 typhoon-program-id-macro.workspace = true
 typhoon-traits.workspace = true
+typhoon-utility-traits.workspace = true

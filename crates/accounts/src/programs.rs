@@ -1,4 +1,4 @@
-use {crate::ProgramId, typhoon_program::system_program};
+use {typhoon_program::system_program, typhoon_traits::ProgramId};
 
 pub struct System;
 

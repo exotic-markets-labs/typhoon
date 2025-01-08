@@ -1,24 +1,11 @@
 mod accounts;
 mod programs;
-mod readable;
 
-pub use {accounts::*, programs::*, readable::*};
+pub use {accounts::*, programs::*};
 use {
     sealed::Sealed,
     typhoon_program::{program_error::ProgramError, pubkey::Pubkey, RawAccountInfo, Ref, RefMut},
 };
-
-pub trait ProgramId {
-    const ID: Pubkey;
-}
-
-pub trait Owner {
-    const OWNER: Pubkey;
-}
-
-pub trait Discriminator {
-    const DISCRIMINATOR: &'static [u8];
-}
 
 pub trait ReadableAccount: AsRef<RawAccountInfo> {
     type DataType: ?Sized;
