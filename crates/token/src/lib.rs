@@ -1,3 +1,4 @@
+pub use pinocchio_token::instructions::*;
 use {
     pinocchio_token::{
         state::{Mint as SplMint, TokenAccount as SplTokenAccount},
@@ -7,8 +8,6 @@ use {
     typhoon_program::pubkey::Pubkey,
     typhoon_traits::{Discriminator, Owner, RefFromBytes},
 };
-
-pub use pinocchio_token::instructions::*;
 
 #[repr(transparent)]
 pub struct Mint(SplMint);
