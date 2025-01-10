@@ -31,11 +31,13 @@ impl Owner for Mint {
 }
 
 #[repr(transparent)]
-pub struct Token(SplTokenAccount);
+pub struct TokenAccount(SplTokenAccount);
 
-impl RefFromBytes for Token {
+impl RefFromBytes for TokenAccount {
     fn read(data: &[u8]) -> Option<&Self> {
-        Some(unsafe { transmute::<&SplTokenAccount, &Token>(SplTokenAccount::from_bytes(data)) })
+        Some(unsafe {
+            transmute::<&SplTokenAccount, &TokenAccount>(SplTokenAccount::from_bytes(data))
+        })
     }
 
     fn read_mut(_data: &mut [u8]) -> Option<&mut Self> {
@@ -43,15 +45,15 @@ impl RefFromBytes for Token {
     }
 }
 
-impl Discriminator for Token {
+impl Discriminator for TokenAccount {
     const DISCRIMINATOR: &'static [u8] = &[];
 }
 
-impl Owner for Token {
+impl Owner for TokenAccount {
     const OWNER: Pubkey = ID;
 }
 
-impl Deref for Token {
+impl Deref for TokenAccount {
     type Target = SplTokenAccount;
 
     fn deref(&self) -> &Self::Target {
