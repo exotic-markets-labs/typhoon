@@ -1,6 +1,7 @@
 use {
-    crate::{FromAccountInfo, ReadableAccount},
+    crate::ReadableAccount,
     typhoon_program::{program_error::ProgramError, pubkey::Pubkey, RawAccountInfo, Ref},
+    typhoon_traits::FromAccountInfo,
 };
 
 pub struct UncheckedAccount<'a> {
