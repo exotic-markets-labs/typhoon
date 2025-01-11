@@ -68,5 +68,5 @@ pub struct Counter {
 }
 
 impl Counter {
-    const SPACE: usize = std::mem::size_of::<Counter>();
+    const SPACE: usize = 8 + std::mem::size_of::<Counter>();
 }

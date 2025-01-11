@@ -1,7 +1,7 @@
 use {
     typhoon_accounts::{
-        FromAccountInfo, Mut, ReadableAccount, Signer as SignerAccount, SystemAccount,
-        WritableAccount,
+        Account, Discriminator, FromAccountInfo, Mut, Owner, ReadableAccount, RefFromBytes,
+        Signer as SignerAccount, SystemAccount, WritableAccount,
     },
     typhoon_program::{
         program_error::ProgramError,
@@ -32,13 +32,13 @@ where
         .invoke()
     }
 
-    fn create_account<T: ReadableAccount + FromAccountInfo<'a>>(
+    fn create_account<T: Discriminator + RefFromBytes + Owner>(
         self,
         payer: &impl ReadableAccount,
         owner: &Pubkey,
         space: u64,
         seeds: Option<&[SignerSeeds]>,
-    ) -> Result<Mut<T>, ProgramError> {
+    ) -> Result<Mut<Account<'a, T>>, ProgramError> {
         CreateAccount {
             from: payer.as_ref(),
             lamports: Rent::get()?.minimum_balance(space as usize),
@@ -47,6 +47,12 @@ where
             to: self.as_ref(),
         }
         .invoke_signed(seeds.unwrap_or_default())?;
+
+        // Set discriminator
+        {
+            let mut data = self.as_ref().try_borrow_mut_data()?;
+            data[..T::DISCRIMINATOR.len()].copy_from_slice(T::DISCRIMINATOR);
+        }
 
         Mut::try_from_info(self.into())
     }

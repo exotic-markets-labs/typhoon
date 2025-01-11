@@ -88,5 +88,5 @@ pub struct Buffer {
 }
 
 impl Buffer {
-    const SPACE: usize = std::mem::size_of::<Buffer>();
+    const SPACE: usize = 8 + std::mem::size_of::<Buffer>();
 }

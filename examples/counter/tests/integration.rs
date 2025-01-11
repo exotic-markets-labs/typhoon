@@ -11,6 +11,7 @@ use {
         transaction::Transaction,
     },
     std::path::PathBuf,
+    typhoon::lib::RefFromBytes,
 };
 
 fn read_program() -> Vec<u8> {
@@ -51,7 +52,7 @@ fn integration_test() {
     svm.send_transaction(tx).unwrap();
 
     let raw_account = svm.get_account(&counter_pk).unwrap();
-    let counter_account: &Counter = bytemuck::try_from_bytes(raw_account.data.as_slice()).unwrap();
+    let counter_account: &Counter = Counter::read(raw_account.data.as_slice()).unwrap();
     assert!(counter_account.count == 0);
 
     // Increment the counter
@@ -69,6 +70,6 @@ fn integration_test() {
     svm.send_transaction(tx).unwrap();
 
     let raw_account = svm.get_account(&counter_pk).unwrap();
-    let counter_account: &Counter = bytemuck::try_from_bytes(raw_account.data.as_slice()).unwrap();
+    let counter_account: &Counter = Counter::read(raw_account.data.as_slice()).unwrap();
     assert!(counter_account.count == 1);
 }

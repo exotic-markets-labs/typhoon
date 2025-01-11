@@ -1,3 +1,4 @@
+use typhoon::lib::RefFromBytes;
 use {
     instruction_data::{Buffer, InitArgs, SetValueContextArgs},
     litesvm::LiteSVM,
@@ -59,7 +60,7 @@ fn integration_test() {
     );
     svm.send_transaction(tx).unwrap();
     let raw_account = svm.get_account(&buffer_a_pk).unwrap();
-    let buffer_account: &Buffer = bytemuck::try_from_bytes(raw_account.data.as_slice()).unwrap();
+    let buffer_account: &Buffer = Buffer::read(raw_account.data.as_slice()).unwrap();
     assert_eq!(buffer_account.value1, u64::from(init_args.value));
 
     let tx = Transaction::new_signed_with_payer(
@@ -82,7 +83,7 @@ fn integration_test() {
     );
     svm.send_transaction(tx).unwrap();
     let raw_account = svm.get_account(&buffer_b_pk).unwrap();
-    let buffer_account: &Buffer = bytemuck::try_from_bytes(raw_account.data.as_slice()).unwrap();
+    let buffer_account: &Buffer = Buffer::read(raw_account.data.as_slice()).unwrap();
     assert_eq!(buffer_account.value1, u64::from(init_args.value));
 
     let ix_a_args = SetValueContextArgs {
@@ -107,7 +108,7 @@ fn integration_test() {
     );
     svm.send_transaction(tx).unwrap();
     let raw_account = svm.get_account(&buffer_a_pk).unwrap();
-    let buffer_account: &Buffer = bytemuck::try_from_bytes(raw_account.data.as_slice()).unwrap();
+    let buffer_account: &Buffer = Buffer::read(raw_account.data.as_slice()).unwrap();
     assert_eq!(buffer_account.value1, u64::from(ix_a_args.value));
     assert_eq!(buffer_account.value2, u64::from(more_args));
 
@@ -133,7 +134,7 @@ fn integration_test() {
     );
     svm.send_transaction(tx).unwrap();
     let raw_account = svm.get_account(&buffer_b_pk).unwrap();
-    let buffer_account: &Buffer = bytemuck::try_from_bytes(raw_account.data.as_slice()).unwrap();
+    let buffer_account: &Buffer = Buffer::read(raw_account.data.as_slice()).unwrap();
     assert_eq!(buffer_account.value1, u64::from(ix_b_args.value));
     assert_eq!(buffer_account.value2, u64::from(more_args));
 
@@ -166,7 +167,7 @@ fn integration_test() {
     svm.send_transaction(tx).unwrap();
 
     let raw_account = svm.get_account(&buffer_a_pk).unwrap();
-    let buffer_account: &Buffer = bytemuck::try_from_bytes(raw_account.data.as_slice()).unwrap();
+    let buffer_account: &Buffer = Buffer::read(raw_account.data.as_slice()).unwrap();
     assert_eq!(buffer_account.value1, u64::from(ix_a_args.value));
     assert_eq!(
         buffer_account.value2,

@@ -1688,6 +1688,7 @@ dependencies = [
  "syn 2.0.91",
  "trybuild",
  "typhoon",
+ "typhoon-discriminator",
 ]
 
 [[package]]
@@ -1738,6 +1739,24 @@ dependencies = [
  "serde_json",
  "syn 2.0.91",
  "typhoon-cpi-generator",
+]
+
+[[package]]
+name = "typhoon-discriminator"
+version = "0.1.0"
+dependencies = [
+ "sha2 0.10.8",
+]
+
+[[package]]
+name = "typhoon-discriminator-macro"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.91",
+ "trybuild",
+ "typhoon-discriminator",
 ]
 
 [[package]]

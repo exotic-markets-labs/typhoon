@@ -2,6 +2,7 @@ use {
     keys::PrimaryKeys,
     quote::{quote, ToTokens},
     syn::{parse_macro_input, spanned::Spanned, Error, Item},
+    typhoon_discriminator::DiscriminatorBuilder,
 };
 
 mod keys;
@@ -38,6 +39,7 @@ pub fn account(
             field.attrs.retain(|attr| !attr.meta.path().is_ident("key"));
         }
     }
+    let discriminator = DiscriminatorBuilder::new(&name.to_string()).build();
 
     quote! {
         #[derive(bytemuck::Pod, bytemuck::Zeroable, Copy, Clone)]
@@ -49,7 +51,7 @@ pub fn account(
         }
 
         impl Discriminator for #name #ty_generics #where_clause {
-            const DISCRIMINATOR: &'static [u8] = &[];
+            const DISCRIMINATOR: &'static [u8] = &[#(#discriminator),*];
         }
 
         #seeded_trait

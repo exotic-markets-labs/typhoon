@@ -1,3 +1,4 @@
+use typhoon::lib::RefFromBytes;
 use {
     litesvm::LiteSVM,
     seeded::{Counter, InitContextArgs},
@@ -75,7 +76,7 @@ fn integration_test() {
     svm.send_transaction(tx).unwrap();
 
     let raw_account = svm.get_account(&counter_pk).unwrap();
-    let counter_account: &Counter = bytemuck::try_from_bytes(raw_account.data.as_slice()).unwrap();
+    let counter_account: &Counter = Counter::read(raw_account.data.as_slice()).unwrap();
     assert!(counter_account.count == 1);
 
     let ix = Instruction {
