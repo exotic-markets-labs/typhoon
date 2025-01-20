@@ -1,19 +1,19 @@
 pub use {
     nostd_entrypoint_invoke::invoke_unchecked,
     nostd_system_program as system_program,
-    solana_nostd_entrypoint::{
-        basic_panic_impl, entrypoint_nostd, noalloc_allocator,
-        solana_program::{
-            entrypoint::{ProgramResult, SUCCESS},
-            *,
-        },
-        Ref, RefMut,
+    solana_nostd_entrypoint::{basic_panic_impl, entrypoint_nostd, noalloc_allocator, Ref, RefMut},
+    solana_program::{
+        entrypoint::{ProgramResult, SUCCESS},
+        *,
     },
 };
-use {program_error::ProgramError, solana_nostd_entrypoint::InstructionC, std::mem::MaybeUninit};
+use {
+    solana_nostd_entrypoint::InstructionC, solana_program::program_error::ProgramError,
+    std::mem::MaybeUninit,
+};
 
 pub mod sysvars {
-    pub use solana_nostd_entrypoint::solana_program::sysvar::*;
+    pub use solana_program::sysvar::*;
 }
 
 pub type RawAccountInfo = solana_nostd_entrypoint::NoStdAccountInfo;
@@ -49,7 +49,7 @@ impl crate::ToMeta for RawAccountInfo {
 #[repr(C)]
 pub struct Instruction<'a, 'b, 'c> {
     /// Public key of the program.
-    pub program_id: &'a pubkey::Pubkey,
+    pub program_id: &'a solana_program::pubkey::Pubkey,
 
     /// Data expected by the program instruction.
     pub data: &'b [u8],
@@ -61,7 +61,7 @@ pub struct Instruction<'a, 'b, 'c> {
 impl From<&Instruction<'_, '_, '_>> for InstructionC {
     fn from(value: &Instruction) -> Self {
         InstructionC {
-            program_id: value.program_id,
+            program_id: value.program_id as *const crate::pubkey::Pubkey,
             accounts: value.accounts.as_ptr(),
             accounts_len: value.accounts.len() as u64,
             data: value.data.as_ptr(),
@@ -80,7 +80,7 @@ impl From<&Instruction<'_, '_, '_>> for InstructionC {
 pub fn invoke<const ACCOUNTS: usize>(
     instruction: &Instruction,
     account_infos: &[&RawAccountInfo; ACCOUNTS],
-) -> ProgramResult {
+) -> Result<(), ProgramError> {
     invoke_signed(instruction, account_infos, &[])
 }
 
@@ -94,7 +94,7 @@ pub fn invoke_signed<const ACCOUNTS: usize>(
     instruction: &Instruction,
     account_infos: &[&RawAccountInfo; ACCOUNTS],
     signers_seeds: &[SignerSeeds],
-) -> ProgramResult {
+) -> Result<(), ProgramError> {
     if instruction.accounts.len() < ACCOUNTS {
         return Err(ProgramError::NotEnoughAccountKeys);
     }
@@ -125,13 +125,12 @@ pub fn invoke_signed<const ACCOUNTS: usize>(
 
     Ok(())
 }
-
 pub const fn pubkey_from_array(pubkey_array: [u8; 32]) -> pubkey::Pubkey {
     pubkey::Pubkey::new_from_array(pubkey_array)
 }
 
 pub mod pubkey {
-    pub use solana_nostd_entrypoint::solana_program::pubkey::*;
+    pub use solana_program::pubkey::*;
 
     pub fn find_program_address(seeds: &[&[u8]], program_id: &Pubkey) -> (Pubkey, u8) {
         Pubkey::find_program_address(seeds, program_id)
