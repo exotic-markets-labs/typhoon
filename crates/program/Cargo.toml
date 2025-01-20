@@ -14,11 +14,11 @@ default = [
     "solana-program-entrypoint",
     "solana-program-error",
     "solana-pubkey",
-    "solana-cpi",
     "solana-msg",
     "solana-sysvar-id",
     "solana-clock",
     "solana-rent",
+    "solana-define-syscall",
 ]
 pinocchio = [
     "dep:pinocchio",
@@ -35,7 +35,7 @@ pinocchio-log = { workspace = true, optional = true }
 pinocchio-pubkey = { workspace = true, optional = true }
 pinocchio-system = { workspace = true, optional = true }
 solana-clock = { workspace = true, optional = true }
-solana-cpi = { workspace = true, optional = true }
+solana-define-syscall = { workspace = true, optional = true }
 solana-msg = { workspace = true, optional = true }
 solana-nostd-entrypoint = { workspace = true, optional = true }
 solana-program-entrypoint = { workspace = true, optional = true }

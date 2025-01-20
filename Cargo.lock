@@ -297,8 +297,9 @@ checksum = "78ca9ab1a0babb1e7d5695e3530886289c18cf2f87ec19a575a0abdce112e3a3"
 [[package]]
 name = "nostd-entrypoint-invoke"
 version = "0.1.0"
-source = "git+https://github.com/Aursen/nostdinfo-programs#14f12602e7ad63dbb826927299938990da1a45a9"
+source = "git+https://github.com/Aursen/nostdinfo-programs#a20ed805ef0ed934f872d13fc669de6f666cb6b1"
 dependencies = [
+ "solana-define-syscall",
  "solana-nostd-entrypoint",
  "solana-program-entrypoint",
  "solana-program-error",
@@ -307,7 +308,7 @@ dependencies = [
 [[package]]
 name = "nostd-system-program"
 version = "0.1.0"
-source = "git+https://github.com/Aursen/nostdinfo-programs#14f12602e7ad63dbb826927299938990da1a45a9"
+source = "git+https://github.com/Aursen/nostdinfo-programs#a20ed805ef0ed934f872d13fc669de6f666cb6b1"
 dependencies = [
  "nostd-entrypoint-invoke",
  "solana-nostd-entrypoint",
@@ -583,20 +584,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "solana-cpi"
-version = "2.1.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5b87b387931f41422be3d82190e29c8414bbb4e8517dd94afb838012260d7a60"
-dependencies = [
- "solana-account-info",
- "solana-define-syscall",
- "solana-instruction",
- "solana-program-error",
- "solana-pubkey",
- "solana-stable-layout",
-]
-
-[[package]]
 name = "solana-decode-error"
 version = "2.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -750,16 +737,6 @@ dependencies = [
  "sha2",
  "solana-define-syscall",
  "solana-hash",
-]
-
-[[package]]
-name = "solana-stable-layout"
-version = "2.1.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2243571ebf8c0c9915c7e71b17469e173c6755fa58af8eb529db3dda84e3e19a"
-dependencies = [
- "solana-instruction",
- "solana-pubkey",
 ]
 
 [[package]]
@@ -1065,7 +1042,7 @@ dependencies = [
  "pinocchio-pubkey",
  "pinocchio-system",
  "solana-clock",
- "solana-cpi",
+ "solana-define-syscall",
  "solana-msg",
  "solana-nostd-entrypoint",
  "solana-program-entrypoint",

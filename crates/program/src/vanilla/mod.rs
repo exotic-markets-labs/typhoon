@@ -5,6 +5,7 @@ pub mod sysvars;
 pub use {
     invoke::*,
     nostd_system_program as system_program,
+    pubkey::declare_id,
     solana_msg::*,
     solana_nostd_entrypoint::{basic_panic_impl, entrypoint_nostd, noalloc_allocator, Ref, RefMut},
     solana_program_entrypoint::*,

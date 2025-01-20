@@ -47,7 +47,7 @@ quote = "1.0"
 serde_json = "1.0"
 sha2 = "0.10.8"
 solana-clock = "2.1"
-solana-cpi = "2.1"
+solana-define-syscall = "2.1"
 solana-msg = "2.1"
 solana-nostd-entrypoint = { git = "https://github.com/cavemanloverboy/solana-nostd-entrypoint", rev = "b752d70" }
 solana-program-entrypoint = "2.1"
