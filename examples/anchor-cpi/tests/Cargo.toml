@@ -6,7 +6,7 @@ publish = false
 
 [dev-dependencies]
 bytemuck = "1.21.0"
-litesvm = { git = "https://github.com/LiteSVM/litesvm", rev = "cae003c" }
+litesvm = { git = "https://github.com/LiteSVM/litesvm", rev = "7c32a00" }
 podded = "0.5.2"
 typhoon = { path = "../../../crates/lib" }
-solana-sdk = "2.1"
+solana-sdk = "2.1.10"
