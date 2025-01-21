@@ -15,6 +15,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            . -> target
+            examples/* -> target
       - name: Install protobuf compiler # delete this once we get to solana 2.1
         run: sudo apt-get install protobuf-compiler
       - name: Rustup install nightly
