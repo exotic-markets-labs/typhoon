@@ -15,10 +15,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: |
-            . -> target
-            examples/* -> target
       - name: Rustup install nightly
         run: rustup toolchain install nightly
       - name: Rustup install rustfmt
@@ -35,6 +31,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "*/ -> target"
       - name: Install cargo-make
         uses: baptiste0928/cargo-install@v3
         with:
