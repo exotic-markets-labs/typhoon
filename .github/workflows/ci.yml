@@ -45,8 +45,6 @@ jobs:
         with:
           crate: cargo-make
           version: "0.37.23"
-      - name: Install protobuf compiler
-        run: sudo apt-get install protobuf-compiler
       - name: Install Solana CLI
         run: |
           sh -c "$(curl -sSfL https://release.anza.xyz/v2.1.6/install)"
