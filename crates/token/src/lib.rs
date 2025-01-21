@@ -1,5 +1,4 @@
 pub use pinocchio_token::instructions::*;
-use typhoon_traits::ProgramId;
 use {
     pinocchio_token::{
         state::{Mint as SplMint, TokenAccount as SplTokenAccount},
@@ -7,7 +6,7 @@ use {
     },
     std::{mem::transmute, ops::Deref},
     typhoon_program::pubkey::Pubkey,
-    typhoon_traits::{Discriminator, Owner, RefFromBytes},
+    typhoon_traits::{Discriminator, Owner, ProgramId, RefFromBytes},
 };
 
 pub struct TokenProgram;
