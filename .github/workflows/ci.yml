@@ -32,7 +32,14 @@ jobs:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: "examples/*/ -> target"
+          workspaces: |
+            examples/anchor-cpi/ -> target
+            examples/counter/ -> target
+            examples/hello-world/ -> target
+            examples/instruction-data/ -> target
+            examples/seeded/ -> target
+            examples/seeds/ -> target
+            examples/transfer-sol/ -> target
       - name: Install cargo-make
         uses: baptiste0928/cargo-install@v3
         with:
