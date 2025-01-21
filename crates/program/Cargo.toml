@@ -26,7 +26,6 @@ pinocchio = [
     "pinocchio-pubkey",
     "pinocchio-log",
 ]
-curve25519 = ["solana-pubkey/curve25519"]
 
 [dependencies]
 nostd-system-program = { workspace = true, optional = true }
@@ -43,6 +42,9 @@ solana-program-error = { workspace = true, optional = true }
 solana-pubkey = { workspace = true, optional = true }
 solana-rent = { workspace = true, optional = true }
 solana-sysvar-id = { workspace = true, optional = true }
+
+[target.'cfg(not(target_os = "solana"))'.dependencies]
+solana-pubkey = { workspace = true, optional = true, features = ["curve25519"] }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = [

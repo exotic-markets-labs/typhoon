@@ -69,17 +69,14 @@ pub const fn pubkey_from_array(pubkey_array: [u8; 32]) -> pubkey::Pubkey {
 pub mod pubkey {
     pub use solana_pubkey::*;
 
-    #[cfg(any(target_os = "solana", feature = "curve25519"))]
     pub fn find_program_address(seeds: &[&[u8]], program_id: &Pubkey) -> (Pubkey, u8) {
         Pubkey::find_program_address(seeds, program_id)
     }
 
-    #[cfg(any(target_os = "solana", feature = "curve25519"))]
     pub fn try_find_program_address(seeds: &[&[u8]], program_id: &Pubkey) -> Option<(Pubkey, u8)> {
         Pubkey::try_find_program_address(seeds, program_id)
     }
 
-    #[cfg(any(target_os = "solana", feature = "curve25519"))]
     pub fn create_program_address(
         seeds: &[&[u8]],
         program_id: &Pubkey,
