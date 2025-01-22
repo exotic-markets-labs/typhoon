@@ -1,5 +1,5 @@
 use {
-    codama::KorokVisitor,
+    codama::{CodamaResult, KorokVisitor},
     codama_syn_helpers::extensions::{PathExtension, TypeExtension},
     std::{borrow::BorrowMut, collections::HashSet},
     syn::Item,
@@ -24,15 +24,18 @@ impl<'a> CacheByImplsVisitor<'a> {
 }
 
 impl KorokVisitor for CacheByImplsVisitor<'_> {
-    fn visit_unsupported_item(&mut self, korok: &mut codama_koroks::UnsupportedItemKorok) {
-        self.visit_children(korok);
+    fn visit_unsupported_item(
+        &mut self,
+        korok: &mut codama_koroks::UnsupportedItemKorok,
+    ) -> CodamaResult<()> {
+        self.visit_children(korok)?;
 
         let Item::Impl(impl_item) = korok.ast else {
-            return;
+            return Ok(());
         };
 
         let Some((_, trait_path, _)) = &impl_item.trait_ else {
-            return;
+            return Ok(());
         };
 
         if !self
@@ -40,11 +43,13 @@ impl KorokVisitor for CacheByImplsVisitor<'_> {
             .iter()
             .any(|trait_name| trait_path.last().ident == trait_name)
         {
-            return;
+            return Ok(());
         }
 
         if let Ok(impl_path) = impl_item.self_ty.as_path() {
             self.cache.borrow_mut().insert(impl_path.last_str());
         }
+
+        Ok(())
     }
 }
