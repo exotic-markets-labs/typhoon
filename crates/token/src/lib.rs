@@ -18,6 +18,10 @@ impl ProgramId for TokenProgram {
 #[repr(transparent)]
 pub struct Mint(SplMint);
 
+impl Mint {
+    pub const LEN: usize = SplMint::LEN;
+}
+
 impl RefFromBytes for Mint {
     fn read(data: &[u8]) -> Option<&Self> {
         Some(unsafe { transmute::<&SplMint, &Mint>(SplMint::from_bytes(data)) })
@@ -38,6 +42,10 @@ impl Owner for Mint {
 
 #[repr(transparent)]
 pub struct TokenAccount(SplTokenAccount);
+
+impl TokenAccount {
+    pub const LEN: usize = SplTokenAccount::LEN;
+}
 
 impl RefFromBytes for TokenAccount {
     fn read(data: &[u8]) -> Option<&Self> {
