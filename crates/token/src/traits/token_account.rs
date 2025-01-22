@@ -16,8 +16,8 @@ pub trait TokenAccountTrait: WritableAccount {
     fn create_token_account(
         &self,
         rent: &Rent,
-        payer: impl WritableAccount + SignerAccount,
-        mint: impl ReadableAccount,
+        payer: &(impl WritableAccount + SignerAccount),
+        mint: &impl ReadableAccount,
         owner: &Pubkey,
         signer_seeds: Option<SignerSeeds>,
     ) -> Result<(), ProgramError> {
