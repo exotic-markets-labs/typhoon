@@ -1,34 +1,31 @@
 use {
     crate::{TokenAccount, TokenProgram},
     pinocchio_token::instructions::InitializeAccount3,
-    typhoon_accounts::{Mut, ReadableAccount, SignerAccount, SystemAccount, WritableAccount},
+    typhoon_accounts::{
+        Account, Mut, ReadableAccount, SignerAccount, SystemAccount, WritableAccount,
+    },
     typhoon_program::{
         program_error::ProgramError,
         pubkey::Pubkey,
         system_program::instructions::{Allocate, Assign, CreateAccount, Transfer},
         sysvars::rent::Rent,
-        SignerSeeds,
+        RawAccountInfo, SignerSeeds,
     },
-    typhoon_traits::ProgramId,
+    typhoon_traits::{FromAccountInfo, ProgramId},
 };
 
-pub trait TokenAccountTrait: WritableAccount {
+pub trait TokenAccountTrait<'a>: WritableAccount + Into<&'a RawAccountInfo> {
     fn create_token_account(
-        &self,
+        self,
         rent: &Rent,
         payer: &(impl WritableAccount + SignerAccount),
         mint: &impl ReadableAccount,
         owner: &Pubkey,
-        signer_seeds: Option<SignerSeeds>,
-    ) -> Result<(), ProgramError> {
-        let current_lamports = self.lamports()?;
+        seeds: Option<&[SignerSeeds]>,
+    ) -> Result<Mut<Account<'a, TokenAccount>>, ProgramError> {
+        let current_lamports = { *self.lamports()? };
         let space = TokenAccount::LEN;
-        let signers: &[SignerSeeds] = match signer_seeds {
-            Some(seeds) => &[seeds],
-            None => &[],
-        };
-
-        if *current_lamports == 0 {
+        if current_lamports == 0 {
             let lamports = rent.minimum_balance(space);
             CreateAccount {
                 from: payer.as_ref(),
@@ -37,12 +34,12 @@ pub trait TokenAccountTrait: WritableAccount {
                 space: space as u64,
                 owner: &TokenProgram::ID,
             }
-            .invoke_signed(signers)?;
+            .invoke_signed(seeds.unwrap_or_default())?;
         } else {
             let required_lamports = rent
                 .minimum_balance(space)
                 .max(1)
-                .saturating_sub(*current_lamports);
+                .saturating_sub(current_lamports);
 
             if required_lamports > 0 {
                 Transfer {
@@ -57,13 +54,13 @@ pub trait TokenAccountTrait: WritableAccount {
                 account: self.as_ref(),
                 space: space as u64,
             }
-            .invoke_signed(signers)?;
+            .invoke_signed(seeds.unwrap_or_default())?;
 
             Assign {
                 account: self.as_ref(),
                 owner: &TokenProgram::ID,
             }
-            .invoke_signed(signers)?;
+            .invoke_signed(seeds.unwrap_or_default())?;
         }
 
         InitializeAccount3 {
@@ -73,8 +70,8 @@ pub trait TokenAccountTrait: WritableAccount {
         }
         .invoke()?;
 
-        Ok(())
+        Mut::try_from_info(self.into())
     }
 }
 
-impl TokenAccountTrait for Mut<SystemAccount<'_>> {}
+impl<'a> TokenAccountTrait<'a> for Mut<SystemAccount<'a>> {}
