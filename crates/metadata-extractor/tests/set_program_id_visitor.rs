@@ -11,7 +11,7 @@ fn it_gets_program_ids_from_the_declare_id_macro() {
     })
     .unwrap();
     let mut korok = CrateKorok::parse(&store).unwrap();
-    korok.accept(&mut SetProgramIdVisitor::new());
+    korok.accept(&mut SetProgramIdVisitor::new()).unwrap();
 
     let Some(Node::Program(program)) = korok.node else {
         panic!("Expected program node");

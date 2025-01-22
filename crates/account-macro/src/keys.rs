@@ -101,7 +101,7 @@ impl TryFrom<&Fields> for PrimaryKeys {
                 for field in fields.named.iter() {
                     let has_key = field.attrs.iter().any(|attr| {
                         if let Meta::Path(path) = &attr.meta {
-                            path.get_ident().map_or(false, |ident| *ident == "key")
+                            path.get_ident().is_some_and(|ident| *ident == "key")
                         } else {
                             false
                         }

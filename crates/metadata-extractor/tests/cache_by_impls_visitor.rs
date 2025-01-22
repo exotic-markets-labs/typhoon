@@ -19,7 +19,7 @@ fn it_apply_marker_node() {
     let mut korok = ItemKorok::parse(&ast, &[], &mut 0).unwrap();
     let mut visitor = CacheByImplsVisitor::new(&["Owner"]);
 
-    korok.accept(&mut visitor);
+    korok.accept(&mut visitor).unwrap();
 
     let ItemKorok::Module(module) = &korok else {
         panic!("Expected program module");
