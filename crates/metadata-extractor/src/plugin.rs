@@ -4,9 +4,9 @@ use {
         visitors::{CacheByImplsVisitor, SetProgramIdVisitor},
     },
     codama::{
-        AccountNode, CombineModulesVisitor, CombineTypesVisitor, FilterItemsVisitor, KorokMut,
-        KorokTrait, KorokVisitor, NestedTypeNode, Node, SetProgramMetadataVisitor, StructTypeNode,
-        UniformVisitor,
+        AccountNode, CodamaResult, CombineModulesVisitor, CombineTypesVisitor, FilterItemsVisitor,
+        KorokMut, KorokTrait, KorokVisitor, NestedTypeNode, Node, SetProgramMetadataVisitor,
+        StructTypeNode, UniformVisitor,
     },
     codama_korok_plugins::KorokPlugin,
     codama_korok_visitors::{
@@ -17,11 +17,15 @@ use {
 pub struct TyphoonPlugin;
 
 impl KorokPlugin for TyphoonPlugin {
-    fn run(&self, visitable: &mut dyn KorokVisitable, next: &dyn Fn(&mut dyn KorokVisitable)) {
-        next(visitable);
+    fn run(
+        &self,
+        visitable: &mut dyn KorokVisitable,
+        next: &dyn Fn(&mut dyn KorokVisitable) -> CodamaResult<()>,
+    ) -> CodamaResult<()> {
+        next(visitable)?;
 
         let mut cache = CacheByImplsVisitor::new(&["Owner"]);
-        visitable.accept(&mut cache);
+        visitable.accept(&mut cache)?;
         let account_cache = cache.get_cache();
 
         let cache_slice = account_cache.as_slice();
@@ -40,15 +44,18 @@ impl KorokPlugin for TyphoonPlugin {
             .add(FilterItemsVisitor::new(
                 move |item| item.has_name_in_cache(cache_slice) || item.has_attribute("account"),
                 UniformVisitor::new(|mut k, visitor| {
-                    visitor.visit_children(&mut k);
+                    visitor.visit_children(&mut k)?;
                     apply_account(k);
+                    Ok(())
                 }),
             ))
             .add(SetProgramIdVisitor::new())
             .add(SetProgramMetadataVisitor::new())
             .add(CombineModulesVisitor::new());
 
-        visitable.accept(&mut default_visitor);
+        visitable.accept(&mut default_visitor)?;
+
+        Ok(())
     }
 }
 

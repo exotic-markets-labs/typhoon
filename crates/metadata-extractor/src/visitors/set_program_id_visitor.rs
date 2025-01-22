@@ -1,5 +1,5 @@
 use {
-    codama::{CrateKorok, KorokVisitor, Node, ProgramNode, UnsupportedItemKorok},
+    codama::{CodamaResult, CrateKorok, KorokVisitor, Node, ProgramNode, UnsupportedItemKorok},
     codama_syn_helpers::extensions::PathExtension,
 };
 
@@ -15,8 +15,8 @@ impl SetProgramIdVisitor {
 }
 
 impl KorokVisitor for SetProgramIdVisitor {
-    fn visit_crate(&mut self, korok: &mut CrateKorok) {
-        self.visit_children(korok);
+    fn visit_crate(&mut self, korok: &mut CrateKorok) -> CodamaResult<()> {
+        self.visit_children(korok)?;
 
         // Get a mutable reference to the program to update its metadata.
         let program = match &mut korok.node {
@@ -34,7 +34,7 @@ impl KorokVisitor for SetProgramIdVisitor {
                 }
             }
             // Don't update the node if it is set to anything else.
-            _ => return,
+            _ => return Ok(()),
         };
 
         if program.public_key.is_empty() {
@@ -42,11 +42,13 @@ impl KorokVisitor for SetProgramIdVisitor {
                 program.public_key = public_key.into()
             }
         }
+
+        Ok(())
     }
 
-    fn visit_unsupported_item(&mut self, korok: &mut UnsupportedItemKorok) {
+    fn visit_unsupported_item(&mut self, korok: &mut UnsupportedItemKorok) -> CodamaResult<()> {
         let syn::Item::Macro(syn::ItemMacro { mac, .. }) = korok.ast else {
-            return;
+            return Ok(());
         };
 
         if let ("" | "typhoon_program_id_macro", "program_id") =
@@ -54,5 +56,7 @@ impl KorokVisitor for SetProgramIdVisitor {
         {
             self.identified_public_key = Some(mac.tokens.to_string().replace("\"", ""));
         };
+
+        Ok(())
     }
 }
