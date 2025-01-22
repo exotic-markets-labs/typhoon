@@ -1,7 +1,7 @@
 use {
     crate::{TokenAccount, TokenProgram},
     pinocchio_token::instructions::InitializeAccount3,
-    typhoon_accounts::{ReadableAccount, SignerAccount, WritableAccount},
+    typhoon_accounts::{Mut, ReadableAccount, SignerAccount, SystemAccount, WritableAccount},
     typhoon_program::{
         program_error::ProgramError,
         pubkey::Pubkey,
@@ -76,3 +76,5 @@ pub trait TokenAccountTrait: WritableAccount {
         Ok(())
     }
 }
+
+impl TokenAccountTrait for Mut<SystemAccount<'_>> {}
