@@ -13,5 +13,6 @@ pinocchio = ["typhoon-program/pinocchio", "pinocchio-token"]
 
 [dependencies]
 pinocchio-token = { workspace = true, optional = true }
+typhoon-accounts.workspace = true
 typhoon-program.workspace = true
 typhoon-traits.workspace = true
