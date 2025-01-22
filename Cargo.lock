@@ -1080,6 +1080,7 @@ version = "0.1.0"
 dependencies = [
  "pinocchio-token",
  "typhoon-accounts",
+ "typhoon-errors",
  "typhoon-program",
  "typhoon-traits",
 ]
