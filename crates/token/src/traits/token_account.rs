@@ -4,6 +4,7 @@ use {
     typhoon_accounts::{
         Account, Mut, ReadableAccount, SignerAccount, SystemAccount, WritableAccount,
     },
+    typhoon_errors::Error,
     typhoon_program::{
         program_error::ProgramError,
         pubkey::Pubkey,
@@ -36,6 +37,10 @@ pub trait TokenAccountTrait<'a>: WritableAccount + Into<&'a RawAccountInfo> {
             }
             .invoke_signed(seeds.unwrap_or_default())?;
         } else {
+            if payer.key() == self.key() {
+                return Err(Error::TryingToInitPayerAsProgramAccount.into());
+            }
+
             let required_lamports = rent
                 .minimum_balance(space)
                 .max(1)
