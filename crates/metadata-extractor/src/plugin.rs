@@ -1,7 +1,7 @@
 use {
     crate::{
         helpers::ItemHelper,
-        visitors::{CacheByImplsVisitor, SetProgramIdVisitor},
+        visitors::{CacheByImplsVisitor, CacheInstructionIdents, SetProgramIdVisitor},
     },
     codama::{
         AccountNode, CodamaResult, CombineModulesVisitor, CombineTypesVisitor, FilterItemsVisitor,
@@ -12,6 +12,7 @@ use {
     codama_korok_visitors::{
         ComposeVisitor, KorokVisitable, SetBorshTypesVisitor, SetLinkTypesVisitor,
     },
+    std::collections::HashSet,
 };
 
 pub struct TyphoonPlugin;
@@ -24,15 +25,26 @@ impl KorokPlugin for TyphoonPlugin {
     ) -> CodamaResult<()> {
         next(visitable)?;
 
-        let mut cache = CacheByImplsVisitor::new(&["Owner"]);
-        visitable.accept(&mut cache)?;
-        let account_cache = cache.get_cache();
+        let mut cache_accounts = HashSet::new();
+        let mut cache_instructions = HashSet::new();
 
-        let cache_slice = account_cache.as_slice();
+        {
+            let mut first_visitor = ComposeVisitor::new()
+                .add(CacheByImplsVisitor::new(&["Owner"], &mut cache_accounts))
+                .add(CacheInstructionIdents::new(&mut cache_instructions));
+            visitable.accept(&mut first_visitor)?;
+        }
+
+        let cache_accounts: Vec<String> = cache_accounts.into_iter().collect();
+        let cache_accounts_ref = &cache_accounts;
+        let _cache_instructions: Vec<String> = cache_instructions.into_iter().collect();
+
+        println!("{:?}", _cache_instructions);
+
         let mut default_visitor = ComposeVisitor::new()
             .add(FilterItemsVisitor::new(
                 move |item| {
-                    item.has_name_in_cache(cache_slice)
+                    item.has_name_in_cache(cache_accounts_ref)
                         || item.has_attribute("account")
                         || item.has_attribute("context")
                 },
@@ -42,7 +54,9 @@ impl KorokPlugin for TyphoonPlugin {
                     .add(CombineTypesVisitor::new()),
             ))
             .add(FilterItemsVisitor::new(
-                move |item| item.has_name_in_cache(cache_slice) || item.has_attribute("account"),
+                move |item| {
+                    item.has_name_in_cache(cache_accounts_ref) || item.has_attribute("account")
+                },
                 UniformVisitor::new(|mut k, visitor| {
                     visitor.visit_children(&mut k)?;
                     apply_account(k);
