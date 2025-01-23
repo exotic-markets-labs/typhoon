@@ -1,25 +1,18 @@
 use {
     codama::{CodamaResult, KorokVisitor},
     codama_syn_helpers::extensions::{PathExtension, TypeExtension},
-    std::{borrow::BorrowMut, collections::HashSet},
+    std::collections::HashSet,
     syn::Item,
 };
 
 pub struct CacheByImplsVisitor<'a> {
     traits: &'a [&'static str],
-    cache: HashSet<String>,
+    cache: &'a mut HashSet<String>,
 }
 
 impl<'a> CacheByImplsVisitor<'a> {
-    pub fn new(traits: &'a [&'static str]) -> Self {
-        CacheByImplsVisitor {
-            traits,
-            cache: HashSet::new(),
-        }
-    }
-
-    pub fn get_cache(&mut self) -> Vec<String> {
-        self.cache.drain().collect()
+    pub fn new(traits: &'a [&'static str], cache: &'a mut HashSet<String>) -> Self {
+        CacheByImplsVisitor { traits, cache }
     }
 }
 
@@ -47,7 +40,7 @@ impl KorokVisitor for CacheByImplsVisitor<'_> {
         }
 
         if let Ok(impl_path) = impl_item.self_ty.as_path() {
-            self.cache.borrow_mut().insert(impl_path.last_str());
+            self.cache.insert(impl_path.last_str());
         }
 
         Ok(())
