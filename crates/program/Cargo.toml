@@ -45,6 +45,7 @@ solana-sysvar-id = { workspace = true, optional = true }
 
 [target.'cfg(not(target_os = "solana"))'.dependencies]
 solana-pubkey = { workspace = true, optional = true, features = ["curve25519"] }
+pinocchio = { workspace = true, optional = true, features = ["std"] }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = [
