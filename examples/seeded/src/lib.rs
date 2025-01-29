@@ -24,8 +24,8 @@ pub struct InitContext {
 
 #[context]
 pub struct IncrementContext {
-    pub payer: Signer,
-    #[constraint(seeded)]
+    pub admin: Signer,
+    #[constraint(seeded, has_one = admin @ProgramError::IllegalOwner)]
     pub counter: Mut<Account<Counter>>,
 }
 
@@ -39,10 +39,6 @@ pub fn initialize(ctx: InitContext) -> Result<(), ProgramError> {
 }
 
 pub fn increment(ctx: IncrementContext) -> Result<(), ProgramError> {
-    if *ctx.payer.key() != ctx.counter.data()?.admin {
-        return Err(ProgramError::IllegalOwner);
-    }
-
     ctx.counter.mut_data()?.count += 1;
 
     Ok(())

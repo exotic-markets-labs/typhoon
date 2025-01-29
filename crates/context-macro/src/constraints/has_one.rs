@@ -8,6 +8,7 @@ pub struct ConstraintHasOne {
 
 impl Parse for ConstraintHasOne {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        input.parse::<Token![=]>()?;
         let join_target = input.parse()?;
         let error = if input.peek(Token![@]) {
             input.parse::<Token![@]>()?;

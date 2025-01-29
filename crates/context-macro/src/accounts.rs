@@ -137,7 +137,7 @@ impl ToTokens for AdditionalChecks<'_> {
         let mut constraints = Vec::new();
 
         for (name, constraints_list) in &self.0 {
-            let var_name = format_ident!("{}_key", name);
+            let var_name = format_ident!("{}_state", name);
             let mut has_ones = Vec::new();
 
             for constraint in &constraints_list.0 {
@@ -146,10 +146,9 @@ impl ToTokens for AdditionalChecks<'_> {
                     let basic_error = parse_quote!(Error::HasOneConstraint);
                     let error = has_one.error.as_ref().unwrap_or(&basic_error);
                     has_ones.push(quote! {
-                        if #var_name != #target.key() {
+                        if &#var_name.#target != #target.key() {
                             return Err(#error.into());
                         }
-                        #var_name
                     });
                 }
             }
@@ -157,7 +156,7 @@ impl ToTokens for AdditionalChecks<'_> {
             if !has_ones.is_empty() {
                 constraints.push(quote! {
                     {
-                        let #var_name = #name.key();
+                        let #var_name = #name.data()?;
                         #(#has_ones)*
                     }
                 });

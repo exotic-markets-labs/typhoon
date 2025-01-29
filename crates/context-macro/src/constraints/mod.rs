@@ -170,3 +170,27 @@ pub fn parse_constraints(input: ParseStream) -> syn::Result<Vec<Constraint>> {
 
     Ok(constraints)
 }
+
+#[cfg(test)]
+mod tests {
+    use {super::*, syn::parse_quote};
+
+    #[test]
+    fn test_parse_constraints() {
+        let mut attributes: Vec<syn::Attribute> = parse_quote! {
+            #[constraint(
+                has_one = account,
+                seeds = [
+                    b"seed".as_ref(),
+                ],
+                bump = counter.data()?.bump,
+            )]
+        };
+
+        let mut constraints = Constraints::default();
+        constraints.visit_attributes_mut(&mut attributes);
+
+        assert!(attributes.is_empty());
+        assert_eq!(constraints.0.len(), 3);
+    }
+}
