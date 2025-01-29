@@ -1,9 +1,15 @@
 use {
-    crate::{constraints::Constraints, extractor::AccountExtractor},
+    crate::{
+        constraints::{Constraint, Constraints},
+        extractor::AccountExtractor,
+    },
     proc_macro2::{Span, TokenStream},
-    quote::{quote, ToTokens},
+    quote::{format_ident, quote, ToTokens},
     std::ops::Deref,
-    syn::{spanned::Spanned, visit_mut::VisitMut, Field, Ident, PathSegment, Type, TypePath},
+    syn::{
+        parse_quote, spanned::Spanned, visit_mut::VisitMut, Field, Ident, PathSegment, Type,
+        TypePath,
+    },
 };
 
 #[derive(Clone)]
@@ -124,16 +130,66 @@ impl ToTokens for Assign<'_> {
     }
 }
 
+pub struct AdditionalChecks<'a>(Vec<(&'a Ident, &'a Constraints)>);
+
+impl ToTokens for AdditionalChecks<'_> {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        let mut constraints = Vec::new();
+
+        for (name, constraints_list) in &self.0 {
+            let var_name = format_ident!("{}_key", name);
+            let mut has_ones = Vec::new();
+
+            for constraint in &constraints_list.0 {
+                if let Constraint::HasOne(has_one) = constraint {
+                    let target = &has_one.join_target;
+                    let basic_error = parse_quote!(Error::HasOneConstraint);
+                    let error = has_one.error.as_ref().unwrap_or(&basic_error);
+                    has_ones.push(quote! {
+                        if #var_name != #target.key() {
+                            return Err(#error.into());
+                        }
+                        #var_name
+                    });
+                }
+            }
+
+            if !has_ones.is_empty() {
+                constraints.push(quote! {
+                    {
+                        let #var_name = #name.key();
+                        #(#has_ones)*
+                    }
+                });
+            }
+        }
+
+        let expanded = quote! {
+            #(#constraints)*
+        };
+
+        expanded.to_tokens(tokens);
+    }
+}
+
 pub struct Accounts(pub Vec<Account>);
 
 impl Accounts {
-    pub fn split_for_impl(&self) -> (NameList, Assign) {
-        let (names, assigns) = self
-            .0
-            .iter()
-            .map(|el| (&el.name, (&el.name, &el.ty, &el.constraints)))
-            .unzip();
+    pub fn split_for_impl(&self) -> (NameList, Assign, AdditionalChecks) {
+        let mut names = Vec::with_capacity(self.0.len());
+        let mut assigns = Vec::with_capacity(self.0.len());
+        let mut additional_checks = Vec::with_capacity(self.0.len());
 
-        (NameList(names), Assign(assigns))
+        for el in &self.0 {
+            names.push(&el.name);
+            assigns.push((&el.name, &el.ty, &el.constraints));
+            additional_checks.push((&el.name, &el.constraints));
+        }
+
+        (
+            NameList(names),
+            Assign(assigns),
+            AdditionalChecks(additional_checks),
+        )
     }
 }

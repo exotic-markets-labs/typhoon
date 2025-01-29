@@ -27,6 +27,9 @@ pub enum Error {
 
     #[error("Discriminator did not match what was expected")]
     AccountDiscriminatorMismatch,
+
+    #[error("has_one constraint violated")]
+    HasOneConstraint,
 }
 
 impl FromPrimitive for Error {
@@ -39,6 +42,7 @@ impl FromPrimitive for Error {
             3004 => Some(Error::AccountOwnedByWrongProgram),
             3005 => Some(Error::BorshIoError),
             3006 => Some(Error::AccountDiscriminatorMismatch),
+            3007 => Some(Error::HasOneConstraint),
             _ => None,
         }
     }
@@ -58,6 +62,7 @@ impl ToPrimitive for Error {
             Error::AccountOwnedByWrongProgram => Some(3004),
             Error::BorshIoError => Some(3005),
             Error::AccountDiscriminatorMismatch => Some(3006),
+            Error::HasOneConstraint => Some(3007),
         }
     }
 

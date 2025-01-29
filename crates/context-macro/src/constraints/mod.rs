@@ -1,19 +1,28 @@
-use syn::{
-    parse::{Parse, ParseStream},
-    punctuated::Punctuated,
-    visit_mut::VisitMut,
-    Expr, Ident, Token,
+use {
+    bump::*,
+    has_one::*,
+    init::*,
+    keys::*,
+    payer::*,
+    seeded::*,
+    seeds::*,
+    space::*,
+    syn::{
+        parse::{Parse, ParseStream},
+        punctuated::Punctuated,
+        visit_mut::VisitMut,
+        Expr, Ident, Token,
+    },
 };
 
 mod bump;
+mod has_one;
 mod init;
 mod keys;
 mod payer;
 mod seeded;
 mod seeds;
 mod space;
-
-use {bump::*, init::*, keys::*, payer::*, seeded::*, seeds::*, space::*};
 
 //TODO rewrite it to add custom constraint for users
 #[derive(Clone)]
@@ -25,10 +34,11 @@ pub enum Constraint {
     Keys(ConstraintKeys),
     Seeds(ConstraintSeeds),
     Bump(ConstraintBump),
+    HasOne(ConstraintHasOne),
 }
 
 #[derive(Clone, Default)]
-pub struct Constraints(Vec<Constraint>);
+pub struct Constraints(pub Vec<Constraint>);
 
 impl VisitMut for Constraints {
     fn visit_attributes_mut(&mut self, attrs: &mut Vec<syn::Attribute>) {
@@ -149,6 +159,7 @@ pub fn parse_constraints(input: ParseStream) -> syn::Result<Vec<Constraint>> {
             "keys" => {
                 constraints.push(Constraint::Keys(ConstraintKeys::parse(input)?));
             }
+            "has_one" => constraints.push(Constraint::HasOne(ConstraintHasOne::parse(input)?)),
             _ => return Err(syn::Error::new(input.span(), "Unknow constraint.")),
         }
 

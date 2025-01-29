@@ -88,7 +88,7 @@ impl ToTokens for Context {
 
         let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
         let new_lifetime: Lifetime = parse_quote!('info);
-        let (name_list, accounts_assign) = self.accounts.split_for_impl();
+        let (name_list, accounts_assign, additional_checks) = self.accounts.split_for_impl();
         let args_ident = format_ident!("args");
         let bumps_ident = format_ident!("bumps");
 
@@ -153,6 +153,8 @@ impl ToTokens for Context {
                     #accounts_assign
 
                     #bumps_checks
+
+                    #additional_checks
 
                     *accounts = rem;
 
