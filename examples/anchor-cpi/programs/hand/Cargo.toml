@@ -11,6 +11,12 @@ crate-type = ["cdylib", "lib"]
 default = ["solana-nostd-entrypoint", "solana-program"]
 pinocchio = ["dep:pinocchio", "typhoon/pinocchio"]
 
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = [
+    'cfg(target_os, values("solana"))',
+] }
+
+
 [dependencies]
 borsh = "1.5"
 bytemuck = "1.21.0"

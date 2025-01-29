@@ -11,6 +11,11 @@ crate-type = ["cdylib", "lib"]
 default = ["solana-nostd-entrypoint", "solana-program"]
 pinocchio = ["dep:pinocchio", "typhoon/pinocchio"]
 
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = [
+    'cfg(target_os, values("solana"))',
+] }
+
 [dependencies]
 pinocchio = { git = "https://github.com/febo/pinocchio", optional = true }
 solana-nostd-entrypoint = { git = "https://github.com/cavemanloverboy/solana-nostd-entrypoint", rev = "b752d70", optional = true }
