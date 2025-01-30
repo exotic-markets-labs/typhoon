@@ -8,16 +8,15 @@ handlers! {
 }
 
 #[context]
-#[args(admin: Pubkey, bump: u8)]
 pub struct InitContext {
     pub payer: Signer,
+    pub authority: Option<Signer>,
     #[constraint(
         init,
         payer = payer,
         space = Counter::SPACE,
         seeds = [
             b"counter".as_ref(),
-            args.admin.as_ref(),
         ],
         bump,
     )]
@@ -32,7 +31,6 @@ pub struct IncrementContext {
         has_one = admin,
         seeds = [
             b"counter".as_ref(),
-            counter.data()?.admin.as_ref(),
         ],
         bump = counter.data()?.bump,
     )]
@@ -40,9 +38,15 @@ pub struct IncrementContext {
 }
 
 pub fn initialize(ctx: InitContext) -> Result<(), ProgramError> {
+    assert!(ctx.authority.is_none());
+
     *ctx.counter.mut_data()? = Counter {
-        bump: ctx.args.bump,
-        admin: ctx.args.admin,
+        bump: ctx.bumps.counter,
+        admin: *ctx
+            .authority
+            .as_ref()
+            .map(|a| a.key())
+            .unwrap_or(ctx.payer.key()),
         count: 0,
         _padding: [0; 7],
     };

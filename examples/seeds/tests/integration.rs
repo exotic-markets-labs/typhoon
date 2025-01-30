@@ -1,6 +1,6 @@
 use {
     litesvm::LiteSVM,
-    seeds::{Counter, InitContextArgs},
+    seeds::Counter,
     solana_sdk::{
         instruction::{AccountMeta, Instruction},
         native_token::LAMPORTS_PER_SOL,
@@ -38,25 +38,17 @@ fn integration_test() {
     svm.add_program(program_id, &program_bytes);
 
     // Create the counter
-    let (counter_pk, counter_bump) =
-        Pubkey::find_program_address(&[b"counter", &admin_pk.to_bytes()], &program_id);
+    let (counter_pk, _) = Pubkey::find_program_address(&[b"counter"], &program_id);
 
-    let arg = InitContextArgs {
-        admin: admin_pk.to_bytes().into(),
-        bump: counter_bump,
-    };
     let ix = Instruction {
         program_id,
         accounts: vec![
             AccountMeta::new_readonly(admin_pk, true),
+            AccountMeta::new_readonly(Pubkey::default(), false),
             AccountMeta::new(counter_pk, false),
             AccountMeta::new(system_program::ID, false),
         ],
-        data: [0]
-            .iter()
-            .chain(bytemuck::bytes_of(&arg))
-            .cloned()
-            .collect(),
+        data: vec![0],
     };
     let hash = svm.latest_blockhash();
     let tx = Transaction::new_signed_with_payer(&[ix], Some(&admin_pk), &[&admin_kp], hash);
