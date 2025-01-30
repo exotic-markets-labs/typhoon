@@ -1,6 +1,7 @@
-use typhoon_program::{program_error::ProgramError, pubkey::Pubkey, RawAccountInfo};
-
-use crate::{FromAccountInfo, ReadableAccount};
+use {
+    crate::{FromAccountInfo, ReadableAccount},
+    typhoon_program::{program_error::ProgramError, pubkey::Pubkey, RawAccountInfo},
+};
 
 impl<'a, T> FromAccountInfo<'a> for Option<T>
 where
