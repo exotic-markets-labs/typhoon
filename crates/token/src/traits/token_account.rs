@@ -2,7 +2,8 @@ use {
     crate::{TokenAccount, TokenProgram},
     pinocchio_token::instructions::InitializeAccount3,
     typhoon_accounts::{
-        Account, Mut, ReadableAccount, SignerAccount, SystemAccount, WritableAccount,
+        Account, FromAccountInfo, Mut, ReadableAccount, SignerAccount, SystemAccount,
+        WritableAccount,
     },
     typhoon_errors::Error,
     typhoon_program::{
@@ -12,7 +13,7 @@ use {
         sysvars::rent::Rent,
         RawAccountInfo, SignerSeeds,
     },
-    typhoon_traits::{FromAccountInfo, ProgramId},
+    typhoon_traits::ProgramId,
 };
 
 pub trait TokenAccountTrait<'a>: WritableAccount + Into<&'a RawAccountInfo> {
