@@ -1,9 +1,9 @@
 use {
     super::{Account, Program, SystemAccount, UncheckedAccount},
-    crate::{ReadableAccount, Signer, SignerAccount, WritableAccount},
+    crate::{FromAccountInfo, ReadableAccount, Signer, SignerAccount, WritableAccount},
     typhoon_errors::Error,
     typhoon_program::{program_error::ProgramError, pubkey::Pubkey, RawAccountInfo, Ref, RefMut},
-    typhoon_traits::{Discriminator, FromAccountInfo, RefFromBytes},
+    typhoon_traits::{Discriminator, RefFromBytes},
 };
 
 pub struct Mut<T: ReadableAccount>(T);

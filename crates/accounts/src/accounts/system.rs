@@ -1,10 +1,9 @@
 use {
-    crate::ReadableAccount,
+    crate::{FromAccountInfo, ReadableAccount},
     typhoon_errors::Error,
     typhoon_program::{
         program_error::ProgramError, pubkey::Pubkey, system_program, RawAccountInfo, Ref,
     },
-    typhoon_traits::FromAccountInfo,
 };
 
 pub struct SystemAccount<'a> {

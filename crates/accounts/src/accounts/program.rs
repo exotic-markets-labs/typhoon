@@ -1,9 +1,9 @@
 use {
-    crate::ReadableAccount,
+    crate::{FromAccountInfo, ReadableAccount},
     std::marker::PhantomData,
     typhoon_errors::Error,
     typhoon_program::{program_error::ProgramError, pubkey::Pubkey, RawAccountInfo, Ref},
-    typhoon_traits::{FromAccountInfo, ProgramId},
+    typhoon_traits::ProgramId,
 };
 
 ///

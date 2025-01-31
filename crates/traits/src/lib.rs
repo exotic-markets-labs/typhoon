@@ -1,7 +1,4 @@
-use {
-    bytemuck::Pod,
-    typhoon_program::{program_error::ProgramError, pubkey::Pubkey, RawAccountInfo},
-};
+use {bytemuck::Pod, typhoon_program::pubkey::Pubkey};
 
 pub trait ProgramId {
     const ID: Pubkey;
@@ -13,10 +10,6 @@ pub trait Owner {
 
 pub trait Discriminator {
     const DISCRIMINATOR: &'static [u8];
-}
-
-pub trait FromAccountInfo<'a>: Sized {
-    fn try_from_info(info: &'a RawAccountInfo) -> Result<Self, ProgramError>;
 }
 
 pub trait RefFromBytes {

@@ -1,8 +1,7 @@
 use {
-    crate::{ReadableAccount, SignerAccount},
+    crate::{FromAccountInfo, ReadableAccount, SignerAccount},
     typhoon_errors::Error,
     typhoon_program::{program_error::ProgramError, pubkey::Pubkey, RawAccountInfo, Ref},
-    typhoon_traits::FromAccountInfo,
 };
 
 pub struct Signer<'a> {

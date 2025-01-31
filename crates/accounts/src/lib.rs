@@ -7,6 +7,10 @@ use {
     typhoon_program::{program_error::ProgramError, pubkey::Pubkey, RawAccountInfo, Ref, RefMut},
 };
 
+pub trait FromAccountInfo<'a>: Sized {
+    fn try_from_info(info: &'a RawAccountInfo) -> Result<Self, ProgramError>;
+}
+
 pub trait ReadableAccount: AsRef<RawAccountInfo> {
     type DataType: ?Sized;
 
