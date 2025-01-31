@@ -84,3 +84,12 @@ pub mod pubkey {
         Ok(Pubkey::create_program_address(seeds, program_id)?)
     }
 }
+
+#[macro_export]
+macro_rules! seeds {
+    ($($seed:expr),*) => {
+        [$(
+            $seed,
+        )*]
+    };
+}

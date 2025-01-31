@@ -46,3 +46,12 @@ macro_rules! msg {
         typhoon_program::pinocchio_log::log!($($arg)*);
     }};
 }
+
+#[macro_export]
+macro_rules! seeds {
+    ($($seed:expr),*) => {
+        [$(
+            $seed.into(),
+        )*]
+    };
+}
