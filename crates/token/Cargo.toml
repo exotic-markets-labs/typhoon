@@ -8,11 +8,16 @@ authors.workspace = true
 repository.workspace = true
 
 [features]
-default = ["pinocchio"]                                      # Wait for cavey to update it
-pinocchio = ["typhoon-program/pinocchio", "pinocchio-token"]
+default = ["pinocchio"] # Wait for cavey to update it
+pinocchio = [
+    "typhoon-program/pinocchio",
+    "pinocchio-token",
+    "pinocchio-associated-token-account",
+]
 
 [dependencies]
 pinocchio-token = { workspace = true, optional = true }
+pinocchio-associated-token-account = { workspace = true, optional = true }
 typhoon-accounts.workspace = true
 typhoon-errors.workspace = true
 typhoon-program.workspace = true

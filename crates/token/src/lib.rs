@@ -10,7 +10,16 @@ use {
 
 mod traits;
 
-pub use {pinocchio_token::instructions::*, traits::*};
+pub use {
+    pinocchio_associated_token_account::instructions as ata_instructions,
+    pinocchio_token::instructions as spl_instructions, traits::*,
+};
+
+pub struct AtaTokenProgram;
+
+impl ProgramId for AtaTokenProgram {
+    const ID: Pubkey = pinocchio_associated_token_account::ID;
+}
 
 pub struct TokenProgram;
 
