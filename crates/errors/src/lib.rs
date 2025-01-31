@@ -30,6 +30,9 @@ pub enum Error {
 
     #[error("has_one constraint violated")]
     HasOneConstraint,
+
+    #[error("Cannot initialize a program account with the payer account")]
+    TryingToInitPayerAsProgramAccount,
 }
 
 impl FromPrimitive for Error {
@@ -43,6 +46,7 @@ impl FromPrimitive for Error {
             3005 => Some(Error::BorshIoError),
             3006 => Some(Error::AccountDiscriminatorMismatch),
             3007 => Some(Error::HasOneConstraint),
+            3008 => Some(Error::TryingToInitPayerAsProgramAccount),
             _ => None,
         }
     }
@@ -63,6 +67,7 @@ impl ToPrimitive for Error {
             Error::BorshIoError => Some(3005),
             Error::AccountDiscriminatorMismatch => Some(3006),
             Error::HasOneConstraint => Some(3007),
+            Error::TryingToInitPayerAsProgramAccount => Some(3008),
         }
     }
 
