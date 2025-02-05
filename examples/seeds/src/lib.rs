@@ -16,7 +16,7 @@ pub struct InitContext {
         payer = payer,
         space = Counter::SPACE,
         seeds = [
-            b"counter",
+            b"counter".as_ref(),
         ],
         bump
     )]
@@ -30,7 +30,7 @@ pub struct IncrementContext {
     #[constraint(
         has_one = admin,
         seeds = [
-            b"counter",
+            b"counter".as_ref(),
         ],
         bump = counter.data()?.bump,
     )]

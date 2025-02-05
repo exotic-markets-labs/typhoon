@@ -89,7 +89,7 @@ pub mod pubkey {
 macro_rules! seeds {
     ($($seed:expr),*) => {
         [$(
-            $seed,
-        )*]
+            $seed
+        ),*]
     };
 }
