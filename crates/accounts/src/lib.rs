@@ -30,6 +30,7 @@ pub trait ReadableAccount: AsRef<RawAccountInfo> {
 }
 
 pub trait WritableAccount: ReadableAccount + Sealed {
+    fn assign(&self, new_owner: &Pubkey);
     fn realloc(&self, new_len: usize, zero_init: bool) -> Result<(), ProgramError>;
     fn mut_lamports(&self) -> Result<RefMut<u64>, ProgramError>;
     fn mut_data(&self) -> Result<RefMut<Self::DataType>, ProgramError>;

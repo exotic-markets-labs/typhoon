@@ -18,7 +18,7 @@ unexpected_cfgs = { level = "warn", check-cfg = [
 
 [dependencies]
 pinocchio = { git = "https://github.com/febo/pinocchio", optional = true }
-solana-nostd-entrypoint = { git = "https://github.com/cavemanloverboy/solana-nostd-entrypoint", rev = "b752d70", optional = true }
+solana-nostd-entrypoint = { git = "https://github.com/exotic-markets-labs/solana-nostd-entrypoint", rev = "bcccf73", optional = true }
 solana-program = { version = "2.1", optional = true }
 typhoon = { path = "../../crates/lib" }
 

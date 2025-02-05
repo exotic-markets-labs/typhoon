@@ -67,6 +67,10 @@ where
 macro_rules! impl_writable {
     ($name: ident) => {
         impl WritableAccount for Mut<$name<'_>> {
+            fn assign(&self, new_owner: &Pubkey) {
+                self.0.as_ref().assign(new_owner);
+            }
+
             fn realloc(&self, new_len: usize, zero_init: bool) -> Result<(), ProgramError> {
                 self.0.as_ref().realloc(new_len, zero_init)
             }
@@ -87,6 +91,10 @@ impl_writable!(SystemAccount);
 impl_writable!(UncheckedAccount);
 
 impl<T> WritableAccount for Mut<Program<'_, T>> {
+    fn assign(&self, new_owner: &Pubkey) {
+        self.0.as_ref().assign(new_owner);
+    }
+
     fn realloc(&self, new_len: usize, zero_init: bool) -> Result<(), ProgramError> {
         self.0.as_ref().realloc(new_len, zero_init)
     }
@@ -101,6 +109,10 @@ impl<T> WritableAccount for Mut<Program<'_, T>> {
 }
 
 impl<T: Discriminator + RefFromBytes> WritableAccount for Mut<Account<'_, T>> {
+    fn assign(&self, new_owner: &Pubkey) {
+        self.0.as_ref().assign(new_owner);
+    }
+
     fn realloc(&self, new_len: usize, zero_init: bool) -> Result<(), ProgramError> {
         self.0.as_ref().realloc(new_len, zero_init)
     }
