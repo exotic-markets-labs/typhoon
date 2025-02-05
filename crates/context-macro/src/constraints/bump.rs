@@ -17,18 +17,18 @@ impl ConstraintBump {
 
 impl Parse for ConstraintBump {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        if input.peek(Token![,]) {
-            Ok(ConstraintBump {
-                bump: None,
-                find_canonical: true,
-            })
-        } else {
+        if input.peek(Token![=]) {
             input.parse::<Token![=]>()?;
             let bump = input.parse()?;
 
             Ok(ConstraintBump {
                 bump: Some(bump),
                 find_canonical: false,
+            })
+        } else {
+            Ok(ConstraintBump {
+                bump: None,
+                find_canonical: true,
             })
         }
     }
