@@ -9,7 +9,7 @@ handlers! {
 
 #[context]
 pub struct InitContext {
-    pub payer: Signer,
+    pub payer: Mut<Signer>,
     pub authority: Option<Signer>,
     #[constraint(
         init,

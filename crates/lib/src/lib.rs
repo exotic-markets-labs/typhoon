@@ -15,8 +15,11 @@ pub mod prelude {
     pub use {
         super::{lib::*, macros::*, typhoon_program},
         typhoon_program::{
-            msg, program_error::ProgramError, pubkey::Pubkey, sysvars::clock::Clock,
-            sysvars::rent::Rent, sysvars::Sysvar, ProgramResult,
+            msg,
+            program_error::ProgramError,
+            pubkey::Pubkey,
+            sysvars::{clock::Clock, rent::Rent, Sysvar},
+            ProgramResult,
         },
     };
 }

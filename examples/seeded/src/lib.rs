@@ -10,7 +10,7 @@ handlers! {
 #[context]
 #[args(admin: Pubkey, bump: u8)]
 pub struct InitContext {
-    pub payer: Signer,
+    pub payer: Mut<Signer>,
     #[constraint(
         init,
         payer = payer,

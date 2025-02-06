@@ -32,7 +32,7 @@ impl From<PodU64> for u64 {
 #[context]
 #[args(InitArgs)]
 pub struct InitContext {
-    pub payer: Signer,
+    pub payer: Mut<Signer>,
     #[constraint(
         init,
         payer = payer,
