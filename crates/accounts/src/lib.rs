@@ -40,7 +40,3 @@ mod sealed {
     impl<T> Sealed for Mut<T> where T: ReadableAccount + AsRef<RawAccountInfo> {}
     impl Sealed for Signer<'_> {}
 }
-
-pub trait FromAccountInfo<'a>: Sized {
-    fn try_from_info(info: &'a RawAccountInfo) -> Result<Self, ProgramError>;
-}
