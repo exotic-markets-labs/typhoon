@@ -72,4 +72,20 @@ fn integration_test() {
     let raw_account = svm.get_account(&counter_pk).unwrap();
     let counter_account: &Counter = Counter::read(raw_account.data.as_slice()).unwrap();
     assert!(counter_account.count == 1);
+
+    let ix = Instruction {
+        program_id,
+        accounts: vec![
+            AccountMeta::new(counter_pk, false),
+            AccountMeta::new(admin_pk, false),
+        ],
+        data: vec![2],
+    };
+    let hash = svm.latest_blockhash();
+    let tx = Transaction::new_signed_with_payer(&[ix], Some(&admin_pk), &[&admin_kp], hash);
+    svm.send_transaction(tx).unwrap();
+
+    let raw_account = svm.get_account(&counter_pk).unwrap();
+    assert_eq!(raw_account.owner, system_program::ID);
+    assert_eq!(raw_account.lamports, 0);
 }

@@ -15,21 +15,36 @@ pub struct InitContext {
 }
 
 #[context]
-pub struct IncrementContext {
+pub struct CounterMutContext {
     pub counter: Mut<Account<Counter>>,
+}
+
+#[context]
+pub struct DestinationContext {
+    pub destination: Mut<SystemAccount>,
 }
 
 handlers! {
     initialize,
-    increment
+    increment,
+    close
 }
 
-pub fn initialize(_: InitContext) -> Result<(), ProgramError> {
+pub fn initialize(_: InitContext) -> ProgramResult {
     Ok(())
 }
 
-pub fn increment(ctx: IncrementContext) -> Result<(), ProgramError> {
+pub fn increment(ctx: CounterMutContext) -> ProgramResult {
     ctx.counter.mut_data()?.count += 1;
+
+    Ok(())
+}
+
+pub fn close(
+    CounterMutContext { counter }: CounterMutContext,
+    DestinationContext { destination }: DestinationContext,
+) -> ProgramResult {
+    counter.close(&destination)?;
 
     Ok(())
 }
