@@ -70,6 +70,7 @@ pub struct Assign<'a>(Vec<(&'a Ident, &'a PathSegment, &'a Constraints)>);
 
 impl ToTokens for Assign<'_> {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        let rent = quote!(<typhoon_program::sysvars::rent::Rent as Sysvar>::get()?);
         let assign_fields = self.0.iter().map(|(name, ty, c)| {
             if c.has_init() {
                 let payer = c.get_payer();
@@ -87,7 +88,7 @@ impl ToTokens for Assign<'_> {
                             let bump = [bumps.#name];
                             let seeds = typhoon_program::seeds!(#punctuated_seeds, &bump);
                             let signer = typhoon_program::SignerSeeds::from(&seeds);
-                            typhoon::lib::SystemCpi::create_account(system_acc, &#payer, &crate::ID, #space as u64, Some(&[signer]))?
+                            typhoon::lib::SystemCpi::create_account(system_acc, &#rent, &#payer, &crate::ID, #space, Some(&[signer]))?
                         };
                     }
                 } else if c.is_seeded() {
@@ -104,14 +105,14 @@ impl ToTokens for Assign<'_> {
                             let bump = [bumps.#name];
                             let seeds = #account_ty::derive_with_bump(#keys, &bump);
                             let signer = typhoon_program::SignerSeeds::from(&seeds);
-                            typhoon::lib::SystemCpi::create_account(system_acc, &#payer, &crate::ID, #space as u64, Some(&[signer]))?
+                            typhoon::lib::SystemCpi::create_account(system_acc, &#rent, &#payer, &crate::ID, #space, Some(&[signer]))?
                         };
                     }
                 } else {
                     quote! {
                         let #name: #ty = {
                             let system_acc = <typhoon::lib::Mut<typhoon::lib::SystemAccount> as typhoon::lib::FromAccountInfo>::try_from_info(#name)?;
-                            typhoon::lib::SystemCpi::create_account(system_acc, &#payer, &crate::ID, #space as u64, None)?
+                            typhoon::lib::SystemCpi::create_account(system_acc, &#rent, &#payer, &crate::ID, #space, None)?
                         };
                     }
                 }

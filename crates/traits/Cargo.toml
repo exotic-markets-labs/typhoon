@@ -9,4 +9,5 @@ repository.workspace = true
 
 [dependencies]
 typhoon-accounts.workspace = true
+typhoon-errors.workspace = true
 typhoon-program.workspace = true

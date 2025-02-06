@@ -4,7 +4,7 @@ program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
 #[context]
 pub struct InitContext {
-    pub payer: Signer,
+    pub payer: Mut<Signer>,
     #[constraint(
         init,
         payer = payer,
