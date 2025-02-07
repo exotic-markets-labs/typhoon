@@ -19,4 +19,4 @@ typhoon-discriminator.workspace = true
 [dev-dependencies]
 bytemuck = { workspace = true, features = ["derive"] }
 trybuild.workspace = true
-typhoon = { workspace = true, features = ["pinocchio"] }
+typhoon.workspace = true

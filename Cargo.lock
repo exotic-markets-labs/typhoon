@@ -386,12 +386,12 @@ checksum = "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
 [[package]]
 name = "pinocchio"
 version = "0.7.1"
-source = "git+https://github.com/febo/pinocchio#59fe344b27c1ad53adeb95bc621ece227d38892e"
+source = "git+https://github.com/febo/pinocchio#efb7737288bb8bc7b8f7286c6449b5305093ff97"
 
 [[package]]
 name = "pinocchio-associated-token-account"
 version = "0.1.0"
-source = "git+https://github.com/febo/pinocchio#59fe344b27c1ad53adeb95bc621ece227d38892e"
+source = "git+https://github.com/febo/pinocchio#efb7737288bb8bc7b8f7286c6449b5305093ff97"
 dependencies = [
  "pinocchio",
  "pinocchio-pubkey",
@@ -400,7 +400,7 @@ dependencies = [
 [[package]]
 name = "pinocchio-log"
 version = "0.3.0"
-source = "git+https://github.com/febo/pinocchio#59fe344b27c1ad53adeb95bc621ece227d38892e"
+source = "git+https://github.com/febo/pinocchio#efb7737288bb8bc7b8f7286c6449b5305093ff97"
 dependencies = [
  "pinocchio-log-macro",
 ]
@@ -408,7 +408,7 @@ dependencies = [
 [[package]]
 name = "pinocchio-log-macro"
 version = "0.3.0"
-source = "git+https://github.com/febo/pinocchio#59fe344b27c1ad53adeb95bc621ece227d38892e"
+source = "git+https://github.com/febo/pinocchio#efb7737288bb8bc7b8f7286c6449b5305093ff97"
 dependencies = [
  "quote",
  "regex",
@@ -418,7 +418,7 @@ dependencies = [
 [[package]]
 name = "pinocchio-pubkey"
 version = "0.2.2"
-source = "git+https://github.com/febo/pinocchio#59fe344b27c1ad53adeb95bc621ece227d38892e"
+source = "git+https://github.com/febo/pinocchio#efb7737288bb8bc7b8f7286c6449b5305093ff97"
 dependencies = [
  "five8_const",
  "pinocchio",
@@ -427,7 +427,7 @@ dependencies = [
 [[package]]
 name = "pinocchio-system"
 version = "0.2.1"
-source = "git+https://github.com/febo/pinocchio#59fe344b27c1ad53adeb95bc621ece227d38892e"
+source = "git+https://github.com/febo/pinocchio#efb7737288bb8bc7b8f7286c6449b5305093ff97"
 dependencies = [
  "pinocchio",
  "pinocchio-pubkey",
@@ -436,7 +436,7 @@ dependencies = [
 [[package]]
 name = "pinocchio-token"
 version = "0.2.1"
-source = "git+https://github.com/febo/pinocchio#59fe344b27c1ad53adeb95bc621ece227d38892e"
+source = "git+https://github.com/febo/pinocchio#efb7737288bb8bc7b8f7286c6449b5305093ff97"
 dependencies = [
  "pinocchio",
  "pinocchio-pubkey",
@@ -729,6 +729,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2d4cb0f3b71f466fe8e11bef05dc562060b5c8f526e969ecd150ce5bedc6e3eb"
 dependencies = [
  "bs58",
+ "bytemuck",
+ "bytemuck_derive",
  "curve25519-dalek",
  "five8_const",
  "getrandom",

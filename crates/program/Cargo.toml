@@ -39,7 +39,7 @@ solana-msg = { workspace = true, optional = true }
 solana-nostd-entrypoint = { workspace = true, optional = true }
 solana-program-entrypoint = { workspace = true, optional = true }
 solana-program-error = { workspace = true, optional = true }
-solana-pubkey = { workspace = true, optional = true }
+solana-pubkey = { workspace = true, optional = true, features = ["bytemuck"] }
 solana-rent = { workspace = true, optional = true }
 solana-sysvar-id = { workspace = true, optional = true }
 
