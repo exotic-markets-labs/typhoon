@@ -2,15 +2,15 @@ use {
     typhoon_accounts::{
         Account, FromAccountInfo, Mut, Signer as SignerAccount, SystemAccount, WritableAccount,
     },
-    typhoon_errors::Error,
     typhoon_program::{
         program_error::ProgramError,
         pubkey::Pubkey,
-        system_program::instructions::{Allocate, Assign, CreateAccount, Transfer},
+        system_program::instructions::{Allocate, Assign, Transfer},
         sysvars::rent::Rent,
         RawAccountInfo, SignerSeeds,
     },
     typhoon_traits::{Discriminator, Owner, RefFromBytes},
+    typhoon_utility::create_or_assign,
 };
 
 pub trait SystemCpi<'a>: WritableAccount + Into<&'a RawAccountInfo>
@@ -41,47 +41,7 @@ where
         space: usize,
         seeds: Option<&[SignerSeeds]>,
     ) -> Result<Mut<Account<'a, T>>, ProgramError> {
-        let current_lamports = { *self.lamports()? };
-        if current_lamports == 0 {
-            CreateAccount {
-                from: payer.as_ref(),
-                lamports: rent.minimum_balance(space),
-                owner,
-                space: space as u64,
-                to: self.as_ref(),
-            }
-            .invoke_signed(seeds.unwrap_or_default())?;
-        } else {
-            if payer.key() == self.key() {
-                return Err(Error::TryingToInitPayerAsProgramAccount.into());
-            }
-
-            let required_lamports = rent
-                .minimum_balance(space)
-                .max(1)
-                .saturating_sub(current_lamports);
-
-            if required_lamports > 0 {
-                Transfer {
-                    from: payer.as_ref(),
-                    to: self.as_ref(),
-                    lamports: required_lamports,
-                }
-                .invoke()?;
-            }
-
-            Allocate {
-                account: self.as_ref(),
-                space: space as u64,
-            }
-            .invoke_signed(seeds.unwrap_or_default())?;
-
-            Assign {
-                account: self.as_ref(),
-                owner,
-            }
-            .invoke_signed(seeds.unwrap_or_default())?;
-        }
+        create_or_assign(&self, rent, payer, owner, space, seeds)?;
 
         // Set discriminator
         {

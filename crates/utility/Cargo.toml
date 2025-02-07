@@ -1,5 +1,5 @@
 [package]
-name = "typhoon-utility-traits"
+name = "typhoon-utility"
 version.workspace = true
 rust-version.workspace = true
 edition.workspace = true
@@ -11,5 +11,3 @@ repository.workspace = true
 typhoon-accounts.workspace = true
 typhoon-errors.workspace = true
 typhoon-program.workspace = true
-typhoon-traits.workspace = true
-typhoon-utility.workspace = true

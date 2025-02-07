@@ -295,9 +295,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "78ca9ab1a0babb1e7d5695e3530886289c18cf2f87ec19a575a0abdce112e3a3"
 
 [[package]]
+name = "nostd-associated-token-account-program"
+version = "0.1.0"
+source = "git+https://github.com/Aursen/nostdinfo-programs?rev=f6a1c1e#f6a1c1eb9cd6e87ec91af9f3b11df7dc759a5e7b"
+dependencies = [
+ "nostd-entrypoint-invoke",
+ "solana-nostd-entrypoint",
+ "solana-program-entrypoint",
+ "solana-pubkey",
+]
+
+[[package]]
 name = "nostd-entrypoint-invoke"
 version = "0.1.0"
-source = "git+https://github.com/Aursen/nostdinfo-programs?rev=66e628a#66e628abc426f93b47dcbf156928acabb2746d35"
+source = "git+https://github.com/Aursen/nostdinfo-programs?rev=f6a1c1e#f6a1c1eb9cd6e87ec91af9f3b11df7dc759a5e7b"
 dependencies = [
  "solana-define-syscall",
  "solana-nostd-entrypoint",
@@ -308,11 +319,23 @@ dependencies = [
 [[package]]
 name = "nostd-system-program"
 version = "0.1.0"
-source = "git+https://github.com/Aursen/nostdinfo-programs?rev=66e628a#66e628abc426f93b47dcbf156928acabb2746d35"
+source = "git+https://github.com/Aursen/nostdinfo-programs?rev=f6a1c1e#f6a1c1eb9cd6e87ec91af9f3b11df7dc759a5e7b"
 dependencies = [
  "nostd-entrypoint-invoke",
  "solana-nostd-entrypoint",
  "solana-program-entrypoint",
+ "solana-pubkey",
+]
+
+[[package]]
+name = "nostd-token-program"
+version = "0.1.0"
+source = "git+https://github.com/Aursen/nostdinfo-programs?rev=f6a1c1e#f6a1c1eb9cd6e87ec91af9f3b11df7dc759a5e7b"
+dependencies = [
+ "nostd-entrypoint-invoke",
+ "solana-nostd-entrypoint",
+ "solana-program-entrypoint",
+ "solana-program-error",
  "solana-pubkey",
 ]
 
@@ -1087,12 +1110,15 @@ dependencies = [
 name = "typhoon-token"
 version = "0.1.0"
 dependencies = [
+ "nostd-associated-token-account-program",
+ "nostd-token-program",
  "pinocchio-associated-token-account",
  "pinocchio-token",
  "typhoon-accounts",
  "typhoon-errors",
  "typhoon-program",
  "typhoon-traits",
+ "typhoon-utility",
 ]
 
 [[package]]
@@ -1104,6 +1130,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "typhoon-utility"
+version = "0.1.0"
+dependencies = [
+ "typhoon-accounts",
+ "typhoon-errors",
+ "typhoon-program",
+]
+
+[[package]]
 name = "typhoon-utility-traits"
 version = "0.1.0"
 dependencies = [
@@ -1111,6 +1146,7 @@ dependencies = [
  "typhoon-errors",
  "typhoon-program",
  "typhoon-traits",
+ "typhoon-utility",
 ]
 
 [[package]]
