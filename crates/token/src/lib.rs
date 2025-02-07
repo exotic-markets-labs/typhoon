@@ -23,7 +23,6 @@ use {
 mod traits;
 
 pub use traits::*;
-
 #[cfg(not(feature = "pinocchio"))]
 pub use {
     nostd_associated_token_account_program::instructions as ata_instructions,

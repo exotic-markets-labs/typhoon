@@ -1,10 +1,12 @@
-use typhoon_accounts::WritableAccount;
-use typhoon_errors::Error;
-use typhoon_program::{
-    pubkey::Pubkey,
-    system_program::instructions::{Allocate, Assign, CreateAccount, Transfer},
-    sysvars::rent::Rent,
-    ProgramResult, SignerSeeds,
+use {
+    typhoon_accounts::WritableAccount,
+    typhoon_errors::Error,
+    typhoon_program::{
+        pubkey::Pubkey,
+        system_program::instructions::{Allocate, Assign, CreateAccount, Transfer},
+        sysvars::rent::Rent,
+        ProgramResult, SignerSeeds,
+    },
 };
 
 pub fn create_or_assign(
