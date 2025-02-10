@@ -8,8 +8,8 @@ publish = false
 crate-type = ["cdylib", "lib"]
 
 [features]
-default = ["solana-nostd-entrypoint", "solana-program"]
-pinocchio = ["dep:pinocchio", "typhoon/pinocchio"]
+default = ["solana-nostd-entrypoint"]
+pinocchio = ["typhoon/pinocchio"]
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = [
@@ -18,9 +18,7 @@ unexpected_cfgs = { level = "warn", check-cfg = [
 
 [dependencies]
 bytemuck = { version = "1.21.0", features = ["derive"] }
-pinocchio = { git = "https://github.com/febo/pinocchio", optional = true }
 solana-nostd-entrypoint = { git = "https://github.com/exotic-markets-labs/solana-nostd-entrypoint", rev = "bcccf73", optional = true }
-solana-program = { version = "2.1", optional = true }
 typhoon = { path = "../../crates/lib" }
 
 [dev-dependencies]
