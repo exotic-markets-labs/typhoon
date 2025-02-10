@@ -14,3 +14,8 @@ proc-macro = true
 syn = { workspace = true, features = ["visit", "visit-mut", "full"] }
 quote.workspace = true
 proc-macro2.workspace = true
+
+[dev-dependencies]
+bytemuck = { workspace = true, features = ["derive"] }
+trybuild.workspace = true
+typhoon.workspace = true

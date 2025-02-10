@@ -999,9 +999,12 @@ dependencies = [
 name = "typhoon-context-macro"
 version = "0.1.0"
 dependencies = [
+ "bytemuck",
  "proc-macro2",
  "quote",
  "syn 2.0.98",
+ "trybuild",
+ "typhoon",
 ]
 
 [[package]]
