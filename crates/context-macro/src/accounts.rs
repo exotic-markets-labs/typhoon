@@ -7,8 +7,8 @@ use {
     quote::{format_ident, quote, ToTokens},
     std::ops::Deref,
     syn::{
-        parse_quote, spanned::Spanned, visit_mut::VisitMut, Field, Ident, PathSegment, Type,
-        TypePath,
+        parse_quote, spanned::Spanned, visit_mut::VisitMut, Field, GenericArgument, Ident,
+        PathArguments, PathSegment, Type, TypePath,
     },
 };
 
@@ -71,6 +71,40 @@ pub struct Assign<'a>(Vec<(&'a Ident, &'a PathSegment, &'a Constraints)>);
 impl ToTokens for Assign<'_> {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         let rent = quote!(<typhoon_program::sysvars::rent::Rent as Sysvar>::get()?);
+
+        let missing_system_program = {
+            let has_init = self.0.iter().any(|(_, _, c)| c.has_init());
+            let has_system_program = self.0.iter().any(|(_, ty, _)| {
+                if let PathArguments::AngleBracketed(args) = &ty.arguments {
+                    let system = args.args.iter().find_map(|arg| {
+                        if let GenericArgument::Type(Type::Path(type_path)) = arg {
+                            type_path
+                                .path
+                                .segments
+                                .last()
+                                .filter(|s| s.ident == "System")
+                        } else {
+                            None
+                        }
+                    });
+
+                    ty.ident.to_string() == "Program" && system.is_some()
+                } else {
+                    false
+                }
+            });
+
+            if has_init && !has_system_program {
+                syn::Error::new(
+                    proc_macro2::Span::call_site(),
+                    "Using `init` requires including the `Program<System>` account",
+                )
+                .to_compile_error()
+            } else {
+                quote! {}
+            }
+        };
+
         let assign_fields = self.0.iter().map(|(name, ty, c)| {
             if c.has_init() {
                 let payer = c.get_payer();
@@ -124,6 +158,8 @@ impl ToTokens for Assign<'_> {
         });
 
         let expanded = quote! {
+            #missing_system_program
+
             #(#assign_fields)*
         };
         expanded.to_tokens(tokens);
