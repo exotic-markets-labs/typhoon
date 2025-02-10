@@ -88,7 +88,7 @@ impl ToTokens for Assign<'_> {
                         }
                     });
 
-                    ty.ident.to_string() == "Program" && system.is_some()
+                    ty.ident == "Program" && system.is_some()
                 } else {
                     false
                 }
