@@ -33,7 +33,6 @@ typhoon-metadata-extractor = { version = "0.1.0", path = "crates/metadata-extrac
 typhoon-program = { version = "0.1.0", path = "crates/program" }
 typhoon-program-id-macro = { version = "0.1.0", path = "crates/program-id-macro" }
 typhoon-syn = { version = "0.1.0", path = "crates/syn" }
-typhoon-traits = { version = "0.1.0", path = "crates/traits" }
 typhoon-utility = { version = "0.1.0", path = "crates/utility" }
 typhoon-utility-traits = { version = "0.1.0", path = "crates/utility-traits" }
 heck = "0.5.0"
@@ -60,6 +59,5 @@ solana-program-entrypoint = "2.1"
 solana-program-error = "2.1"
 solana-pubkey = "2.1"
 solana-rent = "2.1"
-solana-sysvar-id = "2.1"
 syn = "2.0"
 thiserror = "2.0"

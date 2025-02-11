@@ -783,15 +783,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "solana-sysvar-id"
-version = "2.1.13"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d11cdbc013ed4f65a636762b9a62cb878dd530062804e6a6be0faa76f5902914"
-dependencies = [
- "solana-pubkey",
-]
-
-[[package]]
 name = "subtle"
 version = "2.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -958,7 +949,6 @@ dependencies = [
  "typhoon-handler-macro",
  "typhoon-program",
  "typhoon-program-id-macro",
- "typhoon-traits",
  "typhoon-utility-traits",
 ]
 
@@ -983,7 +973,6 @@ dependencies = [
  "bytemuck",
  "typhoon-errors",
  "typhoon-program",
- "typhoon-traits",
 ]
 
 [[package]]
@@ -1097,7 +1086,6 @@ dependencies = [
  "solana-program-error",
  "solana-pubkey",
  "solana-rent",
- "solana-sysvar-id",
 ]
 
 [[package]]
@@ -1120,18 +1108,8 @@ dependencies = [
  "pinocchio-associated-token-account",
  "pinocchio-token",
  "typhoon-accounts",
- "typhoon-errors",
  "typhoon-program",
- "typhoon-traits",
  "typhoon-utility",
-]
-
-[[package]]
-name = "typhoon-traits"
-version = "0.1.0"
-dependencies = [
- "bytemuck",
- "typhoon-program",
 ]
 
 [[package]]
@@ -1148,9 +1126,7 @@ name = "typhoon-utility-traits"
 version = "0.1.0"
 dependencies = [
  "typhoon-accounts",
- "typhoon-errors",
  "typhoon-program",
- "typhoon-traits",
  "typhoon-utility",
 ]
 

@@ -4,13 +4,12 @@ use {
         Mint, TokenAccount, TokenProgram,
     },
     typhoon_accounts::{
-        Account, FromAccountInfo, Mut, ReadableAccount, SystemAccount, WritableAccount,
+        Account, FromAccountInfo, Mut, ProgramId, ReadableAccount, SystemAccount, WritableAccount,
     },
     typhoon_program::{
         program_error::ProgramError, pubkey::Pubkey, sysvars::rent::Rent, RawAccountInfo,
         SignerSeeds,
     },
-    typhoon_traits::ProgramId,
     typhoon_utility::create_or_assign,
 };
 

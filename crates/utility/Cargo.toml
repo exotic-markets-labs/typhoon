@@ -7,6 +7,14 @@ license.workspace = true
 authors.workspace = true
 repository.workspace = true
 
+[features]
+default = ["typhoon-program/nostd"]
+pinocchio = [
+    "typhoon-program/pinocchio",
+    "typhoon-accounts/pinocchio",
+    "typhoon-errors/pinocchio",
+]
+
 [dependencies]
 typhoon-accounts.workspace = true
 typhoon-errors.workspace = true

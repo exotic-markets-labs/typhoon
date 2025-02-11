@@ -8,14 +8,13 @@ authors.workspace = true
 repository.workspace = true
 
 [features]
-default = [
+nostd = [
     "solana-nostd-entrypoint",
     "nostd-system-program",
     "solana-program-entrypoint",
     "solana-program-error",
     "solana-pubkey",
     "solana-msg",
-    "solana-sysvar-id",
     "solana-clock",
     "solana-rent",
     "solana-define-syscall",
@@ -41,7 +40,6 @@ solana-program-entrypoint = { workspace = true, optional = true }
 solana-program-error = { workspace = true, optional = true }
 solana-pubkey = { workspace = true, optional = true, features = ["bytemuck"] }
 solana-rent = { workspace = true, optional = true }
-solana-sysvar-id = { workspace = true, optional = true }
 
 [target.'cfg(not(target_os = "solana"))'.dependencies]
 solana-pubkey = { workspace = true, optional = true, features = ["curve25519"] }

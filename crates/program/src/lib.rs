@@ -1,7 +1,7 @@
-#[cfg(not(feature = "pinocchio"))]
+#[cfg(feature = "nostd")]
 mod vanilla;
 
-#[cfg(not(feature = "pinocchio"))]
+#[cfg(feature = "nostd")]
 pub use vanilla::*;
 
 #[cfg(feature = "pinocchio")]
@@ -12,6 +12,7 @@ pub use pinocchio::*;
 
 pub mod bytes;
 
+#[cfg(any(feature = "pinocchio", feature = "nostd"))]
 pub trait ToMeta {
     fn to_meta(&self, is_writable: bool, is_signer: bool) -> AccountMeta;
 }

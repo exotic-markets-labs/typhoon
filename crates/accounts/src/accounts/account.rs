@@ -1,11 +1,10 @@
 use {
-    crate::{FromAccountInfo, ReadableAccount},
+    crate::{Discriminator, FromAccountInfo, Owner, ReadableAccount, RefFromBytes},
     std::marker::PhantomData,
     typhoon_errors::Error,
     typhoon_program::{
         program_error::ProgramError, pubkey::Pubkey, system_program, RawAccountInfo, Ref,
     },
-    typhoon_traits::{Discriminator, Owner, RefFromBytes},
 };
 
 pub struct Account<'a, T>

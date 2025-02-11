@@ -8,8 +8,15 @@ authors.workspace = true
 repository.workspace = true
 
 [features]
+default = ["typhoon-program/nostd"]
 borsh = ["typhoon-accounts/borsh"]
-pinocchio = ["typhoon-program/pinocchio"]
+pinocchio = [
+    "typhoon-accounts/pinocchio",
+    "typhoon-context/pinocchio",
+    "typhoon-errors/pinocchio",
+    "typhoon-program/pinocchio",
+    "typhoon-utility-traits/pinocchio",
+]
 
 [dependencies]
 typhoon-accounts.workspace = true
@@ -21,5 +28,4 @@ typhoon-cpi-generator-macro.workspace = true
 typhoon-handler-macro.workspace = true
 typhoon-program.workspace = true
 typhoon-program-id-macro.workspace = true
-typhoon-traits.workspace = true
 typhoon-utility-traits.workspace = true

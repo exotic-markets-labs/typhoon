@@ -1,6 +1,7 @@
 use {
     typhoon_accounts::{
-        Account, FromAccountInfo, Mut, Signer as SignerAccount, SystemAccount, WritableAccount,
+        Account, Discriminator, FromAccountInfo, Mut, Owner, RefFromBytes, Signer as SignerAccount,
+        SystemAccount, WritableAccount,
     },
     typhoon_program::{
         program_error::ProgramError,
@@ -9,7 +10,6 @@ use {
         sysvars::rent::Rent,
         RawAccountInfo, SignerSeeds,
     },
-    typhoon_traits::{Discriminator, Owner, RefFromBytes},
     typhoon_utility::create_or_assign,
 };
 

@@ -16,8 +16,8 @@ use {
 };
 use {
     std::{mem::transmute, ops::Deref},
+    typhoon_accounts::{Discriminator, Owner, ProgramId, RefFromBytes},
     typhoon_program::pubkey::Pubkey,
-    typhoon_traits::{Discriminator, Owner, ProgramId, RefFromBytes},
 };
 
 mod traits;

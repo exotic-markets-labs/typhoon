@@ -9,8 +9,7 @@ pub use typhoon_program;
 
 pub mod lib {
     pub use {
-        typhoon_accounts::*, typhoon_context::*, typhoon_errors::*, typhoon_traits::*,
-        typhoon_utility_traits::*,
+        typhoon_accounts::*, typhoon_context::*, typhoon_errors::*, typhoon_utility_traits::*,
     };
 }
 

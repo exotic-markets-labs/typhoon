@@ -7,6 +7,10 @@ license.workspace = true
 authors.workspace = true
 repository.workspace = true
 
+[features]
+default = ["typhoon-program/nostd"]
+pinocchio = ["typhoon-program/pinocchio"]
+
 [dependencies]
 bytemuck.workspace = true
 typhoon-program.workspace = true
