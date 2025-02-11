@@ -8,7 +8,6 @@ authors.workspace = true
 repository.workspace = true
 
 [features]
-default = ["typhoon-program/nostd"]
 borsh = ["typhoon-accounts/borsh"]
 pinocchio = [
     "typhoon-accounts/pinocchio",

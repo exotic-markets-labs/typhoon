@@ -8,7 +8,7 @@ authors.workspace = true
 repository.workspace = true
 
 [features]
-nostd = [
+default = [
     "solana-nostd-entrypoint",
     "nostd-system-program",
     "solana-program-entrypoint",
