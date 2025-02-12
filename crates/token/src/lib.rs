@@ -71,6 +71,14 @@ impl Owner for Mint {
     const OWNER: Pubkey = TOKEN_PROGRAM_ID;
 }
 
+impl Deref for Mint {
+    type Target = SplMint;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
 #[repr(transparent)]
 pub struct TokenAccount(SplTokenAccount);
 
