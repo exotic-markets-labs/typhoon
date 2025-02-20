@@ -7,7 +7,7 @@ handlers! {
 }
 
 pub fn pull_lever(ctx: PullLever, name: Args<PodStr<50>>) -> Result<(), ProgramError> {
-    crate::cpi::SwitchPower {
+    crate::lever_cpi::SwitchPower {
         power: ctx.power.as_ref(),
         name: name.as_ref(),
     }
@@ -16,8 +16,8 @@ pub fn pull_lever(ctx: PullLever, name: Args<PodStr<50>>) -> Result<(), ProgramE
 
 #[context]
 pub struct PullLever {
-    pub power: Mut<BorshAccount<crate::cpi::PowerStatus>>,
-    pub lever_program: Program<crate::cpi::LeverProgram>,
+    pub power: Mut<BorshAccount<crate::lever_cpi::PowerStatus>>,
+    pub lever_program: Program<crate::lever_cpi::LeverProgram>,
 }
 
 anchor_cpi!("../../idls/lever.json");
