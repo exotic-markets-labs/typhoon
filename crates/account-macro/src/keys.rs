@@ -45,13 +45,6 @@ impl PrimaryKeys {
             return quote!();
         }
 
-        let parameters = self.0.iter().map(|k| {
-            let name = &k.name;
-            let ty = &k.ty;
-            quote! { #name: &#ty }
-        });
-        let parameters_list = quote! { #(#parameters),* };
-
         let parameters_with_lifetime = self.0.iter().map(|k| {
             let name = &k.name;
             let ty = &k.ty;
@@ -73,7 +66,7 @@ impl PrimaryKeys {
                     [Self::BASE_SEED, #self_seeds]
                 }
 
-                pub fn derive(#parameters_list) -> [&[u8]; #n_seeds] {
+                pub fn derive<'a>(#parameters_list_with_lifetime) -> [&'a [u8]; #n_seeds] {
                     [Self::BASE_SEED, #seeds]
                 }
 
