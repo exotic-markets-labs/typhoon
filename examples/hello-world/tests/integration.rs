@@ -1,10 +1,7 @@
 use {
-    litesvm::LiteSVM,
-    solana_sdk::{
-        instruction::Instruction, native_token::LAMPORTS_PER_SOL, pubkey, signature::Keypair,
-        signer::Signer, transaction::Transaction,
-    },
-    std::path::PathBuf,
+    litesvm::LiteSVM, solana_instruction::Instruction, solana_keypair::Keypair,
+    solana_native_token::LAMPORTS_PER_SOL, solana_pubkey::pubkey, solana_signer::Signer,
+    solana_transaction::Transaction, std::path::PathBuf,
 };
 
 fn read_program() -> Vec<u8> {

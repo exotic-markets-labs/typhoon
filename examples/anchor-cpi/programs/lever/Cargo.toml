@@ -27,4 +27,4 @@ unexpected_cfgs = { level = "warn", check-cfg = [
 ] }
 
 [dependencies]
-anchor-lang = "0.30.1"
+anchor-lang = { git = "https://github.com/coral-xyz/anchor", rev = "dac533e" }

@@ -1,15 +1,12 @@
 use {
     litesvm::LiteSVM,
     podded::pod::PodStr,
-    solana_sdk::{
-        instruction::{AccountMeta, Instruction},
-        native_token::LAMPORTS_PER_SOL,
-        pubkey,
-        signature::Keypair,
-        signer::Signer,
-        system_program,
-        transaction::Transaction,
-    },
+    solana_instruction::{AccountMeta, Instruction},
+    solana_keypair::Keypair,
+    solana_native_token::LAMPORTS_PER_SOL,
+    solana_pubkey::pubkey,
+    solana_signer::Signer,
+    solana_transaction::Transaction,
     std::path::PathBuf,
     utils::{sighash, SIGHASH_GLOBAL_NAMESPACE},
 };

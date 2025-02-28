@@ -22,5 +22,11 @@ solana-nostd-entrypoint = { git = "https://github.com/exotic-markets-labs/solana
 typhoon = { path = "../../crates/lib" }
 
 [dev-dependencies]
-litesvm = "0.5.0"
-solana-sdk = "2.1.10"
+litesvm = "0.6.0"
+solana-instruction = "2.2.1"
+solana-keypair = "2.2.1"
+solana-native-token = "2.2.1"
+solana-pubkey = "2.2.1"
+solana-signer = "2.2.1"
+solana-system-interface = "1.0.0"
+solana-transaction = "2.2.1"
