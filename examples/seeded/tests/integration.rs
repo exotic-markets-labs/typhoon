@@ -5,7 +5,7 @@ use {
     solana_instruction::{AccountMeta, Instruction},
     solana_keypair::Keypair,
     solana_native_token::LAMPORTS_PER_SOL,
-    solana_pubkey::pubkey,
+    solana_pubkey::{pubkey, Pubkey},
     solana_signer::Signer,
     solana_transaction::Transaction,
     std::path::PathBuf,
@@ -47,7 +47,7 @@ fn integration_test() {
         accounts: vec![
             AccountMeta::new_readonly(admin_pk, true),
             AccountMeta::new(counter_pk, false),
-            AccountMeta::new(system_program::ID, false),
+            AccountMeta::new(solana_system_interface::program::ID, false),
         ],
         data: [0]
             .iter()
