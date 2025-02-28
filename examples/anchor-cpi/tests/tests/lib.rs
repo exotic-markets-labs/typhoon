@@ -45,7 +45,7 @@ fn anchor_cpi_test() {
         accounts: vec![
             AccountMeta::new(power_kp.pubkey(), true),
             AccountMeta::new(admin_pk, true),
-            AccountMeta::new_readonly(system_program::ID, false),
+            AccountMeta::new_readonly(solana_system_interface::program::ID, false),
         ],
         data: sighash(SIGHASH_GLOBAL_NAMESPACE, "initialize").to_vec(),
         program_id: lever_id,

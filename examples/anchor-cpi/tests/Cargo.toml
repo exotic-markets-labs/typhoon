@@ -12,6 +12,7 @@ typhoon = { path = "../../../crates/lib" }
 solana-instruction = "2.2.1"
 solana-keypair = "2.2.1"
 solana-native-token = "2.2.1"
+solana-nostd-sha256 = "0.1.3"
 solana-pubkey = "2.2.1"
 solana-signer = "2.2.1"
 solana-system-interface = "1.0.0"
