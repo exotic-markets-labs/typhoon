@@ -1,11 +1,10 @@
-use solana_sdk::hash;
+use solana_nostd_sha256::hashv;
 
 pub const SIGHASH_GLOBAL_NAMESPACE: &str = "global";
 
 pub fn sighash(namespace: &str, name: &str) -> [u8; 8] {
     let preimage = format!("{namespace}:{name}");
+    let hash = hashv(&[preimage.as_bytes()]);
 
-    let mut sighash = [0u8; 8];
-    sighash.copy_from_slice(&hash::hash(preimage.as_bytes()).to_bytes()[..8]);
-    sighash
+    hash[..8].try_into().unwrap()
 }

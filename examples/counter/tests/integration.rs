@@ -1,15 +1,12 @@
 use {
     counter::Counter,
     litesvm::LiteSVM,
-    solana_sdk::{
-        instruction::{AccountMeta, Instruction},
-        native_token::LAMPORTS_PER_SOL,
-        pubkey,
-        signature::Keypair,
-        signer::Signer,
-        system_program,
-        transaction::Transaction,
-    },
+    solana_instruction::{AccountMeta, Instruction},
+    solana_keypair::Keypair,
+    solana_native_token::LAMPORTS_PER_SOL,
+    solana_pubkey::pubkey,
+    solana_signer::Signer,
+    solana_transaction::Transaction,
     std::path::PathBuf,
     typhoon::lib::RefFromBytes,
 };
@@ -42,7 +39,7 @@ fn integration_test() {
         accounts: vec![
             AccountMeta::new_readonly(admin_pk, true),
             AccountMeta::new(counter_pk, true),
-            AccountMeta::new_readonly(system_program::ID, false),
+            AccountMeta::new_readonly(solana_system_interface::program::ID, false),
         ],
         data: vec![0],
     };
@@ -86,6 +83,6 @@ fn integration_test() {
     svm.send_transaction(tx).unwrap();
 
     let raw_account = svm.get_account(&counter_pk).unwrap();
-    assert_eq!(raw_account.owner, system_program::ID);
+    assert_eq!(raw_account.owner, solana_system_interface::program::ID);
     assert_eq!(raw_account.lamports, 0);
 }

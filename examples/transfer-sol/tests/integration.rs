@@ -1,14 +1,11 @@
 use {
     litesvm::LiteSVM,
-    solana_sdk::{
-        instruction::{AccountMeta, Instruction},
-        native_token::LAMPORTS_PER_SOL,
-        pubkey,
-        signature::Keypair,
-        signer::Signer,
-        system_program,
-        transaction::Transaction,
-    },
+    solana_instruction::{AccountMeta, Instruction},
+    solana_keypair::Keypair,
+    solana_native_token::LAMPORTS_PER_SOL,
+    solana_pubkey::pubkey,
+    solana_signer::Signer,
+    solana_transaction::Transaction,
     std::path::PathBuf,
 };
 
@@ -47,7 +44,7 @@ fn integration_test() {
         accounts: vec![
             AccountMeta::new(admin_pk, true),
             AccountMeta::new(recipient_pk, false),
-            AccountMeta::new_readonly(system_program::ID, false),
+            AccountMeta::new_readonly(solana_system_interface::program::ID, false),
         ],
         program_id,
         data: [0]
@@ -73,7 +70,7 @@ fn integration_test() {
     let program_acc_kp = Keypair::new();
     let program_acc_pk = program_acc_kp.pubkey();
 
-    let pre_ix = solana_sdk::system_instruction::create_account(
+    let pre_ix = solana_system_interface::instruction::create_account(
         &admin_pk,
         &program_acc_pk,
         LAMPORTS_PER_SOL,

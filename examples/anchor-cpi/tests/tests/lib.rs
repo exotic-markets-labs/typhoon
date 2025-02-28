@@ -1,15 +1,12 @@
 use {
     litesvm::LiteSVM,
     podded::pod::PodStr,
-    solana_sdk::{
-        instruction::{AccountMeta, Instruction},
-        native_token::LAMPORTS_PER_SOL,
-        pubkey,
-        signature::Keypair,
-        signer::Signer,
-        system_program,
-        transaction::Transaction,
-    },
+    solana_instruction::{AccountMeta, Instruction},
+    solana_keypair::Keypair,
+    solana_native_token::LAMPORTS_PER_SOL,
+    solana_pubkey::pubkey,
+    solana_signer::Signer,
+    solana_transaction::Transaction,
     std::path::PathBuf,
     utils::{sighash, SIGHASH_GLOBAL_NAMESPACE},
 };
@@ -48,7 +45,7 @@ fn anchor_cpi_test() {
         accounts: vec![
             AccountMeta::new(power_kp.pubkey(), true),
             AccountMeta::new(admin_pk, true),
-            AccountMeta::new_readonly(system_program::ID, false),
+            AccountMeta::new_readonly(solana_system_interface::program::ID, false),
         ],
         data: sighash(SIGHASH_GLOBAL_NAMESPACE, "initialize").to_vec(),
         program_id: lever_id,

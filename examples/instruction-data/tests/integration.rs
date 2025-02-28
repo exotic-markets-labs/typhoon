@@ -2,15 +2,12 @@ use typhoon::lib::RefFromBytes;
 use {
     instruction_data::{Buffer, InitArgs, SetValueContextArgs},
     litesvm::LiteSVM,
-    solana_sdk::{
-        instruction::{AccountMeta, Instruction},
-        native_token::LAMPORTS_PER_SOL,
-        pubkey,
-        signature::Keypair,
-        signer::Signer,
-        system_program,
-        transaction::Transaction,
-    },
+    solana_instruction::{AccountMeta, Instruction},
+    solana_keypair::Keypair,
+    solana_native_token::LAMPORTS_PER_SOL,
+    solana_pubkey::pubkey,
+    solana_signer::Signer,
+    solana_transaction::Transaction,
     std::path::PathBuf,
 };
 
@@ -46,7 +43,7 @@ fn integration_test() {
             accounts: vec![
                 AccountMeta::new_readonly(admin_pk, true),
                 AccountMeta::new(buffer_a_pk, true),
-                AccountMeta::new_readonly(system_program::ID, false),
+                AccountMeta::new_readonly(solana_system_interface::program::ID, false),
             ],
             data: [0]
                 .iter()
@@ -69,7 +66,7 @@ fn integration_test() {
             accounts: vec![
                 AccountMeta::new_readonly(admin_pk, true),
                 AccountMeta::new(buffer_b_pk, true),
-                AccountMeta::new_readonly(system_program::ID, false),
+                AccountMeta::new_readonly(solana_system_interface::program::ID, false),
             ],
             data: [0]
                 .iter()
