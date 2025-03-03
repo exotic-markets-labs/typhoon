@@ -5,7 +5,7 @@ pub use {
         instruction::{self, AccountMeta, Instruction},
         msg as log,
         program::{self, invoke, invoke_signed},
-        program_error, pubkey, sysvars, ProgramResult,
+        program_error, pubkey, seeds, sysvars, ProgramResult,
     },
     pinocchio_log,
     pinocchio_pubkey::declare_id,
@@ -45,13 +45,4 @@ macro_rules! msg {
 
         typhoon_program::pinocchio_log::log!($($arg)*);
     }};
-}
-
-#[macro_export]
-macro_rules! seeds {
-    ($($seed:expr),*) => {
-        [$(
-            $seed.into(),
-        )*]
-    };
 }
