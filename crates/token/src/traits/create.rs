@@ -1,10 +1,13 @@
 use {
     crate::{
+        ata_instructions::Create,
         spl_instructions::{InitializeAccount3, InitializeMint2},
         Mint, TokenAccount, TokenProgram,
     },
+    nostd_associated_token_account_program::instructions::CreateIdempotent,
     typhoon_accounts::{
-        Account, FromAccountInfo, Mut, ProgramId, ReadableAccount, SystemAccount, WritableAccount,
+        Account, FromAccountInfo, Mut, ProgramId, ReadableAccount, SystemAccount, UncheckedAccount,
+        WritableAccount,
     },
     typhoon_program::{
         program_error::ProgramError, pubkey::Pubkey, sysvars::rent::Rent, RawAccountInfo,
@@ -41,6 +44,48 @@ pub trait SPLCreate<'a>: WritableAccount + Into<&'a RawAccountInfo> {
         Mut::try_from_info(self.into())
     }
 
+    fn create_associated_token_account(
+        self,
+        payer: &impl WritableAccount,
+        mint: &impl ReadableAccount,
+        owner: &impl ReadableAccount,
+        system_program: &impl ReadableAccount,
+        token_program: &impl ReadableAccount,
+    ) -> Result<Mut<Account<'a, TokenAccount>>, ProgramError> {
+        Create {
+            funding_account: payer.as_ref(),
+            account: self.as_ref(),
+            wallet: owner.as_ref(),
+            mint: mint.as_ref(),
+            system_program: system_program.as_ref(),
+            token_program: token_program.as_ref(),
+        }
+        .invoke()?;
+
+        Mut::try_from_info(self.into())
+    }
+
+    fn create_idempotent_associated_token_account(
+        self,
+        payer: &impl WritableAccount,
+        mint: &impl ReadableAccount,
+        owner: &impl ReadableAccount,
+        system_program: &impl ReadableAccount,
+        token_program: &impl ReadableAccount,
+    ) -> Result<Mut<Account<'a, TokenAccount>>, ProgramError> {
+        CreateIdempotent {
+            funding_account: payer.as_ref(),
+            account: self.as_ref(),
+            wallet: owner.as_ref(),
+            mint: mint.as_ref(),
+            system_program: system_program.as_ref(),
+            token_program: token_program.as_ref(),
+        }
+        .invoke()?;
+
+        Mut::try_from_info(self.into())
+    }
+
     fn create_mint(
         self,
         rent: &Rent,
@@ -65,3 +110,4 @@ pub trait SPLCreate<'a>: WritableAccount + Into<&'a RawAccountInfo> {
 }
 
 impl<'a> SPLCreate<'a> for Mut<SystemAccount<'a>> {}
+impl<'a> SPLCreate<'a> for Mut<UncheckedAccount<'a>> {}
