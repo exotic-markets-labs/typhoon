@@ -17,7 +17,7 @@ use {
 use {
     std::{mem::transmute, ops::Deref},
     typhoon_accounts::{Discriminator, Owner, ProgramId, RefFromBytes},
-    typhoon_program::pubkey::Pubkey,
+    typhoon_program::pubkey::{find_program_address, Pubkey},
 };
 
 mod traits;
@@ -112,4 +112,12 @@ impl Deref for TokenAccount {
     fn deref(&self) -> &Self::Target {
         &self.0
     }
+}
+
+pub fn find_associated_token_address(mint: &Pubkey, owner: &Pubkey) -> Pubkey {
+    find_program_address(
+        &[owner.as_ref(), TOKEN_PROGRAM_ID.as_ref(), mint.as_ref()],
+        &ATA_PROGRAM_ID,
+    )
+    .0
 }
