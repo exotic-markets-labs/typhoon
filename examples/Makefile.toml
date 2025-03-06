@@ -9,4 +9,5 @@ CARGO_MAKE_CRATE_WORKSPACE_MEMBERS = [
     "seeded",
     "seeds",
     "transfer-sol",
+    "transfer-token",
 ]
