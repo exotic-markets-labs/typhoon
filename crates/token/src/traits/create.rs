@@ -1,10 +1,9 @@
 use {
     crate::{
-        ata_instructions::Create,
+        ata_instructions::{Create, CreateIdempotent},
         spl_instructions::{InitializeAccount3, InitializeMint2},
         Mint, TokenAccount, TokenProgram,
     },
-    nostd_associated_token_account_program::instructions::CreateIdempotent,
     typhoon_accounts::{
         Account, FromAccountInfo, Mut, ProgramId, ReadableAccount, SystemAccount, UncheckedAccount,
         WritableAccount,
