@@ -3,7 +3,7 @@ use {
     typhoon_program::program_error::ProgramError,
 };
 
-pub trait Lamports: WritableAccount + SignerAccount {
+pub trait LamportsChecked: WritableAccount + SignerAccount {
     fn send(&self, to: &impl WritableAccount, amount: u64) -> Result<(), ProgramError> {
         let mut payer_lamports = self.mut_lamports()?;
         let mut recipient_lamports = to.mut_lamports()?;
@@ -34,4 +34,4 @@ pub trait Lamports: WritableAccount + SignerAccount {
     }
 }
 
-impl Lamports for Mut<Signer<'_>> {}
+impl LamportsChecked for Mut<Signer<'_>> {}
