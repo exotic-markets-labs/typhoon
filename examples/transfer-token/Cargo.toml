@@ -16,10 +16,6 @@ unexpected_cfgs = { level = "warn", check-cfg = [
 bytemuck = { version = "1.21.0", features = ["derive"] }
 typhoon = { path = "../../crates/lib" }
 typhoon-token = { path = "../../crates/token" }
-# v1.9 specifies `rust-version = "1.84"`, which causes compatibility issues with Solana build
-# tools' Rust version (1.79.0 at the time of writing this comment).
-# TODO: Remove when the Solana version we use comes with Rust version >= 1.84
-bytemuck_derive = ">1.0.0, <1.9"
 
 [dev-dependencies]
 litesvm = "0.6.0"
