@@ -4,8 +4,12 @@ use {
         Discriminator, FromAccountInfo, ReadableAccount, RefFromBytes, Signer, SignerAccount,
         WritableAccount,
     },
+    pinocchio::{
+        account_info::{AccountInfo, Ref, RefMut},
+        program_error::ProgramError,
+        pubkey::Pubkey,
+    },
     typhoon_errors::Error,
-    typhoon_program::{program_error::ProgramError, pubkey::Pubkey, RawAccountInfo, Ref, RefMut},
 };
 
 pub struct Mut<T: ReadableAccount>(T);
@@ -14,7 +18,7 @@ impl<'a, T> FromAccountInfo<'a> for Mut<T>
 where
     T: FromAccountInfo<'a> + ReadableAccount,
 {
-    fn try_from_info(info: &'a RawAccountInfo) -> Result<Self, ProgramError> {
+    fn try_from_info(info: &'a AccountInfo) -> Result<Self, ProgramError> {
         if !info.is_writable() {
             return Err(Error::AccountNotMutable.into());
         }
@@ -23,18 +27,18 @@ where
     }
 }
 
-impl<T> AsRef<RawAccountInfo> for Mut<T>
+impl<T> AsRef<AccountInfo> for Mut<T>
 where
     T: ReadableAccount,
 {
-    fn as_ref(&self) -> &RawAccountInfo {
+    fn as_ref(&self) -> &AccountInfo {
         self.0.as_ref()
     }
 }
 
-impl<'a, T> From<Mut<T>> for &'a RawAccountInfo
+impl<'a, T> From<Mut<T>> for &'a AccountInfo
 where
-    T: ReadableAccount + Into<&'a RawAccountInfo>,
+    T: ReadableAccount + Into<&'a AccountInfo>,
 {
     fn from(value: Mut<T>) -> Self {
         value.0.into()
@@ -51,8 +55,8 @@ where
         self.0.key()
     }
 
-    fn owner(&self) -> &Pubkey {
-        self.0.owner()
+    fn is_owned_by(&self, owner: &Pubkey) -> bool {
+        self.0.is_owned_by(owner)
     }
 
     fn lamports(&self) -> Result<Ref<u64>, ProgramError> {
@@ -68,7 +72,9 @@ macro_rules! impl_writable {
     ($name: ident) => {
         impl WritableAccount for Mut<$name<'_>> {
             fn assign(&self, new_owner: &Pubkey) {
-                self.0.as_ref().assign(new_owner);
+                unsafe {
+                    self.0.as_ref().assign(new_owner);
+                }
             }
 
             fn realloc(&self, new_len: usize, zero_init: bool) -> Result<(), ProgramError> {
@@ -92,7 +98,9 @@ impl_writable!(UncheckedAccount);
 
 impl<T> WritableAccount for Mut<Program<'_, T>> {
     fn assign(&self, new_owner: &Pubkey) {
-        self.0.as_ref().assign(new_owner);
+        unsafe {
+            self.0.as_ref().assign(new_owner);
+        }
     }
 
     fn realloc(&self, new_len: usize, zero_init: bool) -> Result<(), ProgramError> {
@@ -110,7 +118,9 @@ impl<T> WritableAccount for Mut<Program<'_, T>> {
 
 impl<T: Discriminator + RefFromBytes> WritableAccount for Mut<Account<'_, T>> {
     fn assign(&self, new_owner: &Pubkey) {
-        self.0.as_ref().assign(new_owner);
+        unsafe {
+            self.0.as_ref().assign(new_owner);
+        }
     }
 
     fn realloc(&self, new_len: usize, zero_init: bool) -> Result<(), ProgramError> {

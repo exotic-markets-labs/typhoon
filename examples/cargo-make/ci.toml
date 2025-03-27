@@ -1,11 +1,3 @@
-[tasks.build]
-command = "cargo"
-args = ["build-sbf"]
-
-[tasks.build-pinocchio]
-command = "cargo"
-args = ["build-sbf", "--features", "pinocchio"]
-
 [tasks.test]
 command = "cargo"
-args = ["test"]
+args = ["test-sbf"]

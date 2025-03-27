@@ -4,25 +4,25 @@ use {
         spl_instructions::{InitializeAccount3, InitializeMint2},
         Mint, TokenAccount, TokenProgram,
     },
+    pinocchio::{
+        account_info::AccountInfo, instruction::Signer, program_error::ProgramError,
+        pubkey::Pubkey, sysvars::rent::Rent,
+    },
     typhoon_accounts::{
         Account, FromAccountInfo, Mut, ProgramId, ReadableAccount, SystemAccount, UncheckedAccount,
         WritableAccount,
     },
-    typhoon_program::{
-        program_error::ProgramError, pubkey::Pubkey, sysvars::rent::Rent, RawAccountInfo,
-        SignerSeeds,
-    },
     typhoon_utility::create_or_assign,
 };
 
-pub trait SPLCreate<'a>: WritableAccount + Into<&'a RawAccountInfo> {
+pub trait SPLCreate<'a>: WritableAccount + Into<&'a AccountInfo> {
     fn create_token_account(
         self,
         rent: &Rent,
         payer: &impl WritableAccount,
         mint: &impl ReadableAccount,
         owner: &Pubkey,
-        seeds: Option<&[SignerSeeds]>,
+        seeds: Option<&[Signer]>,
     ) -> Result<Mut<Account<'a, TokenAccount>>, ProgramError> {
         create_or_assign(
             &self,
@@ -92,7 +92,7 @@ pub trait SPLCreate<'a>: WritableAccount + Into<&'a RawAccountInfo> {
         mint_authority: &Pubkey,
         decimals: u8,
         freeze_authority: Option<&Pubkey>,
-        seeds: Option<&[SignerSeeds]>,
+        seeds: Option<&[Signer]>,
     ) -> Result<Mut<Account<'a, Mint>>, ProgramError> {
         create_or_assign(&self, rent, payer, &TokenProgram::ID, Mint::LEN, seeds)?;
 

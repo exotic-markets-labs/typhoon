@@ -15,8 +15,8 @@ repository = "https://github.com/rust-lang/rust-analyzer"
 anchor-lang-idl-spec = "0.1.0"
 borsh = "1.5"
 bytemuck = "1.21.0"
-cargo-manifest = "0.17"
-five8_const = "0.1.3"
+cargo-manifest = "0.19.1"
+five8_const = "0.1.4"
 trybuild = "1.0"
 typhoon = { version = "0.1.0", path = "crates/lib" }
 typhoon-accounts = { version = "0.1.0", path = "crates/accounts" }
@@ -30,34 +30,29 @@ typhoon-discriminator-macro = { version = "0.1.0", path = "crates/discriminator-
 typhoon-errors = { version = "0.1.0", path = "crates/errors" }
 typhoon-handler-macro = { version = "0.1.0", path = "crates/handler-macro" }
 typhoon-metadata-extractor = { version = "0.1.0", path = "crates/metadata-extractor" }
-typhoon-program = { version = "0.1.0", path = "crates/program" }
 typhoon-program-id-macro = { version = "0.1.0", path = "crates/program-id-macro" }
 typhoon-syn = { version = "0.1.0", path = "crates/syn" }
 typhoon-utility = { version = "0.1.0", path = "crates/utility" }
 typhoon-utility-traits = { version = "0.1.0", path = "crates/utility-traits" }
 heck = "0.5.0"
-nostd-associated-token-account-program = { git = "https://github.com/Aursen/nostdinfo-programs", rev = "f6a1c1e" }
-nostd-system-program = { git = "https://github.com/Aursen/nostdinfo-programs", rev = "f6a1c1e" }
-nostd-token-program = { git = "https://github.com/Aursen/nostdinfo-programs", rev = "f6a1c1e" }
 num-traits = "0.2"
 paste = "1.0"
-pinocchio = { git = "https://github.com/febo/pinocchio", rev = "01c1c7a" }
-pinocchio-associated-token-account = { git = "https://github.com/febo/pinocchio", rev = "01c1c7a" }
-pinocchio-log = { git = "https://github.com/febo/pinocchio", rev = "01c1c7a" }
-pinocchio-pubkey = { git = "https://github.com/febo/pinocchio", rev = "01c1c7a" }
-pinocchio-token = { git = "https://github.com/febo/pinocchio", rev = "01c1c7a" }
-pinocchio-system = { git = "https://github.com/febo/pinocchio", rev = "01c1c7a" }
+pinocchio = "0.8.0"
+pinocchio-associated-token-account = "0.1.1"
+pinocchio-log = "0.4.0"
+pinocchio-pubkey = "0.2.4"
+pinocchio-token = "0.3.0"
+pinocchio-system = "0.2.2"
 proc-macro2 = "1.0"
 quote = "1.0"
 serde_json = "1.0"
 sha2 = "0.10.8"
-solana-clock = "2.1"
-solana-define-syscall = "2.1"
-solana-msg = "2.1"
-solana-nostd-entrypoint = { git = "https://github.com/exotic-markets-labs/solana-nostd-entrypoint", rev = "bcccf73" }
-solana-program-entrypoint = "2.1"
-solana-program-error = "2.1"
-solana-pubkey = "2.1"
-solana-rent = "2.1"
+solana-clock = "2.2"
+solana-define-syscall = "2.2"
+solana-msg = "2.2"
+solana-program-entrypoint = "2.2"
+solana-program-error = "2.2"
+solana-pubkey = "2.2"
+solana-rent = "2.2"
 syn = "2.0"
 thiserror = "2.0"

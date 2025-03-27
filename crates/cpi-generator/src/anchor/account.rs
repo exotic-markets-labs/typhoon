@@ -32,7 +32,7 @@ pub fn gen_accounts(idl: &Idl) -> proc_macro2::TokenStream {
 
                 quote! {
                     impl Owner for #ident {
-                        const OWNER: typhoon_program::pubkey::Pubkey = #program_ident::ID;
+                        const OWNER: Pubkey = #program_ident::ID;
                     }
 
                     impl Discriminator for #ident {

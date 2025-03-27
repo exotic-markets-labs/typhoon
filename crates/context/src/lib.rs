@@ -1,16 +1,14 @@
-use {
-    paste::paste,
-    typhoon_program::{program_error::ProgramError, RawAccountInfo},
-};
+use paste::paste;
 
 mod args;
 mod remaining_accounts;
 
 pub use args::*;
+use pinocchio::{account_info::AccountInfo, program_error::ProgramError};
 
 pub trait HandlerContext<'a>: Sized {
     fn from_entrypoint(
-        accounts: &mut &'a [RawAccountInfo],
+        accounts: &mut &'a [AccountInfo],
         instruction_data: &mut &'a [u8],
     ) -> Result<Self, ProgramError>;
 }
@@ -20,7 +18,7 @@ pub trait Handler<'a, T> {
 
     fn call(
         self,
-        accounts: &mut &'a [RawAccountInfo],
+        accounts: &mut &'a [AccountInfo],
         instruction_data: &mut &'a [u8],
     ) -> Result<Self::Output, ProgramError>;
 }
@@ -33,7 +31,7 @@ where
 
     fn call(
         self,
-        _accounts: &mut &'a [RawAccountInfo],
+        _accounts: &mut &'a [AccountInfo],
         _instruction_data: &mut &'a [u8],
     ) -> Result<Self::Output, ProgramError> {
         (self)()
@@ -53,7 +51,7 @@ macro_rules! impl_handler {
 
             fn call(
                 self,
-                accounts: &mut &'a [RawAccountInfo],
+                accounts: &mut &'a [AccountInfo],
                 instruction_data: &mut &'a [u8],
             ) -> Result<Self::Output, ProgramError> {
                 paste! {
@@ -76,7 +74,7 @@ impl_handler!(T1, T2, T3, T4, T5, T6);
 impl_handler!(T1, T2, T3, T4, T5, T6, T7);
 
 pub fn handle<'a, T, H>(
-    mut accounts: &'a [RawAccountInfo],
+    mut accounts: &'a [AccountInfo],
     mut instruction_data: &'a [u8],
     handler: H,
 ) -> Result<H::Output, ProgramError>

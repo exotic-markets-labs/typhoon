@@ -8,7 +8,7 @@ use {
 };
 
 pub enum Argument {
-    Value { name: Ident, ty: Type },
+    Value { name: Ident, ty: Box<Type> },
     Struct { name: Ident },
 }
 
@@ -22,7 +22,10 @@ impl Parse for Argument {
             input.parse::<Token![:]>()?;
 
             let ty: Type = input.parse()?;
-            Ok(Argument::Value { name, ty })
+            Ok(Argument::Value {
+                name,
+                ty: Box::new(ty),
+            })
         }
     }
 }

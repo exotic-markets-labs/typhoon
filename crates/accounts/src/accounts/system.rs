@@ -1,18 +1,20 @@
 use {
     crate::{FromAccountInfo, ReadableAccount},
-    typhoon_errors::Error,
-    typhoon_program::{
-        program_error::ProgramError, pubkey::Pubkey, system_program, RawAccountInfo, Ref,
+    pinocchio::{
+        account_info::{AccountInfo, Ref},
+        program_error::ProgramError,
+        pubkey::Pubkey,
     },
+    typhoon_errors::Error,
 };
 
 pub struct SystemAccount<'a> {
-    info: &'a RawAccountInfo,
+    info: &'a AccountInfo,
 }
 
 impl<'a> FromAccountInfo<'a> for SystemAccount<'a> {
-    fn try_from_info(info: &'a RawAccountInfo) -> Result<Self, ProgramError> {
-        if info.owner() != &system_program::ID {
+    fn try_from_info(info: &'a AccountInfo) -> Result<Self, ProgramError> {
+        if !info.is_owned_by(&pinocchio_system::ID) {
             return Err(Error::AccountOwnedByWrongProgram.into());
         }
 
@@ -20,14 +22,14 @@ impl<'a> FromAccountInfo<'a> for SystemAccount<'a> {
     }
 }
 
-impl<'a> From<SystemAccount<'a>> for &'a RawAccountInfo {
+impl<'a> From<SystemAccount<'a>> for &'a AccountInfo {
     fn from(value: SystemAccount<'a>) -> Self {
         value.info
     }
 }
 
-impl AsRef<RawAccountInfo> for SystemAccount<'_> {
-    fn as_ref(&self) -> &RawAccountInfo {
+impl AsRef<AccountInfo> for SystemAccount<'_> {
+    fn as_ref(&self) -> &AccountInfo {
         self.info
     }
 }
@@ -39,8 +41,8 @@ impl ReadableAccount for SystemAccount<'_> {
         self.info.key()
     }
 
-    fn owner(&self) -> &Pubkey {
-        self.info.owner()
+    fn is_owned_by(&self, owner: &Pubkey) -> bool {
+        self.info.is_owned_by(owner)
     }
 
     fn lamports(&self) -> Result<Ref<u64>, ProgramError> {

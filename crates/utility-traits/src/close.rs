@@ -1,6 +1,6 @@
 use {
+    pinocchio::{program_error::ProgramError, ProgramResult},
     typhoon_accounts::WritableAccount,
-    typhoon_program::{program_error::ProgramError, system_program, ProgramResult},
 };
 
 pub trait CloseAccount: WritableAccount {
@@ -13,7 +13,7 @@ pub trait CloseAccount: WritableAccount {
             .ok_or(ProgramError::ArithmeticOverflow)?;
         *self.mut_lamports()? = 0;
 
-        self.assign(&system_program::ID);
+        self.assign(&pinocchio_system::ID);
         self.realloc(0, false)
     }
 }

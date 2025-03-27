@@ -1,9 +1,9 @@
-use std::io::Write;
+use core::mem::MaybeUninit;
 
-pub const UNINIT_BYTE: std::mem::MaybeUninit<u8> = std::mem::MaybeUninit::<u8>::uninit();
+pub const UNINIT_BYTE: MaybeUninit<u8> = MaybeUninit::<u8>::uninit();
 
 #[inline(always)]
-pub fn write_bytes(destination: &mut [std::mem::MaybeUninit<u8>], source: &[u8]) {
+pub fn write_bytes(destination: &mut [MaybeUninit<u8>], source: &[u8]) {
     for (d, s) in destination.iter_mut().zip(source.iter()) {
         d.write(*s);
     }
@@ -24,7 +24,7 @@ impl<'a> MaybeUninitWriter<'a> {
     }
 }
 
-impl Write for MaybeUninitWriter<'_> {
+impl std::io::Write for MaybeUninitWriter<'_> {
     fn write(&mut self, data: &[u8]) -> std::io::Result<usize> {
         let available = self.buffer.len().saturating_sub(self.position);
         let to_write = data.len().min(available);
@@ -54,5 +54,3 @@ impl Write for MaybeUninitWriter<'_> {
         Ok(())
     }
 }
-
-// TODO unit test

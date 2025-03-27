@@ -1,22 +1,26 @@
-mod accounts;
-mod programs;
-
 pub use {accounts::*, programs::*};
 use {
     bytemuck::Pod,
+    pinocchio::{
+        account_info::{AccountInfo, Ref, RefMut},
+        program_error::ProgramError,
+        pubkey::Pubkey,
+    },
     sealed::Sealed,
-    typhoon_program::{program_error::ProgramError, pubkey::Pubkey, RawAccountInfo, Ref, RefMut},
 };
 
+mod accounts;
+mod programs;
+
 pub trait FromAccountInfo<'a>: Sized {
-    fn try_from_info(info: &'a RawAccountInfo) -> Result<Self, ProgramError>;
+    fn try_from_info(info: &'a AccountInfo) -> Result<Self, ProgramError>;
 }
 
-pub trait ReadableAccount: AsRef<RawAccountInfo> {
+pub trait ReadableAccount: AsRef<AccountInfo> {
     type DataType: ?Sized;
 
     fn key(&self) -> &Pubkey;
-    fn owner(&self) -> &Pubkey;
+    fn is_owned_by(&self, owner: &Pubkey) -> bool;
     fn lamports(&self) -> Result<Ref<u64>, ProgramError>;
     fn data(&self) -> Result<Ref<Self::DataType>, ProgramError>;
 }
@@ -33,12 +37,12 @@ pub trait SignerAccount: ReadableAccount + Sealed {}
 mod sealed {
     use {
         super::{Mut, ReadableAccount, Signer},
-        typhoon_program::RawAccountInfo,
+        pinocchio::account_info::AccountInfo,
     };
 
     pub trait Sealed {}
 
-    impl<T> Sealed for Mut<T> where T: ReadableAccount + AsRef<RawAccountInfo> {}
+    impl<T> Sealed for Mut<T> where T: ReadableAccount + AsRef<AccountInfo> {}
     impl Sealed for Signer<'_> {}
 }
 

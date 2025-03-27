@@ -1,9 +1,8 @@
-use bytemuck::{Pod, Zeroable};
-use typhoon::{
-    prelude::*,
-    typhoon_program::{seeds, SignerSeeds},
+use {
+    bytemuck::{Pod, Zeroable},
+    typhoon::prelude::*,
+    typhoon_token::{spl_instructions::MintTo, AtaTokenProgram, SPLCreate, TokenProgram},
 };
-use typhoon_token::{spl_instructions::MintTo, AtaTokenProgram, SPLCreate, TokenProgram};
 
 program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
@@ -73,7 +72,7 @@ pub fn mint_from_escrow(
         mint_authority: ctx.escrow.as_ref(),
         amount: args.amount,
     }
-    .invoke_signed(&[SignerSeeds::from(&seeds!(
+    .invoke_signed(&[instruction::CpiSigner::from(&seeds!(
         b"escrow".as_ref(),
         &[ctx.bumps.escrow]
     ))])?;

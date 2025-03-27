@@ -70,7 +70,7 @@ pub struct Assign<'a>(Vec<(&'a Ident, &'a PathSegment, &'a Constraints)>);
 
 impl ToTokens for Assign<'_> {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let rent = quote!(<typhoon_program::sysvars::rent::Rent as Sysvar>::get()?);
+        let rent = quote!(<Rent as Sysvar>::get()?);
 
         let missing_system_program = {
             let has_init = self.0.iter().any(|(_, _, c)| c.has_init());
@@ -120,8 +120,8 @@ impl ToTokens for Assign<'_> {
                             let system_acc = <typhoon::lib::Mut<typhoon::lib::SystemAccount> as typhoon::lib::FromAccountInfo>::try_from_info(#name)?;
                             // TODO: avoid reusing seeds here and in verifications
                             let bump = [bumps.#name];
-                            let seeds = typhoon_program::seeds!(#punctuated_seeds, &bump);
-                            let signer = typhoon_program::SignerSeeds::from(&seeds);
+                            let seeds = seeds!(#punctuated_seeds, &bump);
+                            let signer = instruction::CpiSigner::from(&seeds);
                             typhoon::lib::SystemCpi::create_account(system_acc, &#rent, &#payer, &crate::ID, #space, Some(&[signer]))?
                         };
                     }
@@ -138,7 +138,7 @@ impl ToTokens for Assign<'_> {
                             // TODO: avoid reusing seeds here and in verifications
                             let bump = [bumps.#name];
                             let seeds = #account_ty::derive_with_bump(#keys, &bump);
-                            let signer = typhoon_program::SignerSeeds::from(&seeds);
+                            let signer = instruction::CpiSigner::from(&seeds);
                             typhoon::lib::SystemCpi::create_account(system_acc, &#rent, &#payer, &crate::ID, #space, Some(&[signer]))?
                         };
                     }

@@ -7,14 +7,8 @@ license.workspace = true
 authors.workspace = true
 repository.workspace = true
 
-[features]
-pinocchio = [
-    "typhoon-program/pinocchio",
-    "typhoon-accounts/pinocchio",
-    "typhoon-errors/pinocchio",
-]
-
 [dependencies]
+pinocchio.workspace = true
+pinocchio-system.workspace = true
 typhoon-accounts.workspace = true
 typhoon-errors.workspace = true
-typhoon-program.workspace = true

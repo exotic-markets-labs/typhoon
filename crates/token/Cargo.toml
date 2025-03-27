@@ -7,21 +7,10 @@ license.workspace = true
 authors.workspace = true
 repository.workspace = true
 
-[features]
-default = ["nostd-token-program", "nostd-associated-token-account-program"]
-pinocchio = [
-    "typhoon-utility/pinocchio",
-    "typhoon-accounts/pinocchio",
-    "typhoon-program/pinocchio",
-    "pinocchio-token",
-    "pinocchio-associated-token-account",
-]
 
 [dependencies]
-pinocchio-token = { workspace = true, optional = true }
-pinocchio-associated-token-account = { workspace = true, optional = true }
-nostd-associated-token-account-program = { workspace = true, optional = true }
-nostd-token-program = { workspace = true, optional = true }
+pinocchio.workspace = true
+pinocchio-token = { workspace = true }
+pinocchio-associated-token-account = { workspace = true }
 typhoon-accounts.workspace = true
-typhoon-program.workspace = true
 typhoon-utility.workspace = true

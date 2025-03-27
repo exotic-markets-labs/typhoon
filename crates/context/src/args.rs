@@ -1,8 +1,8 @@
 use {
     crate::HandlerContext,
     bytemuck::{try_from_bytes, Pod},
+    pinocchio::{account_info::AccountInfo, program_error::ProgramError},
     std::ops::Deref,
-    typhoon_program::{program_error::ProgramError, RawAccountInfo},
 };
 
 #[derive(Debug)]
@@ -27,7 +27,7 @@ where
     T: Pod,
 {
     fn from_entrypoint(
-        _accounts: &mut &'a [RawAccountInfo],
+        _accounts: &mut &'a [AccountInfo],
         instruction_data: &mut &'a [u8],
     ) -> Result<Self, ProgramError> {
         let arg: &T = try_from_bytes(&instruction_data[..std::mem::size_of::<T>()])

@@ -1,19 +1,17 @@
 use {
+    pinocchio::{
+        account_info::AccountInfo, instruction::Signer, program_error::ProgramError,
+        pubkey::Pubkey, sysvars::rent::Rent,
+    },
+    pinocchio_system::instructions::{Allocate, Assign, Transfer},
     typhoon_accounts::{
         Account, Discriminator, FromAccountInfo, Mut, Owner, RefFromBytes, Signer as SignerAccount,
         SystemAccount, UncheckedAccount, WritableAccount,
     },
-    typhoon_program::{
-        program_error::ProgramError,
-        pubkey::Pubkey,
-        system_program::instructions::{Allocate, Assign, Transfer},
-        sysvars::rent::Rent,
-        RawAccountInfo, SignerSeeds,
-    },
     typhoon_utility::create_or_assign,
 };
 
-pub trait SystemCpi<'a>: WritableAccount + Into<&'a RawAccountInfo>
+pub trait SystemCpi<'a>: WritableAccount + Into<&'a AccountInfo>
 where
     Self: Sized,
 {
@@ -39,7 +37,7 @@ where
         payer: &impl WritableAccount,
         owner: &Pubkey,
         space: usize,
-        seeds: Option<&[SignerSeeds]>,
+        seeds: Option<&[Signer]>,
     ) -> Result<Mut<Account<'a, T>>, ProgramError> {
         create_or_assign(&self, rent, payer, owner, space, seeds)?;
 

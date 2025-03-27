@@ -1,12 +1,8 @@
 use {
+    pinocchio::{instruction::Signer, pubkey::Pubkey, sysvars::rent::Rent, ProgramResult},
+    pinocchio_system::instructions::{Allocate, Assign, CreateAccount, Transfer},
     typhoon_accounts::WritableAccount,
     typhoon_errors::Error,
-    typhoon_program::{
-        pubkey::Pubkey,
-        system_program::instructions::{Allocate, Assign, CreateAccount, Transfer},
-        sysvars::rent::Rent,
-        ProgramResult, SignerSeeds,
-    },
 };
 
 pub fn create_or_assign(
@@ -15,7 +11,7 @@ pub fn create_or_assign(
     payer: &impl WritableAccount,
     owner: &Pubkey,
     space: usize,
-    seeds: Option<&[SignerSeeds]>,
+    seeds: Option<&[Signer]>,
 ) -> ProgramResult {
     let current_lamports = { *account.lamports()? };
     if current_lamports == 0 {

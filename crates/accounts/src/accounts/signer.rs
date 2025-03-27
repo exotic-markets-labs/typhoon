@@ -1,15 +1,19 @@
 use {
     crate::{FromAccountInfo, ReadableAccount, SignerAccount},
+    pinocchio::{
+        account_info::{AccountInfo, Ref},
+        program_error::ProgramError,
+        pubkey::Pubkey,
+    },
     typhoon_errors::Error,
-    typhoon_program::{program_error::ProgramError, pubkey::Pubkey, RawAccountInfo, Ref},
 };
 
 pub struct Signer<'a> {
-    info: &'a RawAccountInfo,
+    info: &'a AccountInfo,
 }
 
 impl<'a> FromAccountInfo<'a> for Signer<'a> {
-    fn try_from_info(info: &'a RawAccountInfo) -> Result<Self, ProgramError> {
+    fn try_from_info(info: &'a AccountInfo) -> Result<Self, ProgramError> {
         if !info.is_signer() {
             return Err(Error::AccountNotSigner.into());
         }
@@ -18,14 +22,14 @@ impl<'a> FromAccountInfo<'a> for Signer<'a> {
     }
 }
 
-impl<'a> From<Signer<'a>> for &'a RawAccountInfo {
+impl<'a> From<Signer<'a>> for &'a AccountInfo {
     fn from(value: Signer<'a>) -> Self {
         value.info
     }
 }
 
-impl AsRef<RawAccountInfo> for Signer<'_> {
-    fn as_ref(&self) -> &RawAccountInfo {
+impl AsRef<AccountInfo> for Signer<'_> {
+    fn as_ref(&self) -> &AccountInfo {
         self.info
     }
 }
@@ -39,8 +43,8 @@ impl ReadableAccount for Signer<'_> {
         self.info.key()
     }
 
-    fn owner(&self) -> &Pubkey {
-        self.info.owner()
+    fn is_owned_by(&self, owner: &Pubkey) -> bool {
+        self.info.is_owned_by(owner)
     }
 
     fn lamports(&self) -> Result<Ref<u64>, ProgramError> {

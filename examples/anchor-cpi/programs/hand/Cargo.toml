@@ -7,10 +7,6 @@ publish = false
 [lib]
 crate-type = ["cdylib", "lib"]
 
-[features]
-default = ["solana-nostd-entrypoint"]
-pinocchio = ["typhoon/pinocchio"]
-
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = [
     'cfg(target_os, values("solana"))',
@@ -21,5 +17,4 @@ unexpected_cfgs = { level = "warn", check-cfg = [
 borsh = "1.5"
 bytemuck = "1.21.0"
 podded = "0.5.2"
-solana-nostd-entrypoint = { git = "https://github.com/exotic-markets-labs/solana-nostd-entrypoint", rev = "bcccf73", optional = true }
 typhoon = { path = "../../../../crates/lib", features = ["borsh"] }

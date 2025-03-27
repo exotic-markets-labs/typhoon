@@ -9,10 +9,10 @@ repository.workspace = true
 
 [features]
 borsh = ["dep:borsh"]
-pinocchio = ["typhoon-program/pinocchio", "typhoon-errors/pinocchio"]
 
 [dependencies]
 borsh = { workspace = true, optional = true }
 bytemuck.workspace = true
 typhoon-errors.workspace = true
-typhoon-program.workspace = true
+pinocchio.workspace = true
+pinocchio-system.workspace = true

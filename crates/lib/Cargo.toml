@@ -9,15 +9,9 @@ repository.workspace = true
 
 [features]
 borsh = ["typhoon-accounts/borsh"]
-pinocchio = [
-    "typhoon-accounts/pinocchio",
-    "typhoon-context/pinocchio",
-    "typhoon-errors/pinocchio",
-    "typhoon-program/pinocchio",
-    "typhoon-utility-traits/pinocchio",
-]
 
 [dependencies]
+pinocchio-pubkey.workspace = true
 typhoon-accounts.workspace = true
 typhoon-account-macro.workspace = true
 typhoon-errors.workspace = true
@@ -25,6 +19,6 @@ typhoon-context.workspace = true
 typhoon-context-macro.workspace = true
 typhoon-cpi-generator-macro.workspace = true
 typhoon-handler-macro.workspace = true
-typhoon-program.workspace = true
 typhoon-program-id-macro.workspace = true
+typhoon-utility.workspace = true
 typhoon-utility-traits.workspace = true

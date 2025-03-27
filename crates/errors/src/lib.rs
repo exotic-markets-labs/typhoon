@@ -1,7 +1,7 @@
 use {
     num_traits::{FromPrimitive, ToPrimitive},
+    pinocchio::{msg, program_error::ProgramError},
     thiserror::Error,
-    typhoon_program::{msg, program_error::ProgramError},
 };
 
 /// Maybe rework with thiserror 2.0

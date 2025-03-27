@@ -1,16 +1,18 @@
 use {
     crate::{Discriminator, FromAccountInfo, Owner, ReadableAccount},
-    typhoon_errors::Error,
-    typhoon_program::{
-        program_error::ProgramError, pubkey::Pubkey, system_program, RawAccountInfo, Ref,
+    pinocchio::{
+        account_info::{AccountInfo, Ref},
+        program_error::ProgramError,
+        pubkey::Pubkey,
     },
+    typhoon_errors::Error,
 };
 
 pub struct BorshAccount<'a, T>
 where
     T: Discriminator,
 {
-    info: &'a RawAccountInfo,
+    info: &'a AccountInfo,
     data: T,
 }
 
@@ -27,12 +29,12 @@ impl<'a, T> FromAccountInfo<'a> for BorshAccount<'a, T>
 where
     T: Owner + Discriminator + borsh::BorshSerialize + borsh::BorshDeserialize,
 {
-    fn try_from_info(info: &'a RawAccountInfo) -> Result<Self, ProgramError> {
-        if info.owner() == &system_program::ID && *info.try_borrow_lamports()? == 0 {
+    fn try_from_info(info: &'a AccountInfo) -> Result<Self, ProgramError> {
+        if info.is_owned_by(&pinocchio_system::ID) && *info.try_borrow_lamports()? == 0 {
             return Err(ProgramError::UninitializedAccount);
         }
 
-        if info.owner() != &T::OWNER {
+        if !info.is_owned_by(&T::OWNER) {
             return Err(Error::AccountOwnedByWrongProgram.into());
         }
 
@@ -54,7 +56,7 @@ where
     }
 }
 
-impl<'a, T> From<BorshAccount<'a, T>> for &'a RawAccountInfo
+impl<'a, T> From<BorshAccount<'a, T>> for &'a AccountInfo
 where
     T: Owner + Discriminator,
 {
@@ -63,11 +65,11 @@ where
     }
 }
 
-impl<T> AsRef<RawAccountInfo> for BorshAccount<'_, T>
+impl<T> AsRef<AccountInfo> for BorshAccount<'_, T>
 where
     T: Discriminator,
 {
-    fn as_ref(&self) -> &RawAccountInfo {
+    fn as_ref(&self) -> &AccountInfo {
         self.info
     }
 }
@@ -82,8 +84,8 @@ where
         self.info.key()
     }
 
-    fn owner(&self) -> &Pubkey {
-        self.info.owner()
+    fn is_owned_by(&self, owner: &Pubkey) -> bool {
+        self.info.is_owned_by(owner)
     }
 
     fn lamports(&self) -> Result<Ref<u64>, ProgramError> {

@@ -33,13 +33,13 @@ impl ToTokens for Handlers {
         });
 
         let expanded = quote! {
-            typhoon_program::program_entrypoint!(process_instruction);
+            entrypoint!(process_instruction);
 
             pub fn process_instruction(
-                program_id: &typhoon_program::pubkey::Pubkey,
-                accounts: &[typhoon_program::RawAccountInfo],
+                program_id: &Pubkey,
+                accounts: &[AccountInfo],
                 instruction_data: &[u8],
-            ) -> typhoon_program::ProgramResult {
+            ) -> ProgramResult {
                 if program_id != &crate::ID {
                     return Err(ProgramError::IncorrectProgramId);
                 }

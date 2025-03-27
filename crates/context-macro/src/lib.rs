@@ -141,9 +141,9 @@ impl ToTokens for Context {
 
             impl #impl_generics HandlerContext<#new_lifetime> for #name #ty_generics #where_clause {
                 fn from_entrypoint(
-                    accounts: &mut &'info [typhoon_program::RawAccountInfo],
+                    accounts: &mut &'info [AccountInfo],
                     instruction_data: &mut &'info [u8],
-                ) -> Result<Self, typhoon_program::program_error::ProgramError> {
+                ) -> Result<Self, ProgramError> {
                     let [#name_list, rem @ ..] = accounts else {
                         return Err(ProgramError::NotEnoughAccountKeys);
                     };

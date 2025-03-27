@@ -47,7 +47,7 @@ pub fn account(
         #cleaned_item
 
         impl Owner for #name #ty_generics #where_clause {
-            const OWNER: typhoon_program::pubkey::Pubkey = crate::ID;
+            const OWNER: Pubkey = crate::ID;
         }
 
         impl Discriminator for #name #ty_generics #where_clause {

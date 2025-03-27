@@ -14,7 +14,7 @@ use {
     solana_transaction::Transaction,
     spl_associated_token_account_client::address::get_associated_token_address,
     std::path::PathBuf,
-    transfer_token::*,
+    transfer_token::MintFromEscrowArgs,
 };
 
 fn read_program() -> Vec<u8> {
@@ -65,7 +65,7 @@ fn integration_test() {
                     decimals: 6,
                     amount: minted_amount,
                     has_freeze_authority: 1,
-                    freeze_authority: recipient_pk,
+                    freeze_authority: recipient_pk.to_bytes(),
                 }))
                 .cloned()
                 .collect(),

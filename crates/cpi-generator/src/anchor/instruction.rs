@@ -26,7 +26,7 @@ pub fn gen_instructions(idl: &Idl) -> TokenStream {
             /// Used for Cross-Program Invocation (CPI) calls.
             #docs
             pub struct #ident<'a> {
-                #(pub #accounts: &'a typhoon_program::RawAccountInfo,)*
+                #(pub #accounts: &'a AccountInfo,)*
                 #(#arg_fields)*
             }
 
@@ -36,11 +36,11 @@ pub fn gen_instructions(idl: &Idl) -> TokenStream {
                     self.invoke_signed(&[])
                 }
 
-                pub fn invoke_signed(&self, seeds: &[typhoon_program::SignerSeeds]) -> #program_result {
+                pub fn invoke_signed(&self, seeds: &[instruction::CpiSigner]) -> #program_result {
                     #account_metas
                     #instruction_data
 
-                    typhoon_program::invoke_signed(
+                    invoke_signed(
                         &instruction,
                         &[#(self.#accounts),*],
                         seeds
@@ -79,26 +79,26 @@ fn gen_instruction_data(
 
     let instruction_data = if arg_ser.is_empty() {
         quote! {
-            let mut instruction_data = [typhoon_program::bytes::UNINIT_BYTE; #discriminator_len];
+            let mut instruction_data = [bytes::UNINIT_BYTE; #discriminator_len];
 
-            typhoon_program::bytes::write_bytes(&mut instruction_data, #discriminator_expr);
+            bytes::write_bytes(&mut instruction_data, #discriminator_expr);
 
-            let instruction = typhoon_program::Instruction {
-                program_id: &typhoon_program::pubkey_from_array([#(#id_array),*]),
+            let instruction = instruction::Instruction {
+                program_id: &[#(#id_array),*],
                 accounts: &account_metas,
                 data: unsafe { std::slice::from_raw_parts(instruction_data.as_ptr() as _, #discriminator_len) },
             };
         }
     } else {
         quote! {
-            let mut instruction_data = [typhoon_program::bytes::UNINIT_BYTE; #buffer_size];
-            typhoon_program::bytes::write_bytes(&mut instruction_data, #discriminator_expr);
+            let mut instruction_data = [bytes::UNINIT_BYTE; #buffer_size];
+            bytes::write_bytes(&mut instruction_data, #discriminator_expr);
 
-            let mut writer = typhoon_program::bytes::MaybeUninitWriter::new(&mut instruction_data, #discriminator_len);
+            let mut writer = bytes::MaybeUninitWriter::new(&mut instruction_data, #discriminator_len);
             #(#arg_ser)*
 
-            let instruction = typhoon_program::Instruction {
-                program_id: &typhoon_program::pubkey_from_array([#(#id_array),*]),
+            let instruction = instruction::Instruction {
+                program_id: &[#(#id_array),*],
                 accounts: &account_metas,
                 data: writer.initialized(),
             };
@@ -112,9 +112,9 @@ fn gen_instruction_result(returns: &Option<IdlType>) -> TokenStream {
     match returns {
         Some(ty) => {
             let result_ty = gen_type(ty);
-            quote!(Result<#result_ty, typhoon_program::program_error::ProgramError>)
+            quote!(Result<#result_ty, ProgramError>)
         }
-        None => quote!(typhoon_program::ProgramResult),
+        None => quote!(ProgramResult),
     }
 }
 
@@ -138,7 +138,7 @@ fn gen_account_instruction(
                 let is_signer = account.signer;
 
                 metas.push(quote! {
-                    typhoon_program::ToMeta::to_meta(self.#ident, #is_writable, #is_signer)
+                    instruction::AccountMeta::new(self.#ident.key(), #is_writable, #is_signer)
                 });
                 fields.push(ident);
             }
@@ -153,7 +153,7 @@ fn gen_account_metas(metas: &[TokenStream]) -> TokenStream {
     let len = metas.len();
 
     quote! {
-        let account_metas: [typhoon_program::AccountMeta; #len] = [#(#metas),*];
+        let account_metas: [instruction::AccountMeta; #len] = [#(#metas),*];
     }
 }
 
@@ -169,12 +169,12 @@ mod tests {
 
         let (fields, data) = gen_instruction_data(&args, &discriminator, program_id);
         let expected_data = quote! {
-            let mut instruction_data = [typhoon_program::bytes::UNINIT_BYTE; 4usize];
+            let mut instruction_data = [bytes::UNINIT_BYTE; 4usize];
 
-            typhoon_program::bytes::write_bytes(&mut instruction_data, &[1u8, 2u8, 3u8, 4u8]);
+            bytes::write_bytes(&mut instruction_data, &[1u8, 2u8, 3u8, 4u8]);
 
-            let instruction = typhoon_program::Instruction {
-                program_id: &typhoon_program::pubkey_from_array([218u8, 7u8, 92u8, 178u8, 255u8, 94u8, 198u8, 129u8, 118u8, 19u8, 222u8, 83u8, 11u8, 105u8, 42u8, 135u8, 53u8, 71u8, 119u8, 105u8, 218u8, 71u8, 67u8, 12u8, 189u8, 129u8, 84u8, 51u8, 92u8, 74u8, 131u8, 39u8]),
+            let instruction = instruction::Instruction {
+                program_id: &[218u8, 7u8, 92u8, 178u8, 255u8, 94u8, 198u8, 129u8, 118u8, 19u8, 222u8, 83u8, 11u8, 105u8, 42u8, 135u8, 53u8, 71u8, 119u8, 105u8, 218u8, 71u8, 67u8, 12u8, 189u8, 129u8, 84u8, 51u8, 92u8, 74u8, 131u8, 39u8],
                 accounts: &account_metas,
                 data: unsafe { std::slice::from_raw_parts(instruction_data.as_ptr() as _, 4usize) },
             };
@@ -192,14 +192,14 @@ mod tests {
 
         let (fields, data) = gen_instruction_data(&args, &discriminator, program_id);
         let expected_data = quote! {
-            let mut instruction_data = [typhoon_program::bytes::UNINIT_BYTE; 1228usize];
-            typhoon_program::bytes::write_bytes(&mut instruction_data, &[1u8, 2u8, 3u8, 4u8]);
+            let mut instruction_data = [bytes::UNINIT_BYTE; 1228usize];
+            bytes::write_bytes(&mut instruction_data, &[1u8, 2u8, 3u8, 4u8]);
 
-            let mut writer = typhoon_program::bytes::MaybeUninitWriter::new(&mut instruction_data, 4usize);
+            let mut writer = bytes::MaybeUninitWriter::new(&mut instruction_data, 4usize);
             borsh::ser::BorshSerialize::serialize(self.amount, &mut writer).map_err(|_| Error::BorshIoError)?;
 
-            let instruction = typhoon_program::Instruction {
-                program_id: &typhoon_program::pubkey_from_array([218u8, 7u8, 92u8, 178u8, 255u8, 94u8, 198u8, 129u8, 118u8, 19u8, 222u8, 83u8, 11u8, 105u8, 42u8, 135u8, 53u8, 71u8, 119u8, 105u8, 218u8, 71u8, 67u8, 12u8, 189u8, 129u8, 84u8, 51u8, 92u8, 74u8, 131u8, 39u8]),
+            let instruction = instruction::Instruction {
+                program_id: &[218u8, 7u8, 92u8, 178u8, 255u8, 94u8, 198u8, 129u8, 118u8, 19u8, 222u8, 83u8, 11u8, 105u8, 42u8, 135u8, 53u8, 71u8, 119u8, 105u8, 218u8, 71u8, 67u8, 12u8, 189u8, 129u8, 84u8, 51u8, 92u8, 74u8, 131u8, 39u8],
                 accounts: &account_metas,
                 data: writer.initialized(),
             };
@@ -240,8 +240,8 @@ mod tests {
             #(#metas),*
         };
         let expected = quote! {
-            typhoon_program::ToMeta::to_meta(self.test_account, true, false),
-            typhoon_program::ToMeta::to_meta(self.test_account2, false, true)
+            instruction::AccountMeta::new(self.test_account.key(), true, false),
+            instruction::AccountMeta::new(self.test_account2.key(), false, true)
         };
 
         assert_eq!(result.to_string(), expected.to_string());
@@ -254,7 +254,7 @@ mod tests {
         let metas = vec![quote!(meta1), quote!(meta2)];
         let result = gen_account_metas(&metas);
         let expected = quote! {
-            let account_metas: [typhoon_program::AccountMeta; 2usize] = [meta1, meta2];
+            let account_metas: [instruction::AccountMeta; 2usize] = [meta1, meta2];
         };
 
         assert_eq!(result.to_string(), expected.to_string());
@@ -263,11 +263,11 @@ mod tests {
     #[test]
     fn test_gen_instruction_result() {
         let result_none = gen_instruction_result(&None);
-        let expected_none = quote!(typhoon_program::ProgramResult);
+        let expected_none = quote!(ProgramResult);
         assert_eq!(result_none.to_string(), expected_none.to_string());
 
         let result_some = gen_instruction_result(&Some(IdlType::Bool));
-        let expected_some = quote!(Result<bool, typhoon_program::program_error::ProgramError>);
+        let expected_some = quote!(Result<bool, ProgramError>);
         assert_eq!(result_some.to_string(), expected_some.to_string());
     }
 }

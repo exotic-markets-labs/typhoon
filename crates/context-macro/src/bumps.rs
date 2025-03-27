@@ -48,7 +48,7 @@ impl Bumps {
                     }
                 }),
                 (_, true, false) => Some(quote! {
-                    let (#pk_ident, _) = typhoon_program::pubkey::find_program_address(&#name.data()?.seeds(), &crate::ID);
+                    let (#pk_ident, _) = find_program_address(&#name.data()?.seeds(), &crate::ID);
                     if #name.key() != &#pk_ident {
                         return Err(ProgramError::InvalidSeeds);
                     }
@@ -59,7 +59,7 @@ impl Bumps {
 
                     if let (Some(seeds), Some(bump)) = (seeds, bump) {
                         Some(quote! {
-                            let #pk_ident = typhoon_program::pubkey::create_program_address(&[#seeds, &[#bump]], &crate::ID)?;
+                            let #pk_ident = create_program_address(&[#seeds, &[#bump]], &crate::ID)?;
                             if #name.key() != &#pk_ident {
                                 return Err(ProgramError::InvalidSeeds);
                             }
@@ -95,7 +95,7 @@ impl Bumps {
                     let account_ty = AccountExtractor(&a.ty).get_account_type();
 
                     creations.push(quote! {
-                        let (#pk_ident, #bump_ident) = typhoon_program::pubkey::find_program_address(&#account_ty::derive(#keys), &crate::ID);
+                        let (#pk_ident, #bump_ident) = find_program_address(&#account_ty::derive(#keys), &crate::ID);
                     });
                     values.push(quote! {
                         #name: #bump_ident,
@@ -107,7 +107,7 @@ impl Bumps {
             if c.must_find_canonical_bump() {
                 if let Some(seeds) = c.get_seeds() {
                     creations.push(quote! {
-                        let (#pk_ident, #bump_ident) = typhoon_program::pubkey::find_program_address(&[#seeds], &crate::ID);
+                        let (#pk_ident, #bump_ident) = find_program_address(&[#seeds], &crate::ID);
                     });
                     values.push(quote! {
                         #name: #bump_ident,

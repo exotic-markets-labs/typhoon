@@ -49,12 +49,6 @@ jobs:
         run: |
           sh -c "$(curl -sSfL https://release.anza.xyz/v2.1.6/install)"
           echo "/home/runner/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
-      - name: Build for no-std
-        run: cargo make build
-      - name: Tests
-        run: cargo make test
-      - name: Build for pinocchio
-        run: cargo make build-pinocchio
       - name: Tests
         run: cargo make test
 

@@ -1,37 +1,19 @@
-#[cfg(not(feature = "pinocchio"))]
 use {
-    nostd_associated_token_account_program::ID as ATA_PROGRAM_ID,
-    nostd_token_program::{
-        state::{Mint as SplMint, TokenAccount as SplTokenAccount},
-        ID as TOKEN_PROGRAM_ID,
-    },
-};
-#[cfg(feature = "pinocchio")]
-use {
+    pinocchio::pubkey::{find_program_address, Pubkey},
     pinocchio_associated_token_account::ID as ATA_PROGRAM_ID,
     pinocchio_token::{
         state::{Mint as SplMint, TokenAccount as SplTokenAccount},
         ID as TOKEN_PROGRAM_ID,
     },
-};
-use {
     std::{mem::transmute, ops::Deref},
     typhoon_accounts::{Discriminator, Owner, ProgramId, RefFromBytes},
-    typhoon_program::pubkey::{find_program_address, Pubkey},
 };
 
 mod traits;
 
-pub use traits::*;
-#[cfg(not(feature = "pinocchio"))]
-pub use {
-    nostd_associated_token_account_program::instructions as ata_instructions,
-    nostd_token_program::instructions as spl_instructions,
-};
-#[cfg(feature = "pinocchio")]
 pub use {
     pinocchio_associated_token_account::instructions as ata_instructions,
-    pinocchio_token::instructions as spl_instructions,
+    pinocchio_token::instructions as spl_instructions, traits::*,
 };
 
 pub struct AtaTokenProgram;
