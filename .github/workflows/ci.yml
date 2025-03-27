@@ -15,10 +15,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
-      - name: Rustup install nightly
-        run: rustup toolchain install nightly
-      - name: Rustup install rustfmt
-        run: rustup component add rustfmt --toolchain nightly
+      - name: Rust install nightly
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: clippy, rustfmt
       - name: Run Cargo fmt
         run: cargo +nightly fmt --all -- --check
       - name: Run Cargo clippy
@@ -40,6 +40,8 @@ jobs:
             examples/seeded/ -> target
             examples/seeds/ -> target
             examples/transfer-sol/ -> target
+      - name: Rust install
+        uses: dtolnay/rust-toolchain@stable
       - name: Install cargo-make
         uses: baptiste0928/cargo-install@v3
         with:
@@ -57,5 +59,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
+      - name: Rust install
+        uses: dtolnay/rust-toolchain@stable
       - name: Run tests
         run: cargo test
