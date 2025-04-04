@@ -1,0 +1,5 @@
+error: Cannot specified keys and seeds at the same time.
+  --> tests/constraints/init_seeds_keys.fail.rs:26:9
+   |
+26 |     pub counter: Mut<Account<Counter>>,
+   |         ^^^^^^^
