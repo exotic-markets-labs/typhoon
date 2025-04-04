@@ -1,7 +1,7 @@
 use {
     accounts::{Account, Accounts},
     arguments::Arguments,
-    bumps::Bumps,
+    generators::GeneratorResult,
     injector::{FieldInjector, LifetimeInjector},
     proc_macro::TokenStream,
     quote::{format_ident, quote, ToTokens},
@@ -14,11 +14,12 @@ use {
 
 mod accounts;
 mod arguments;
-mod bumps;
 mod constraints;
 mod extractor;
+mod generators;
 mod injector;
 mod remover;
+mod visitor;
 
 #[proc_macro_attribute]
 pub fn context(_attr: TokenStream, item: TokenStream) -> TokenStream {
@@ -31,8 +32,8 @@ struct Context {
     ident: Ident,
     generics: Generics,
     item: Item,
-    accounts: Accounts,
-    bumps: Option<Bumps>,
+    account_names: Vec<Ident>,
+    accounts_generated: GeneratorResult,
     args: Option<Arguments>,
 }
 impl Parse for Context {
@@ -58,20 +59,18 @@ impl Parse for Context {
                     .map(Account::try_from)
                     .collect::<Result<Vec<Account>, syn::Error>>()?;
 
-                let bumps = Bumps::try_from(&accounts)
-                    .ok()
-                    .filter(|bumps| !bumps.0.is_empty());
+                let account_names = accounts.iter().map(|a| a.name.clone()).collect();
+                let accounts_generated = Accounts(accounts).generate_tokens(&item_struct.ident)?;
 
                 Ok(Context {
                     ident: item_struct.ident.to_owned(),
                     generics: item_struct.generics.to_owned(),
                     item: Item::Struct(item_struct),
-                    accounts: Accounts(accounts),
-                    bumps,
+                    account_names,
+                    accounts_generated,
                     args,
                 })
             }
-            Item::Enum(_item_enum) => todo!(), // TODO multiple context condition
             _ => Err(syn::Error::new(
                 item.span(),
                 "#[context] is only implemented for struct",
@@ -88,11 +87,15 @@ impl ToTokens for Context {
 
         let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
         let new_lifetime: Lifetime = parse_quote!('info);
-        let (name_list, accounts_assign, additional_checks) = self.accounts.split_for_impl();
-        let args_ident = format_ident!("args");
-        let bumps_ident = format_ident!("bumps");
 
-        let mut struct_fields = name_list.to_owned();
+        let global_outside = &self.accounts_generated.global_outside;
+        let at_init = &self.accounts_generated.at_init;
+        let after_init = &self.accounts_generated.after_init;
+
+        let name_list = &self.account_names;
+        let args_ident = format_ident!("args");
+
+        let mut struct_fields: Vec<&Ident> = name_list.iter().collect();
 
         let (args_struct, args_assign) = if let Some(ref args) = self.args {
             let name = args.get_name(name);
@@ -114,26 +117,14 @@ impl ToTokens for Context {
             (None, None)
         };
 
-        let (bumps_struct, bumps_checks, bumps_assign) = if let Some(ref bumps) = self.bumps {
-            let bumps_name = bumps.get_name(name);
-            FieldInjector::new(parse_quote! {
-                pub bumps: #bumps_name
-            })
-            .visit_item_mut(account_struct);
+        for new_field in &self.accounts_generated.new_fields {
+            FieldInjector::new(new_field.clone()).visit_item_mut(account_struct);
 
-            let bumps_struct = bumps.generate_struct(name);
-            let checks = bumps.get_checks();
-            let assigns = bumps.get_assign(name);
-
-            struct_fields.push(&bumps_ident);
-
-            (Some(bumps_struct), Some(checks), Some(assigns))
-        } else {
-            (None, None, None)
-        };
+            struct_fields.push(new_field.ident.as_ref().unwrap());
+        }
 
         let expanded = quote! {
-            #bumps_struct
+            #global_outside
 
             #args_struct
 
@@ -144,17 +135,14 @@ impl ToTokens for Context {
                     accounts: &mut &'info [AccountInfo],
                     instruction_data: &mut &'info [u8],
                 ) -> Result<Self, ProgramError> {
-                    let [#name_list, rem @ ..] = accounts else {
+                    let [#(#name_list,)* rem @ ..] = accounts else {
                         return Err(ProgramError::NotEnoughAccountKeys);
                     };
 
                     #args_assign
-                    #bumps_assign
-                    #accounts_assign
+                    #at_init
 
-                    #bumps_checks
-
-                    #additional_checks
+                    #after_init
 
                     *accounts = rem;
 

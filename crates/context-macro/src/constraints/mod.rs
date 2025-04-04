@@ -1,18 +1,7 @@
-use {
-    bump::*,
-    has_one::*,
-    init::*,
-    keys::*,
-    payer::*,
-    seeded::*,
-    seeds::*,
-    space::*,
-    syn::{
-        parse::{Parse, ParseStream},
-        punctuated::Punctuated,
-        visit_mut::VisitMut,
-        Expr, Ident, Token,
-    },
+use syn::{
+    parse::{Parse, ParseStream},
+    visit_mut::VisitMut,
+    Ident, Token,
 };
 
 mod bump;
@@ -23,6 +12,8 @@ mod payer;
 mod seeded;
 mod seeds;
 mod space;
+
+pub use {bump::*, has_one::*, init::*, keys::*, payer::*, seeded::*, seeds::*, space::*};
 
 //TODO rewrite it to add custom constraint for users
 #[derive(Clone)]
@@ -55,80 +46,6 @@ impl VisitMut for Constraints {
 
             false
         });
-    }
-}
-
-impl Constraints {
-    pub fn has_init(&self) -> bool {
-        self.0.iter().any(|c| matches!(&c, Constraint::Init(_)))
-    }
-
-    pub fn get_payer(&self) -> Option<&Expr> {
-        self.0.iter().find_map(|c| {
-            if let Constraint::Payer(ConstraintPayer { target }) = c {
-                Some(target)
-            } else {
-                None
-            }
-        })
-    }
-
-    pub fn get_space(&self) -> Option<&Expr> {
-        self.0.iter().find_map(|c| {
-            if let Constraint::Space(ConstraintSpace { space }) = c {
-                Some(space)
-            } else {
-                None
-            }
-        })
-    }
-
-    pub fn get_seeds(&self) -> Option<&Punctuated<Expr, Token![,]>> {
-        self.0.iter().find_map(|c| {
-            if let Constraint::Seeds(ConstraintSeeds { seeds }) = c {
-                Some(seeds)
-            } else {
-                None
-            }
-        })
-    }
-
-    pub fn get_bump(&self, account_name: &Ident) -> Option<Expr> {
-        if let Some(Constraint::Bump(bump_constraint)) =
-            self.0.iter().find(|c| matches!(c, Constraint::Bump(_)))
-        {
-            if !bump_constraint.is_some() {
-                return None;
-            }
-
-            if let Some(bump) = &bump_constraint.bump {
-                Some(bump.clone())
-            } else {
-                syn::parse_str::<Expr>(&format!("{}_bump", account_name)).ok()
-            }
-        } else {
-            None
-        }
-    }
-
-    pub fn must_find_canonical_bump(&self) -> bool {
-        self.0.iter().any(
-            |c| matches!(c, Constraint::Bump(bump_constraint) if bump_constraint.find_canonical),
-        )
-    }
-
-    pub fn is_seeded(&self) -> bool {
-        self.0.iter().any(|c| matches!(c, Constraint::Seeded(_)))
-    }
-
-    pub fn get_keys(&self) -> Option<&Punctuated<Expr, Token![,]>> {
-        self.0
-            .iter()
-            .find(|c| matches!(c, Constraint::Keys(_)))
-            .and_then(|c| match c {
-                Constraint::Keys(ConstraintKeys { keys }) => Some(keys),
-                _ => None,
-            })
     }
 }
 

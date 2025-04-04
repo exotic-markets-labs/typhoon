@@ -4,16 +4,7 @@ use syn::{
 };
 
 #[derive(Clone)]
-pub struct ConstraintBump {
-    pub bump: Option<Expr>,
-    pub find_canonical: bool,
-}
-
-impl ConstraintBump {
-    pub fn is_some(&self) -> bool {
-        self.bump.is_some() || self.find_canonical
-    }
-}
+pub struct ConstraintBump(pub Option<Expr>);
 
 impl Parse for ConstraintBump {
     fn parse(input: ParseStream) -> syn::Result<Self> {
@@ -21,15 +12,9 @@ impl Parse for ConstraintBump {
             input.parse::<Token![=]>()?;
             let bump = input.parse()?;
 
-            Ok(ConstraintBump {
-                bump: Some(bump),
-                find_canonical: false,
-            })
+            Ok(ConstraintBump(Some(bump)))
         } else {
-            Ok(ConstraintBump {
-                bump: None,
-                find_canonical: true,
-            })
+            Ok(ConstraintBump(None))
         }
     }
 }

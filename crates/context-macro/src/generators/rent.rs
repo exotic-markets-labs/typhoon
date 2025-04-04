@@ -1,0 +1,35 @@
+use {
+    super::{ConstraintBuilder, GeneratorResult},
+    crate::{constraints::ConstraintInit, visitor::ConstraintVisitor},
+    quote::quote,
+};
+
+pub struct RentGenerator(bool);
+
+impl RentGenerator {
+    pub fn new() -> Self {
+        RentGenerator(false)
+    }
+}
+
+impl ConstraintBuilder for RentGenerator {
+    fn generate(&self) -> Result<GeneratorResult, syn::Error> {
+        if self.0 {
+            Ok(GeneratorResult {
+                at_init: quote! {
+                    let rent = <Rent as Sysvar>::get()?;
+                },
+                ..Default::default()
+            })
+        } else {
+            Ok(GeneratorResult::default())
+        }
+    }
+}
+
+impl ConstraintVisitor for RentGenerator {
+    fn visit_init(&mut self, _contraint: &ConstraintInit) -> Result<(), syn::Error> {
+        self.0 = true;
+        Ok(())
+    }
+}

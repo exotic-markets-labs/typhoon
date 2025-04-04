@@ -1,8 +1,8 @@
-use syn::{parse::Parse, Expr, Token};
+use syn::{parse::Parse, Expr, Ident, Token};
 
 #[derive(Clone)]
 pub struct ConstraintHasOne {
-    pub join_target: Expr,
+    pub join_target: Ident,
     pub error: Option<Expr>,
 }
 

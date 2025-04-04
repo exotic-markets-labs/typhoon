@@ -1,11 +1,11 @@
 use syn::{
     parse::{Parse, ParseStream},
-    Expr, Token,
+    Ident, Token,
 };
 
 #[derive(Clone)]
 pub struct ConstraintPayer {
-    pub target: Expr,
+    pub target: Ident,
 }
 
 impl Parse for ConstraintPayer {
