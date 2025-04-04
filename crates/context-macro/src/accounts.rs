@@ -2,7 +2,7 @@ use {
     crate::{
         constraints::Constraints,
         generators::{
-            BumpsGenerator, ConstraintBuilder, ConstraintGenerators, GeneratorResult,
+            BumpsGenerator, ConstraintGenerator, ConstraintGenerators, GeneratorResult,
             HasOneGenerator, InitializationGenerator, RentGenerator,
         },
         visitor::ConstraintVisitor,

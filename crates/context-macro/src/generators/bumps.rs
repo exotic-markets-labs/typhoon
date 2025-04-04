@@ -1,5 +1,5 @@
 use {
-    super::{ConstraintBuilder, GeneratorResult},
+    super::{ConstraintGenerator, GeneratorResult},
     crate::{
         accounts::Account,
         constraints::{ConstraintBump, ConstraintKeys, ConstraintSeeded, ConstraintSeeds},
@@ -93,7 +93,7 @@ impl BumpsGenerator {
     }
 }
 
-impl ConstraintBuilder for BumpsGenerator {
+impl ConstraintGenerator for BumpsGenerator {
     fn generate(&self) -> Result<GeneratorResult, syn::Error> {
         let mut result = self.result.clone();
 

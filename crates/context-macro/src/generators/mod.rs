@@ -26,7 +26,7 @@ pub enum ConstraintGenerators {
     Rent(RentGenerator),
 }
 
-impl ConstraintBuilder for ConstraintGenerators {
+impl ConstraintGenerator for ConstraintGenerators {
     fn generate(&self) -> Result<GeneratorResult, syn::Error> {
         match self {
             ConstraintGenerators::Bumps(generator) => generator.generate(),
@@ -48,6 +48,6 @@ impl ConstraintVisitor for ConstraintGenerators {
     }
 }
 
-pub trait ConstraintBuilder: ConstraintVisitor + Sized {
+pub trait ConstraintGenerator: ConstraintVisitor + Sized {
     fn generate(&self) -> Result<GeneratorResult, syn::Error>;
 }

@@ -1,5 +1,5 @@
 use {
-    super::{ConstraintBuilder, GeneratorResult},
+    super::{ConstraintGenerator, GeneratorResult},
     crate::{
         accounts::{Account, Accounts},
         constraints::{
@@ -118,7 +118,7 @@ impl InitializationGenerator {
     }
 }
 
-impl ConstraintBuilder for InitializationGenerator {
+impl ConstraintGenerator for InitializationGenerator {
     fn generate(&self) -> Result<GeneratorResult, syn::Error> {
         Ok(GeneratorResult {
             at_init: self.result.clone(),

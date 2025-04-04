@@ -1,5 +1,5 @@
 use {
-    super::{ConstraintBuilder, GeneratorResult},
+    super::{ConstraintGenerator, GeneratorResult},
     crate::{constraints::ConstraintHasOne, visitor::ConstraintVisitor},
     proc_macro2::{Span, TokenStream},
     quote::{format_ident, quote},
@@ -55,7 +55,7 @@ impl HasOneGenerator {
     }
 }
 
-impl ConstraintBuilder for HasOneGenerator {
+impl ConstraintGenerator for HasOneGenerator {
     fn generate(&self) -> Result<GeneratorResult, syn::Error> {
         Ok(GeneratorResult {
             after_init: self.result.clone(),

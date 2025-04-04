@@ -1,5 +1,5 @@
 use {
-    super::{ConstraintBuilder, GeneratorResult},
+    super::{ConstraintGenerator, GeneratorResult},
     crate::{constraints::ConstraintInit, visitor::ConstraintVisitor},
     quote::quote,
 };
@@ -12,7 +12,7 @@ impl RentGenerator {
     }
 }
 
-impl ConstraintBuilder for RentGenerator {
+impl ConstraintGenerator for RentGenerator {
     fn generate(&self) -> Result<GeneratorResult, syn::Error> {
         if self.0 {
             Ok(GeneratorResult {
