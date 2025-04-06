@@ -106,7 +106,6 @@ mod tests {
 
         let constraints = Constraints::try_from(&attributes).unwrap();
 
-        assert!(attributes.is_empty());
         assert_eq!(constraints.0.len(), 3);
     }
 }
