@@ -165,9 +165,9 @@ checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 
 [[package]]
 name = "indexmap"
-version = "2.8.0"
+version = "2.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3954d50fe15b02142bf25d3b8bdadb634ec3948f103d04ffe3031bc8fe9d7058"
+checksum = "cea70ddb795996207ad57735b50c5982d8844f38ba9ee5f1aedcfb708a2aa11e"
 dependencies = [
  "equivalent",
  "hashbrown",
@@ -208,9 +208,9 @@ checksum = "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
 
 [[package]]
 name = "pinocchio"
-version = "0.8.0"
+version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2281a8e9e947c480ce0b64e2d6c6349d72890ba5db6503d5568edf96f304cba9"
+checksum = "530596fa307103e53257f2cf064815919ee7fbc4c7ab999f6f13cc7067c3aff1"
 
 [[package]]
 name = "pinocchio-associated-token-account"
@@ -234,9 +234,9 @@ dependencies = [
 
 [[package]]
 name = "pinocchio-system"
-version = "0.2.2"
+version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ee1e06182bee542854db81640d0782143751a0e98331a7c67148ccb1c932acd7"
+checksum = "1f75423420ae70aa748cf611cab14cfd00af08d0d2d3d258cb0cf5e2880ec19c"
 dependencies = [
  "pinocchio",
  "pinocchio-pubkey",
