@@ -1,5 +1,15 @@
-error: Invalid account type
- --> tests/account_attribute/enum.fail.rs:9:1
+error: Deriving Pod is not supported for enums
+ --> tests/account_attribute/enum.fail.rs:8:1
   |
-9 | pub enum TestState {
-  | ^^^
+8 | #[account]
+  | ^^^^^^^^^^
+  |
+  = note: this error originates in the derive macro `bytemuck::Pod` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: Invalid account type
+ --> tests/account_attribute/enum.fail.rs:8:1
+  |
+8 | #[account]
+  | ^^^^^^^^^^
+  |
+  = note: this error originates in the attribute macro `account` (in Nightly builds, run with -Z macro-backtrace for more info)

@@ -1,10 +1,11 @@
 use {
     crate::{
-        constraints::Constraints,
+        constraints::{Constraints, CONSTRAINT_IDENT_STR},
         generators::{
             BumpsGenerator, ConstraintGenerator, ConstraintGenerators, GeneratorResult,
             HasOneGenerator, InitializationGenerator, RentGenerator,
         },
+        remover::AttributeRemover,
         visitor::ConstraintVisitor,
     },
     proc_macro2::Span,
@@ -22,8 +23,8 @@ impl TryFrom<&mut Field> for Account {
     type Error = syn::Error;
 
     fn try_from(value: &mut Field) -> Result<Self, Self::Error> {
-        let mut constraints = Constraints::default();
-        constraints.visit_attributes_mut(&mut value.attrs);
+        let constraints = Constraints::try_from(&value.attrs)?;
+        AttributeRemover::new(CONSTRAINT_IDENT_STR).visit_field_mut(value);
 
         let segment = match &value.ty {
             Type::Path(TypePath { path, .. }) => path.segments.last(),

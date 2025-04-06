@@ -7,11 +7,8 @@ use {
 
 mod keys;
 
-#[proc_macro_attribute]
-pub fn account(
-    _attr: proc_macro::TokenStream,
-    item: proc_macro::TokenStream,
-) -> proc_macro::TokenStream {
+#[proc_macro_derive(AccountState, attributes(key))]
+pub fn derive_account(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let item = parse_macro_input!(item as Item);
     let (name, generics, fields) = match item {
         Item::Struct(ref item_struct) => (
@@ -32,20 +29,9 @@ pub fn account(
         Err(err) => return err.to_compile_error().into(),
     };
     let seeded_trait = keys.split_for_impl(name);
-
-    let mut cleaned_item = item.clone();
-    if let Item::Struct(item_struct) = &mut cleaned_item {
-        for field in item_struct.fields.iter_mut() {
-            field.attrs.retain(|attr| !attr.meta.path().is_ident("key"));
-        }
-    }
     let discriminator = DiscriminatorBuilder::new(&name.to_string()).build();
 
     quote! {
-        #[derive(bytemuck::Pod, bytemuck::Zeroable, Copy, Clone)]
-        #[repr(C)]
-        #cleaned_item
-
         impl Owner for #name #ty_generics #where_clause {
             const OWNER: Pubkey = crate::ID;
         }
@@ -55,6 +41,22 @@ pub fn account(
         }
 
         #seeded_trait
+    }
+    .into_token_stream()
+    .into()
+}
+
+#[proc_macro_attribute]
+pub fn account(
+    _attr: proc_macro::TokenStream,
+    item: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
+    let item = parse_macro_input!(item as Item);
+
+    quote! {
+        #[derive(bytemuck::Pod, bytemuck::Zeroable, AccountState, Copy, Clone)]
+        #[repr(C)]
+        #item
     }
     .into_token_stream()
     .into()

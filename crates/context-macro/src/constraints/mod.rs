@@ -1,6 +1,5 @@
 use syn::{
     parse::{Parse, ParseStream},
-    visit_mut::VisitMut,
     Ident, Token,
 };
 
@@ -14,6 +13,8 @@ mod seeds;
 mod space;
 
 pub use {bump::*, has_one::*, init::*, keys::*, payer::*, seeded::*, seeds::*, space::*};
+
+pub const CONSTRAINT_IDENT_STR: &str = "constraint";
 
 //TODO rewrite it to add custom constraint for users
 #[derive(Clone)]
@@ -31,21 +32,20 @@ pub enum Constraint {
 #[derive(Clone, Default)]
 pub struct Constraints(pub Vec<Constraint>);
 
-impl VisitMut for Constraints {
-    fn visit_attributes_mut(&mut self, attrs: &mut Vec<syn::Attribute>) {
-        self.0.reserve(attrs.len());
+impl TryFrom<&Vec<syn::Attribute>> for Constraints {
+    type Error = syn::Error;
 
-        attrs.retain(|attr| {
-            if !attr.path().is_ident("constraint") {
-                return true;
-            }
+    fn try_from(value: &Vec<syn::Attribute>) -> Result<Self, Self::Error> {
+        let constraints = value
+            .iter()
+            .filter(|attr| attr.path().is_ident(CONSTRAINT_IDENT_STR))
+            .map(|attr| attr.parse_args_with(parse_constraints))
+            .collect::<Result<Vec<Vec<Constraint>>, syn::Error>>()?
+            .into_iter()
+            .flatten()
+            .collect();
 
-            if let Ok(mut constraints) = attr.parse_args_with(parse_constraints) {
-                self.0.append(&mut constraints);
-            }
-
-            false
-        });
+        Ok(Constraints(constraints))
     }
 }
 
@@ -94,7 +94,7 @@ mod tests {
 
     #[test]
     fn test_parse_constraints() {
-        let mut attributes: Vec<syn::Attribute> = parse_quote! {
+        let attributes: Vec<syn::Attribute> = parse_quote! {
             #[constraint(
                 has_one = account,
                 seeds = [
@@ -104,8 +104,7 @@ mod tests {
             )]
         };
 
-        let mut constraints = Constraints::default();
-        constraints.visit_attributes_mut(&mut attributes);
+        let constraints = Constraints::try_from(&attributes).unwrap();
 
         assert!(attributes.is_empty());
         assert_eq!(constraints.0.len(), 3);
