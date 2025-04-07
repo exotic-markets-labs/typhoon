@@ -8,7 +8,7 @@ use {
     remover::AttributeRemover,
     syn::{
         parse::Parse, parse_macro_input, parse_quote, spanned::Spanned, visit_mut::VisitMut,
-        Generics, Ident, Item, Lifetime,
+        Attribute, Generics, Ident, Item, Lifetime,
     },
 };
 
@@ -123,13 +123,7 @@ impl ToTokens for Context {
             struct_fields.push(new_field.ident.as_ref().unwrap());
         }
 
-        let expanded = quote! {
-            #global_outside
-
-            #args_struct
-
-            #account_struct
-
+        let impl_context = quote! {
             impl #impl_generics HandlerContext<#new_lifetime> for #name #ty_generics #where_clause {
                 fn from_entrypoint(
                     accounts: &mut &'info [AccountInfo],
@@ -149,6 +143,39 @@ impl ToTokens for Context {
                     Ok(#name { #(#struct_fields),* })
                 }
             }
+        };
+
+        if let Item::Struct(item) = account_struct {
+            let doc = prettyplease::unparse(
+                &syn::parse2::<syn::File>(quote! {
+                    #global_outside
+
+                    #args_struct
+
+                    #impl_context
+                })
+                .unwrap(),
+            );
+
+            let mut doc_attrs: Vec<Attribute> = parse_quote! {
+                /// # Generated
+                /// ```
+                #[doc = #doc]
+                /// ```
+            };
+
+            item.attrs.append(&mut doc_attrs);
+        }
+
+        let expanded = quote! {
+            #global_outside
+
+            #args_struct
+
+            #account_struct
+
+            #impl_context
+
         };
         expanded.to_tokens(tokens);
     }

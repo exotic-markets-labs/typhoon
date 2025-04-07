@@ -253,6 +253,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "prettyplease"
+version = "0.2.32"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "664ec5419c51e34154eec046ebcba56312d5a2fc3b09a06da188e1ad21afadf6"
+dependencies = [
+ "proc-macro2",
+ "syn",
+]
+
+[[package]]
 name = "proc-macro2"
 version = "1.0.94"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -486,6 +496,7 @@ name = "typhoon-context-macro"
 version = "0.1.0"
 dependencies = [
  "bytemuck",
+ "prettyplease",
  "proc-macro2",
  "quote",
  "syn",
