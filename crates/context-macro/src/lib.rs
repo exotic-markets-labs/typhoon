@@ -159,7 +159,7 @@ impl ToTokens for Context {
 
             let mut doc_attrs: Vec<Attribute> = parse_quote! {
                 /// # Generated
-                /// ```
+                /// ```ignore
                 #[doc = #doc]
                 /// ```
             };
