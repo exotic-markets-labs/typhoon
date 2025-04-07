@@ -141,7 +141,7 @@ impl ContextVisitor for InitializationGenerator {
         }
 
         if self.need_check {
-            self.check_prerequisite(&accounts)?;
+            self.check_prerequisite(accounts)?;
         }
 
         Ok(())
