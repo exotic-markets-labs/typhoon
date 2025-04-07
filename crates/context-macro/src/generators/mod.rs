@@ -4,10 +4,11 @@ mod has_one;
 mod init;
 mod rent;
 
-use crate::context::Context;
-
-use proc_macro2::TokenStream;
-use {crate::visitor::ContextVisitor, syn::Field};
+use {
+    crate::{context::Context, visitor::ContextVisitor},
+    proc_macro2::TokenStream,
+    syn::Field,
+};
 pub use {arguments::*, bumps::*, has_one::*, init::*, rent::*};
 
 #[derive(Default, Clone)]

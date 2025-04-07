@@ -1,7 +1,9 @@
-use syn::{parse::Parse, spanned::Spanned, visit_mut::VisitMut, Item, ItemStruct};
-
-use crate::{
-    accounts::Account, arguments::Arguments, injector::LifetimeInjector, remover::AttributeRemover,
+use {
+    crate::{
+        accounts::Account, arguments::Arguments, injector::LifetimeInjector,
+        remover::AttributeRemover,
+    },
+    syn::{parse::Parse, spanned::Spanned, visit_mut::VisitMut, Item, ItemStruct},
 };
 
 pub struct Context {

@@ -1,14 +1,14 @@
-use proc_macro2::{Span, TokenStream};
-use quote::{format_ident, quote};
-use syn::{parse_quote, Ident};
-
-use crate::{
-    arguments::{Argument, Arguments},
-    context::Context,
-    visitor::ContextVisitor,
+use {
+    super::{ConstraintGenerator, GeneratorResult},
+    crate::{
+        arguments::{Argument, Arguments},
+        context::Context,
+        visitor::ContextVisitor,
+    },
+    proc_macro2::{Span, TokenStream},
+    quote::{format_ident, quote},
+    syn::{parse_quote, Ident},
 };
-
-use super::{ConstraintGenerator, GeneratorResult};
 
 #[derive(Default)]
 pub struct ArgumentsGenerator {
