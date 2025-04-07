@@ -1,20 +1,20 @@
 use {
-    accounts::{Account, Accounts},
-    arguments::Arguments,
-    generators::GeneratorResult,
-    injector::{FieldInjector, LifetimeInjector},
-    proc_macro::TokenStream,
-    quote::{format_ident, quote, ToTokens},
-    remover::AttributeRemover,
-    syn::{
-        parse::Parse, parse_macro_input, parse_quote, spanned::Spanned, visit_mut::VisitMut,
-        Attribute, Generics, Ident, Item, Lifetime,
+    context::Context,
+    generators::{
+        ArgumentsGenerator, BumpsGenerator, ConstraintGenerator, ConstraintGenerators,
+        GeneratorResult, HasOneGenerator, InitializationGenerator, RentGenerator,
     },
+    injector::FieldInjector,
+    proc_macro::TokenStream,
+    quote::{quote, ToTokens},
+    syn::{parse_macro_input, parse_quote, visit_mut::VisitMut, Attribute, Ident, Lifetime},
+    visitor::ContextVisitor,
 };
 
 mod accounts;
 mod arguments;
 mod constraints;
+mod context;
 mod extractor;
 mod generators;
 mod injector;
@@ -24,101 +24,86 @@ mod visitor;
 #[proc_macro_attribute]
 pub fn context(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let context = parse_macro_input!(item as Context);
+    let generator = match TokenGenerator::new(context) {
+        Ok(gen) => gen,
+        Err(err) => return TokenStream::from(err.into_compile_error()),
+    };
 
-    TokenStream::from(context.into_token_stream())
+    TokenStream::from(generator.into_token_stream())
 }
 
-struct Context {
-    ident: Ident,
-    generics: Generics,
-    item: Item,
-    account_names: Vec<Ident>,
-    accounts_generated: GeneratorResult,
-    args: Option<Arguments>,
+struct TokenGenerator {
+    context: Context,
+    generated_tokens: GeneratorResult,
 }
-impl Parse for Context {
-    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        let mut item: Item = input.parse()?;
-        LifetimeInjector.visit_item_mut(&mut item);
 
-        match item {
-            Item::Struct(mut item_struct) => {
-                let args = item_struct
-                    .attrs
-                    .iter_mut()
-                    .find(|attr| attr.meta.path().is_ident("args"))
-                    .map(Arguments::try_from)
-                    .transpose()?;
+impl TokenGenerator {
+    pub fn new(context: Context) -> Result<Self, syn::Error> {
+        let mut generators = [
+            ConstraintGenerators::Args(ArgumentsGenerator::new()),
+            ConstraintGenerators::Rent(RentGenerator::new()),
+            ConstraintGenerators::Bumps(BumpsGenerator::new()),
+            ConstraintGenerators::Init(InitializationGenerator::new()),
+            ConstraintGenerators::HasOne(HasOneGenerator::new()),
+        ];
 
-                // Remove the args attribute
-                AttributeRemover::new("args").visit_item_struct_mut(&mut item_struct);
+        let mut generated_tokens = GeneratorResult::default();
+        for generator in &mut generators {
+            generator.visit_context(&context)?;
+            let generated = generator.generate()?;
 
-                let accounts = item_struct
-                    .fields
-                    .iter_mut()
-                    .map(Account::try_from)
-                    .collect::<Result<Vec<Account>, syn::Error>>()?;
-
-                let account_names = accounts.iter().map(|a| a.name.clone()).collect();
-                let accounts_generated = Accounts(accounts).generate_tokens(&item_struct.ident)?;
-
-                Ok(Context {
-                    ident: item_struct.ident.to_owned(),
-                    generics: item_struct.generics.to_owned(),
-                    item: Item::Struct(item_struct),
-                    account_names,
-                    accounts_generated,
-                    args,
-                })
+            if !generated.new_fields.is_empty() {
+                generated_tokens
+                    .new_fields
+                    .reserve(generated.new_fields.len());
+                generated_tokens.new_fields.extend(generated.new_fields);
             }
-            _ => Err(syn::Error::new(
-                item.span(),
-                "#[context] is only implemented for struct",
-            )),
+
+            if !generated.at_init.is_empty() {
+                generated_tokens.at_init.extend(generated.at_init);
+            }
+            if !generated.after_init.is_empty() {
+                generated_tokens.after_init.extend(generated.after_init);
+            }
+            if !generated.global_outside.is_empty() {
+                generated_tokens
+                    .global_outside
+                    .extend(generated.global_outside);
+            }
         }
+
+        Ok(TokenGenerator {
+            context,
+            generated_tokens,
+        })
     }
 }
 
-impl ToTokens for Context {
+impl ToTokens for TokenGenerator {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let account_struct = &mut self.item.to_owned();
-        let name = &self.ident;
-        let generics = &self.generics;
+        let name = &self.context.item_struct.ident;
+        let generics = &self.context.item_struct.generics;
 
         let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
         let new_lifetime: Lifetime = parse_quote!('info);
 
-        let global_outside = &self.accounts_generated.global_outside;
-        let at_init = &self.accounts_generated.at_init;
-        let after_init = &self.accounts_generated.after_init;
+        let global_outside = &self.generated_tokens.global_outside;
+        let at_init = &self.generated_tokens.at_init;
+        let after_init = &self.generated_tokens.after_init;
 
-        let name_list = &self.account_names;
-        let args_ident = format_ident!("args");
+        let name_list: Vec<&Ident> = self
+            .context
+            .item_struct
+            .fields
+            .iter()
+            .filter_map(|f| f.ident.as_ref())
+            .collect();
 
-        let mut struct_fields: Vec<&Ident> = name_list.iter().collect();
+        let mut struct_fields: Vec<&Ident> = name_list.clone();
 
-        let (args_struct, args_assign) = if let Some(ref args) = self.args {
-            let name = args.get_name(name);
-
-            FieldInjector::new(parse_quote! {
-                pub args: Args<#new_lifetime, #name>
-            })
-            .visit_item_mut(account_struct);
-
-            let args_struct = args.generate_struct(&name);
-            let assign = quote! {
-                let args = Args::<#name>::from_entrypoint(accounts, instruction_data)?;
-            };
-
-            struct_fields.push(&args_ident);
-
-            (args_struct, Some(assign))
-        } else {
-            (None, None)
-        };
-
-        for new_field in &self.accounts_generated.new_fields {
-            FieldInjector::new(new_field.clone()).visit_item_mut(account_struct);
+        let account_struct = &mut self.context.item_struct.to_owned();
+        for new_field in &self.generated_tokens.new_fields {
+            FieldInjector::new(new_field.clone()).visit_item_struct_mut(account_struct);
 
             struct_fields.push(new_field.ident.as_ref().unwrap());
         }
@@ -133,7 +118,6 @@ impl ToTokens for Context {
                         return Err(ProgramError::NotEnoughAccountKeys);
                     };
 
-                    #args_assign
                     #at_init
 
                     #after_init
@@ -145,32 +129,26 @@ impl ToTokens for Context {
             }
         };
 
-        if let Item::Struct(item) = account_struct {
-            let doc = prettyplease::unparse(
-                &syn::parse2::<syn::File>(quote! {
-                    #global_outside
+        let doc = prettyplease::unparse(
+            &syn::parse2::<syn::File>(quote! {
+                #global_outside
 
-                    #args_struct
+                #impl_context
+            })
+            .unwrap(),
+        );
 
-                    #impl_context
-                })
-                .unwrap(),
-            );
+        let mut doc_attrs: Vec<Attribute> = parse_quote! {
+            /// # Generated
+            /// ```ignore
+            #[doc = #doc]
+            /// ```
+        };
 
-            let mut doc_attrs: Vec<Attribute> = parse_quote! {
-                /// # Generated
-                /// ```ignore
-                #[doc = #doc]
-                /// ```
-            };
-
-            item.attrs.append(&mut doc_attrs);
-        }
+        account_struct.attrs.append(&mut doc_attrs);
 
         let expanded = quote! {
             #global_outside
-
-            #args_struct
 
             #account_struct
 

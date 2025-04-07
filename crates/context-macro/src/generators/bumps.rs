@@ -3,8 +3,9 @@ use {
     crate::{
         accounts::Account,
         constraints::{ConstraintBump, ConstraintSeeded, ConstraintSeeds},
+        context::Context,
         extractor::InnerTyExtractor,
-        visitor::ConstraintVisitor,
+        visitor::ContextVisitor,
     },
     quote::{format_ident, quote},
     syn::{parse_quote, punctuated::Punctuated, visit::Visit, Expr, Ident, PathSegment, Token},
@@ -12,7 +13,7 @@ use {
 
 #[derive(Default)]
 pub struct BumpsGenerator {
-    context_name: String,
+    context_name: Option<String>,
     account: Option<(Ident, PathSegment)>,
     bump: Option<Expr>,
     is_seeded: bool,
@@ -22,11 +23,8 @@ pub struct BumpsGenerator {
 }
 
 impl BumpsGenerator {
-    pub fn new(context_name: impl ToString) -> Self {
-        BumpsGenerator {
-            context_name: context_name.to_string(),
-            ..Default::default()
-        }
+    pub fn new() -> Self {
+        BumpsGenerator::default()
     }
 
     pub fn is_pda(&self) -> bool {
@@ -98,7 +96,7 @@ impl ConstraintGenerator for BumpsGenerator {
         let mut result = self.result.clone();
 
         if !self.struct_fields.is_empty() {
-            let struct_name = format_ident!("{}Bumps", self.context_name);
+            let struct_name = format_ident!("{}Bumps", self.context_name.as_ref().unwrap());
             let struct_fields = &self.struct_fields;
             let bumps_struct = quote! {
                 #[derive(Debug, PartialEq)]
@@ -127,7 +125,19 @@ impl ConstraintGenerator for BumpsGenerator {
     }
 }
 
-impl ConstraintVisitor for BumpsGenerator {
+impl ContextVisitor for BumpsGenerator {
+    fn visit_context(&mut self, context: &Context) -> Result<(), syn::Error> {
+        self.context_name = Some(context.item_struct.ident.to_string());
+
+        self.visit_accounts(&context.accounts)?;
+
+        if let Some(args) = &context.args {
+            self.visit_arguments(args)?;
+        }
+
+        Ok(())
+    }
+
     fn visit_account(&mut self, account: &Account) -> Result<(), syn::Error> {
         self.account = Some((account.name.clone(), account.ty.clone()));
         self.bump = None;

@@ -1,15 +1,14 @@
-use proc_macro2::TokenStream;
-
+mod arguments;
 mod bumps;
 mod has_one;
 mod init;
 mod rent;
 
-use {
-    crate::{accounts::Accounts, visitor::ConstraintVisitor},
-    syn::Field,
-};
-pub use {bumps::*, has_one::*, init::*, rent::*};
+use crate::context::Context;
+
+use proc_macro2::TokenStream;
+use {crate::visitor::ContextVisitor, syn::Field};
+pub use {arguments::*, bumps::*, has_one::*, init::*, rent::*};
 
 #[derive(Default, Clone)]
 pub struct GeneratorResult {
@@ -24,6 +23,7 @@ pub enum ConstraintGenerators {
     HasOne(HasOneGenerator),
     Init(InitializationGenerator),
     Rent(RentGenerator),
+    Args(ArgumentsGenerator),
 }
 
 impl ConstraintGenerator for ConstraintGenerators {
@@ -33,21 +33,23 @@ impl ConstraintGenerator for ConstraintGenerators {
             ConstraintGenerators::HasOne(generator) => generator.generate(),
             ConstraintGenerators::Init(generator) => generator.generate(),
             ConstraintGenerators::Rent(generator) => generator.generate(),
+            ConstraintGenerators::Args(generator) => generator.generate(),
         }
     }
 }
 
-impl ConstraintVisitor for ConstraintGenerators {
-    fn visit_accounts(&mut self, accounts: &Accounts) -> Result<(), syn::Error> {
+impl ContextVisitor for ConstraintGenerators {
+    fn visit_context(&mut self, context: &Context) -> Result<(), syn::Error> {
         match self {
-            ConstraintGenerators::Bumps(generator) => generator.visit_accounts(accounts),
-            ConstraintGenerators::HasOne(generator) => generator.visit_accounts(accounts),
-            ConstraintGenerators::Init(generator) => generator.visit_accounts(accounts),
-            ConstraintGenerators::Rent(generator) => generator.visit_accounts(accounts),
+            ConstraintGenerators::Bumps(generator) => generator.visit_context(context),
+            ConstraintGenerators::HasOne(generator) => generator.visit_context(context),
+            ConstraintGenerators::Init(generator) => generator.visit_context(context),
+            ConstraintGenerators::Rent(generator) => generator.visit_context(context),
+            ConstraintGenerators::Args(generator) => generator.visit_context(context),
         }
     }
 }
 
-pub trait ConstraintGenerator: ConstraintVisitor + Sized {
+pub trait ConstraintGenerator: ContextVisitor + Sized {
     fn generate(&self) -> Result<GeneratorResult, syn::Error>;
 }

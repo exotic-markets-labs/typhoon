@@ -1,6 +1,6 @@
 use {
     super::{ConstraintGenerator, GeneratorResult},
-    crate::{constraints::ConstraintHasOne, visitor::ConstraintVisitor},
+    crate::{constraints::ConstraintHasOne, visitor::ContextVisitor},
     proc_macro2::{Span, TokenStream},
     quote::{format_ident, quote},
     syn::{parse_quote, Expr, Ident},
@@ -64,7 +64,7 @@ impl ConstraintGenerator for HasOneGenerator {
     }
 }
 
-impl ConstraintVisitor for HasOneGenerator {
+impl ContextVisitor for HasOneGenerator {
     fn visit_account(&mut self, account: &crate::accounts::Account) -> Result<(), syn::Error> {
         self.name = Some(account.name.clone());
         self.targets = Vec::new();

@@ -1,6 +1,6 @@
 use {
     super::{ConstraintGenerator, GeneratorResult},
-    crate::{constraints::ConstraintInit, visitor::ConstraintVisitor},
+    crate::{constraints::ConstraintInit, visitor::ContextVisitor},
     quote::quote,
 };
 
@@ -27,7 +27,7 @@ impl ConstraintGenerator for RentGenerator {
     }
 }
 
-impl ConstraintVisitor for RentGenerator {
+impl ContextVisitor for RentGenerator {
     fn visit_init(&mut self, _contraint: &ConstraintInit) -> Result<(), syn::Error> {
         self.0 = true;
         Ok(())

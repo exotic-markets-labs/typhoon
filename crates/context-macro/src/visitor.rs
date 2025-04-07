@@ -1,14 +1,30 @@
 use crate::{
-    accounts::{Account, Accounts},
+    accounts::Account,
+    arguments::Arguments,
     constraints::{
         Constraint, ConstraintBump, ConstraintHasOne, ConstraintInit, ConstraintPayer,
         ConstraintSeeded, ConstraintSeeds, ConstraintSpace, Constraints,
     },
+    context::Context,
 };
 
-pub trait ConstraintVisitor {
-    fn visit_accounts(&mut self, accounts: &Accounts) -> Result<(), syn::Error> {
-        for account in &accounts.0 {
+pub trait ContextVisitor {
+    fn visit_context(&mut self, context: &Context) -> Result<(), syn::Error> {
+        self.visit_accounts(&context.accounts)?;
+
+        if let Some(args) = &context.args {
+            self.visit_arguments(args)?;
+        }
+
+        Ok(())
+    }
+
+    fn visit_arguments(&mut self, _arguments: &Arguments) -> Result<(), syn::Error> {
+        Ok(())
+    }
+
+    fn visit_accounts(&mut self, accounts: &Vec<Account>) -> Result<(), syn::Error> {
+        for account in accounts {
             self.visit_account(account)?;
         }
 

@@ -1,12 +1,12 @@
 use {
     super::{ConstraintGenerator, GeneratorResult},
     crate::{
-        accounts::{Account, Accounts},
+        accounts::Account,
         constraints::{
             ConstraintInit, ConstraintPayer, ConstraintSeeded, ConstraintSeeds, ConstraintSpace,
         },
         extractor::InnerTyExtractor,
-        visitor::ConstraintVisitor,
+        visitor::ContextVisitor,
     },
     proc_macro2::{Span, TokenStream},
     quote::{format_ident, quote},
@@ -127,7 +127,7 @@ impl ConstraintGenerator for InitializationGenerator {
     }
 }
 
-impl ConstraintVisitor for InitializationGenerator {
+impl ContextVisitor for InitializationGenerator {
     fn visit_init(&mut self, _constraint: &ConstraintInit) -> Result<(), syn::Error> {
         self.has_init = true;
         self.need_check = true;
@@ -135,13 +135,13 @@ impl ConstraintVisitor for InitializationGenerator {
         Ok(())
     }
 
-    fn visit_accounts(&mut self, accounts: &Accounts) -> Result<(), syn::Error> {
-        for account in &accounts.0 {
+    fn visit_accounts(&mut self, accounts: &Vec<Account>) -> Result<(), syn::Error> {
+        for account in accounts {
             self.visit_account(account)?;
         }
 
         if self.need_check {
-            self.check_prerequisite(&accounts.0)?;
+            self.check_prerequisite(&accounts)?;
         }
 
         Ok(())
