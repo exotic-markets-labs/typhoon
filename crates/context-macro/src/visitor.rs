@@ -1,8 +1,8 @@
 use crate::{
     accounts::{Account, Accounts},
     constraints::{
-        Constraint, ConstraintBump, ConstraintHasOne, ConstraintInit, ConstraintKeys,
-        ConstraintPayer, ConstraintSeeded, ConstraintSeeds, ConstraintSpace, Constraints,
+        Constraint, ConstraintBump, ConstraintHasOne, ConstraintInit, ConstraintPayer,
+        ConstraintSeeded, ConstraintSeeds, ConstraintSpace, Constraints,
     },
 };
 
@@ -33,7 +33,6 @@ pub trait ConstraintVisitor {
             Constraint::Payer(constraint_payer) => self.visit_payer(constraint_payer),
             Constraint::Space(constraint_space) => self.visit_space(constraint_space),
             Constraint::Seeded(constraint_seeded) => self.visit_seeded(constraint_seeded),
-            Constraint::Keys(constraint_keys) => self.visit_keys(constraint_keys),
             Constraint::Seeds(constraint_seeds) => self.visit_seeds(constraint_seeds),
             Constraint::Bump(constraint_bump) => self.visit_bump(constraint_bump),
             Constraint::HasOne(constraint_has_one) => self.visit_has_one(constraint_has_one),
@@ -53,10 +52,6 @@ pub trait ConstraintVisitor {
     }
 
     fn visit_seeded(&mut self, _constraint: &ConstraintSeeded) -> Result<(), syn::Error> {
-        Ok(())
-    }
-
-    fn visit_keys(&mut self, _constraint: &ConstraintKeys) -> Result<(), syn::Error> {
         Ok(())
     }
 

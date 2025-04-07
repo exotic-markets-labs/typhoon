@@ -17,7 +17,7 @@ pub struct InitContext {
     pub payer: Mut<Signer>,
     #[constraint(
         seeds = [&args.admin],
-        keys = [&args.admin],
+        seeded = [&args.admin],
         bump
     )]
     pub counter: Mut<Account<Counter>>,

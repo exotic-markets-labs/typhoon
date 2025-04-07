@@ -3,7 +3,7 @@ use {
     crate::{
         accounts::{Account, Accounts},
         constraints::{
-            ConstraintInit, ConstraintKeys, ConstraintPayer, ConstraintSeeds, ConstraintSpace,
+            ConstraintInit, ConstraintPayer, ConstraintSeeded, ConstraintSeeds, ConstraintSpace,
         },
         extractor::InnerTyExtractor,
         visitor::ConstraintVisitor,
@@ -170,7 +170,7 @@ impl ConstraintVisitor for InitializationGenerator {
         Ok(())
     }
 
-    fn visit_keys(&mut self, contraint: &ConstraintKeys) -> Result<(), syn::Error> {
+    fn visit_seeded(&mut self, constraint: &ConstraintSeeded) -> Result<(), syn::Error> {
         if !self.is_seeded && self.keys.is_some() {
             return Err(syn::Error::new(
                 self.get_span(),
@@ -178,7 +178,7 @@ impl ConstraintVisitor for InitializationGenerator {
             ));
         }
 
-        self.keys = Some(contraint.keys.clone());
+        self.keys = constraint.0.clone();
         self.is_seeded = true;
 
         Ok(())

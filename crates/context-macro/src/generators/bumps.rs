@@ -2,7 +2,7 @@ use {
     super::{ConstraintGenerator, GeneratorResult},
     crate::{
         accounts::Account,
-        constraints::{ConstraintBump, ConstraintKeys, ConstraintSeeded, ConstraintSeeds},
+        constraints::{ConstraintBump, ConstraintSeeded, ConstraintSeeds},
         extractor::InnerTyExtractor,
         visitor::ConstraintVisitor,
     },
@@ -154,9 +154,9 @@ impl ConstraintVisitor for BumpsGenerator {
         Ok(())
     }
 
-    fn visit_seeded(&mut self, _constraint: &ConstraintSeeded) -> Result<(), syn::Error> {
+    fn visit_seeded(&mut self, constraint: &ConstraintSeeded) -> Result<(), syn::Error> {
         self.is_seeded = true;
-
+        self.seeds = constraint.0.clone();
         //TODO add check seeds constraint
 
         Ok(())
@@ -165,12 +165,6 @@ impl ConstraintVisitor for BumpsGenerator {
     fn visit_seeds(&mut self, constraint: &ConstraintSeeds) -> Result<(), syn::Error> {
         self.seeds = Some(constraint.seeds.clone());
         //TODO add check seeded constraint
-
-        Ok(())
-    }
-
-    fn visit_keys(&mut self, constraint: &ConstraintKeys) -> Result<(), syn::Error> {
-        self.seeds = Some(constraint.keys.clone());
 
         Ok(())
     }

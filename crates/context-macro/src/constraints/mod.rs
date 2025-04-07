@@ -6,13 +6,12 @@ use syn::{
 mod bump;
 mod has_one;
 mod init;
-mod keys;
 mod payer;
 mod seeded;
 mod seeds;
 mod space;
 
-pub use {bump::*, has_one::*, init::*, keys::*, payer::*, seeded::*, seeds::*, space::*};
+pub use {bump::*, has_one::*, init::*, payer::*, seeded::*, seeds::*, space::*};
 
 pub const CONSTRAINT_IDENT_STR: &str = "constraint";
 
@@ -23,7 +22,6 @@ pub enum Constraint {
     Payer(ConstraintPayer),
     Space(ConstraintSpace),
     Seeded(ConstraintSeeded),
-    Keys(ConstraintKeys),
     Seeds(ConstraintSeeds),
     Bump(ConstraintBump),
     HasOne(ConstraintHasOne),
@@ -71,10 +69,7 @@ pub fn parse_constraints(input: ParseStream) -> syn::Result<Vec<Constraint>> {
                 constraints.push(Constraint::Bump(ConstraintBump::parse(input)?));
             }
             "seeded" => {
-                constraints.push(Constraint::Seeded(ConstraintSeeded));
-            }
-            "keys" => {
-                constraints.push(Constraint::Keys(ConstraintKeys::parse(input)?));
+                constraints.push(Constraint::Seeded(ConstraintSeeded::parse(input)?));
             }
             "has_one" => constraints.push(Constraint::HasOne(ConstraintHasOne::parse(input)?)),
             _ => return Err(syn::Error::new(input.span(), "Unknow constraint.")),

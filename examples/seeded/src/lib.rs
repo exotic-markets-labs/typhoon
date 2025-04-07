@@ -15,8 +15,7 @@ pub struct InitContext {
         init,
         payer = payer,
         space = Counter::SPACE,
-        seeded,
-        keys = [&args.admin],
+        seeded = [&args.admin],
         bump
     )]
     pub counter: Mut<Account<Counter>>,
