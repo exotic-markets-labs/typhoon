@@ -22,7 +22,7 @@ enum InitAccountGeneratorTy {
     Mint {
         decimals: Option<Expr>,
         authority: Option<Expr>,
-        freeze_authority: Option<Expr>,
+        freeze_authority: Box<Option<Expr>>,
     },
     Other {
         space: Option<Expr>,
@@ -44,7 +44,7 @@ impl<'a> InitAccountGenerator<'a> {
             "Mint" => InitAccountGeneratorTy::Mint {
                 authority: None,
                 decimals: None,
-                freeze_authority: None,
+                freeze_authority: Box::new(None),
             },
             "TokenAccount" => InitAccountGeneratorTy::TokenAccount {
                 is_ata: false,
@@ -117,7 +117,7 @@ impl<'a> InitAccountGenerator<'a> {
                         "A `authority` need to be specified for the `init` constraint",
                     ));
                 };
-                let f_auth_token = if let Some(auth) = freeze_authority {
+                let f_auth_token = if let Some(auth) = freeze_authority.as_ref() {
                     quote!(Some(#auth))
                 } else {
                     quote!(None)
@@ -258,7 +258,9 @@ impl ContextVisitor for InitAccountGenerator<'_> {
             } => match constraint {
                 ConstraintMint::Authority(expr) => *authority = Some(expr.clone()),
                 ConstraintMint::Decimals(expr) => *decimals = Some(expr.clone()),
-                ConstraintMint::FreezeAuthority(expr) => *freeze_authority = Some(expr.clone()),
+                ConstraintMint::FreezeAuthority(expr) => {
+                    *freeze_authority.as_mut() = Some(expr.clone())
+                }
             },
             _ => {
                 return Err(syn::Error::new(

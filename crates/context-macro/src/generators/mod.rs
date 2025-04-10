@@ -21,12 +21,12 @@ pub struct GeneratorResult {
 }
 
 pub enum ConstraintGenerators {
-    Bumps(BumpsGenerator),
     HasOne(HasOneGenerator),
     Init(InitializationGenerator),
     Rent(RentGenerator),
     Args(ArgumentsGenerator),
     Assign(AssignGenerator),
+    Bumps(Box<BumpsGenerator>),
 }
 
 impl ConstraintGenerator for ConstraintGenerators {
