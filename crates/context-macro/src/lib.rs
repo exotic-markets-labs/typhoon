@@ -1,9 +1,6 @@
 use {
     context::Context,
-    generators::{
-        ArgumentsGenerator, BumpsGenerator, ConstraintGenerator, ConstraintGenerators,
-        GeneratorResult, HasOneGenerator, InitializationGenerator, RentGenerator,
-    },
+    generators::*,
     injector::FieldInjector,
     proc_macro::TokenStream,
     quote::{quote, ToTokens},
@@ -43,6 +40,7 @@ impl TokenGenerator {
             ConstraintGenerators::Args(ArgumentsGenerator::new()),
             ConstraintGenerators::Rent(RentGenerator::new()),
             ConstraintGenerators::Bumps(BumpsGenerator::new()),
+            ConstraintGenerators::Assign(AssignGenerator::new()),
             ConstraintGenerators::Init(InitializationGenerator::new()),
             ConstraintGenerators::HasOne(HasOneGenerator::new()),
         ];

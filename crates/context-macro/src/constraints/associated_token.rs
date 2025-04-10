@@ -1,12 +1,12 @@
-use syn::{parse::Parse, Expr, Ident, Token};
+use syn::{parse::Parse, Ident, Token};
 
 #[derive(Clone)]
-pub enum ConstraintToken {
+pub enum ConstraintAssociatedToken {
     Mint(Ident),
-    Authority(Expr),
+    Authority(Ident),
 }
 
-impl Parse for ConstraintToken {
+impl Parse for ConstraintAssociatedToken {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         input.parse::<Token![::]>()?;
         let name = input.parse::<Ident>()?.to_string();
@@ -14,12 +14,12 @@ impl Parse for ConstraintToken {
             "mint" => {
                 input.parse::<Token![=]>()?;
 
-                Ok(ConstraintToken::Mint(input.parse()?))
+                Ok(ConstraintAssociatedToken::Mint(input.parse()?))
             }
             "authority" => {
                 input.parse::<Token![=]>()?;
 
-                Ok(ConstraintToken::Authority(input.parse()?))
+                Ok(ConstraintAssociatedToken::Authority(input.parse()?))
             }
             _ => Err(syn::Error::new(
                 input.span(),

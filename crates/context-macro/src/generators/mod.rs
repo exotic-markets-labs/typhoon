@@ -1,4 +1,5 @@
 mod arguments;
+mod assign;
 mod bumps;
 mod has_one;
 mod init;
@@ -9,7 +10,7 @@ use {
     proc_macro2::TokenStream,
     syn::Field,
 };
-pub use {arguments::*, bumps::*, has_one::*, init::*, rent::*};
+pub use {arguments::*, assign::*, bumps::*, has_one::*, init::*, rent::*};
 
 #[derive(Default, Clone)]
 pub struct GeneratorResult {
@@ -25,6 +26,7 @@ pub enum ConstraintGenerators {
     Init(InitializationGenerator),
     Rent(RentGenerator),
     Args(ArgumentsGenerator),
+    Assign(AssignGenerator),
 }
 
 impl ConstraintGenerator for ConstraintGenerators {
@@ -35,6 +37,7 @@ impl ConstraintGenerator for ConstraintGenerators {
             ConstraintGenerators::Init(generator) => generator.generate(),
             ConstraintGenerators::Rent(generator) => generator.generate(),
             ConstraintGenerators::Args(generator) => generator.generate(),
+            ConstraintGenerators::Assign(generator) => generator.generate(),
         }
     }
 }
@@ -47,6 +50,7 @@ impl ContextVisitor for ConstraintGenerators {
             ConstraintGenerators::Init(generator) => generator.visit_context(context),
             ConstraintGenerators::Rent(generator) => generator.visit_context(context),
             ConstraintGenerators::Args(generator) => generator.visit_context(context),
+            ConstraintGenerators::Assign(generator) => generator.visit_context(context),
         }
     }
 }

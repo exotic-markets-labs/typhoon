@@ -32,6 +32,7 @@ typhoon-handler-macro = { version = "0.1.0", path = "crates/handler-macro" }
 typhoon-metadata-extractor = { version = "0.1.0", path = "crates/metadata-extractor" }
 typhoon-program-id-macro = { version = "0.1.0", path = "crates/program-id-macro" }
 typhoon-syn = { version = "0.1.0", path = "crates/syn" }
+typhoon-token = { version = "0.1.0", path = "crates/token" }
 typhoon-utility = { version = "0.1.0", path = "crates/utility" }
 typhoon-utility-traits = { version = "0.1.0", path = "crates/utility-traits" }
 heck = "0.5.0"

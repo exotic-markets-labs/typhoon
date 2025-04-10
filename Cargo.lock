@@ -502,6 +502,7 @@ dependencies = [
  "syn",
  "trybuild",
  "typhoon",
+ "typhoon-token",
 ]
 
 [[package]]

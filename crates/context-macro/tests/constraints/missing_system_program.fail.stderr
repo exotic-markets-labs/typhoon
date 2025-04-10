@@ -1,5 +1,7 @@
 error: Using `init` requires including the `Program<System>` account
-  --> tests/constraints/missing_system_program.fail.rs:22:9
+  --> tests/constraints/missing_system_program.fail.rs:14:1
    |
-22 |     pub counter: Mut<Account<Counter>>,
-   |         ^^^^^^^
+14 | #[context]
+   | ^^^^^^^^^^
+   |
+   = note: this error originates in the attribute macro `context` (in Nightly builds, run with -Z macro-backtrace for more info)

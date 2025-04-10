@@ -29,7 +29,7 @@ impl ConstraintGenerator for RentGenerator {
 
 impl ContextVisitor for RentGenerator {
     fn visit_init(&mut self, _contraint: &ConstraintInit) -> Result<(), syn::Error> {
-        self.0 = true;
+        self.0 = true; // TODO disable when creating ATA
         Ok(())
     }
 }
