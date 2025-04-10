@@ -3,7 +3,7 @@ use crate::{
     arguments::Arguments,
     constraints::{
         Constraint, ConstraintBump, ConstraintHasOne, ConstraintInit, ConstraintPayer,
-        ConstraintSeeded, ConstraintSeeds, ConstraintSpace, Constraints,
+        ConstraintSeeded, ConstraintSeeds, ConstraintSpace, ConstraintToken, Constraints,
     },
     context::Context,
 };
@@ -52,6 +52,7 @@ pub trait ContextVisitor {
             Constraint::Seeds(constraint_seeds) => self.visit_seeds(constraint_seeds),
             Constraint::Bump(constraint_bump) => self.visit_bump(constraint_bump),
             Constraint::HasOne(constraint_has_one) => self.visit_has_one(constraint_has_one),
+            Constraint::Token(constraint_token) => self.visit_token(constraint_token),
         }
     }
 
@@ -80,6 +81,10 @@ pub trait ContextVisitor {
     }
 
     fn visit_has_one(&mut self, _constraint: &ConstraintHasOne) -> Result<(), syn::Error> {
+        Ok(())
+    }
+
+    fn visit_token(&mut self, _constraint: &ConstraintToken) -> Result<(), syn::Error> {
         Ok(())
     }
 }

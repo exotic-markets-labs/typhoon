@@ -10,8 +10,9 @@ mod payer;
 mod seeded;
 mod seeds;
 mod space;
+mod token;
 
-pub use {bump::*, has_one::*, init::*, payer::*, seeded::*, seeds::*, space::*};
+pub use {bump::*, has_one::*, init::*, payer::*, seeded::*, seeds::*, space::*, token::*};
 
 pub const CONSTRAINT_IDENT_STR: &str = "constraint";
 
@@ -25,6 +26,7 @@ pub enum Constraint {
     Seeds(ConstraintSeeds),
     Bump(ConstraintBump),
     HasOne(ConstraintHasOne),
+    Token(ConstraintToken),
 }
 
 #[derive(Clone, Default)]
@@ -53,25 +55,14 @@ pub fn parse_constraints(input: ParseStream) -> syn::Result<Vec<Constraint>> {
     while !input.is_empty() {
         let name = input.parse::<Ident>()?.to_string();
         match name.as_str() {
-            "init" => {
-                constraints.push(Constraint::Init(ConstraintInit));
-            }
-            "payer" => {
-                constraints.push(Constraint::Payer(ConstraintPayer::parse(input)?));
-            }
-            "space" => {
-                constraints.push(Constraint::Space(ConstraintSpace::parse(input)?));
-            }
-            "seeds" => {
-                constraints.push(Constraint::Seeds(ConstraintSeeds::parse(input)?));
-            }
-            "bump" => {
-                constraints.push(Constraint::Bump(ConstraintBump::parse(input)?));
-            }
-            "seeded" => {
-                constraints.push(Constraint::Seeded(ConstraintSeeded::parse(input)?));
-            }
+            "init" => constraints.push(Constraint::Init(ConstraintInit)),
+            "payer" => constraints.push(Constraint::Payer(ConstraintPayer::parse(input)?)),
+            "space" => constraints.push(Constraint::Space(ConstraintSpace::parse(input)?)),
+            "seeds" => constraints.push(Constraint::Seeds(ConstraintSeeds::parse(input)?)),
+            "bump" => constraints.push(Constraint::Bump(ConstraintBump::parse(input)?)),
+            "seeded" => constraints.push(Constraint::Seeded(ConstraintSeeded::parse(input)?)),
             "has_one" => constraints.push(Constraint::HasOne(ConstraintHasOne::parse(input)?)),
+            "token" => constraints.push(Constraint::Token(ConstraintToken::parse(input)?)),
             _ => return Err(syn::Error::new(input.span(), "Unknow constraint.")),
         }
 
@@ -96,11 +87,13 @@ mod tests {
                     b"seed".as_ref(),
                 ],
                 bump = counter.data()?.bump,
+                token::mint = mint
+                token::authority = authority
             )]
         };
 
         let constraints = Constraints::try_from(&attributes).unwrap();
 
-        assert_eq!(constraints.0.len(), 3);
+        assert_eq!(constraints.0.len(), 5);
     }
 }
