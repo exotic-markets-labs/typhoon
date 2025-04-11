@@ -20,3 +20,4 @@ proc-macro2.workspace = true
 bytemuck = { workspace = true, features = ["derive"] }
 trybuild.workspace = true
 typhoon.workspace = true
+typhoon-token.workspace = true

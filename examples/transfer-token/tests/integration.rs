@@ -64,8 +64,6 @@ fn integration_test() {
                 .chain(bytes_of(&MintFromEscrowArgs {
                     decimals: 6,
                     amount: minted_amount,
-                    has_freeze_authority: 1,
-                    freeze_authority: recipient_pk.to_bytes(),
                 }))
                 .cloned()
                 .collect(),

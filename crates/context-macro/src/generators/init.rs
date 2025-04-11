@@ -3,49 +3,72 @@ use {
     crate::{
         accounts::Account,
         constraints::{
-            ConstraintInit, ConstraintPayer, ConstraintSeeded, ConstraintSeeds, ConstraintSpace,
+            ConstraintAssociatedToken, ConstraintInit, ConstraintMint, ConstraintPayer,
+            ConstraintSeeded, ConstraintSeeds, ConstraintSpace, ConstraintToken,
         },
-        extractor::InnerTyExtractor,
         visitor::ContextVisitor,
     },
     proc_macro2::{Span, TokenStream},
     quote::{format_ident, quote},
-    syn::{punctuated::Punctuated, visit::Visit, Expr, Ident, PathSegment, Token},
+    syn::{parse_quote, punctuated::Punctuated, Expr, Ident, PathSegment, Token},
 };
 
-#[derive(Default)]
-pub struct InitializationGenerator {
-    account: Option<(Ident, PathSegment)>,
-    need_check: bool,
-    keys: Option<Punctuated<Expr, Token![,]>>,
-    space: Option<Expr>,
-    payer: Option<Ident>,
-    is_seeded: bool,
-    has_init: bool,
-    result: TokenStream,
+enum InitAccountGeneratorTy {
+    TokenAccount {
+        is_ata: bool,
+        mint: Option<Ident>,
+        authority: Option<Expr>,
+    },
+    Mint {
+        decimals: Option<Expr>,
+        authority: Option<Expr>,
+        freeze_authority: Box<Option<Expr>>,
+    },
+    Other {
+        space: Option<Expr>,
+    },
 }
 
-impl InitializationGenerator {
-    pub fn new() -> Self {
-        Self::default()
-    }
+struct InitAccountGenerator<'a> {
+    name: &'a Ident,
+    inner_account_ty: String,
+    payer: Option<Ident>,
+    is_seeded: bool,
+    keys: Option<Punctuated<Expr, Token![,]>>,
+    ty: InitAccountGeneratorTy,
+}
 
-    fn get_span(&self) -> Span {
-        self.account
-            .as_ref()
-            .map(|acc| acc.0.span())
-            .unwrap_or(Span::call_site())
+impl<'a> InitAccountGenerator<'a> {
+    pub fn new(account: &'a Account) -> Self {
+        let ty = match account.inner_ty.as_str() {
+            "Mint" => InitAccountGeneratorTy::Mint {
+                authority: None,
+                decimals: None,
+                freeze_authority: Box::new(None),
+            },
+            "TokenAccount" => InitAccountGeneratorTy::TokenAccount {
+                is_ata: false,
+                mint: None,
+                authority: None,
+            },
+            _ => InitAccountGeneratorTy::Other { space: None },
+        };
+
+        InitAccountGenerator {
+            name: &account.name,
+            inner_account_ty: account.inner_ty.clone(),
+            payer: None,
+            is_seeded: false,
+            keys: None,
+            ty,
+        }
     }
 
     fn get_seeds(&self) -> Option<TokenStream> {
         let punctuated_keys = self.keys.as_ref()?;
 
         let seeds = if self.is_seeded {
-            let mut inner_ty_extractor = InnerTyExtractor::new();
-            inner_ty_extractor.visit_path_segment(&self.account.as_ref()?.1);
-            let inner_ty = inner_ty_extractor.ty?;
-            let account_ty = format_ident!("{}", inner_ty);
-
+            let account_ty = format_ident!("{}", self.inner_account_ty);
             quote!(#account_ty::derive_with_bump(#punctuated_keys, &bump))
         } else {
             quote!(seeds!(#punctuated_keys, &bump))
@@ -54,65 +77,230 @@ impl InitializationGenerator {
         Some(seeds)
     }
 
-    fn check_prerequisite(&self, context: &[Account]) -> Result<(), syn::Error> {
-        let has_system_program = context.iter().any(|acc| {
-            let mut extractor = InnerTyExtractor::new();
-            extractor.visit_path_arguments(&acc.ty.arguments);
-            acc.ty.ident == "Program" && extractor.ty.as_deref() == Some("System")
-        });
+    fn generate_token(&self, account_ty: &PathSegment) -> Result<TokenStream, syn::Error> {
+        let name = self.name;
 
-        if !has_system_program {
+        let Some(ref payer) = self.payer else {
             return Err(syn::Error::new(
-                self.get_span(),
-                "Using `init` requires including the `Program<System>` account",
+                self.name.span(),
+                "A payer is needed for the `init` constraint",
             ));
+        };
+        let maybe_signer = {
+            self.get_seeds().map(|seeds| {
+                quote! {
+                    // TODO: avoid reusing seeds here and in verifications
+                    let bump = [bumps.#name];
+                    let seeds = #seeds;
+                    let signer = instruction::CpiSigner::from(&seeds);
+                }
+            })
+        };
+
+        let signers = if maybe_signer.is_some() {
+            quote!(Some(&[signer]))
+        } else {
+            quote!(None)
+        };
+
+        let token = match &self.ty {
+            InitAccountGeneratorTy::Mint {
+                decimals,
+                authority,
+                freeze_authority,
+            } => {
+                let default_decimals = parse_quote!(9);
+                let decimals = decimals.as_ref().unwrap_or(&default_decimals);
+                let Some(ref authority) = authority else {
+                    return Err(syn::Error::new(
+                        self.name.span(),
+                        "A `authority` need to be specified for the `init` constraint",
+                    ));
+                };
+                let f_auth_token = if let Some(auth) = freeze_authority.as_ref() {
+                    quote!(Some(#auth))
+                } else {
+                    quote!(None)
+                };
+                quote!(SPLCreate::create_mint(#name, &rent, &#payer, &#authority, #decimals, #f_auth_token, #signers)?)
+            }
+            InitAccountGeneratorTy::TokenAccount {
+                authority,
+                mint,
+                is_ata,
+            } => {
+                let Some(ref authority) = authority else {
+                    return Err(syn::Error::new(
+                        self.name.span(),
+                        "A `authority` need to be specified for the `init` constraint",
+                    ));
+                };
+                let Some(ref mint) = mint else {
+                    return Err(syn::Error::new(
+                        self.name.span(),
+                        "A `mint` need to be specified for the `init` constraint",
+                    ));
+                };
+
+                if *is_ata {
+                    quote!(SPLCreate::create_associated_token_account(#name, &#payer, &#mint, &#authority, &system_program, &token_program)?)
+                } else {
+                    quote!(SPLCreate::create_token_account(#name, &rent, &#payer, &#mint, &#authority, #signers)?)
+                }
+            }
+            InitAccountGeneratorTy::Other { space } => {
+                let Some(ref space) = space else {
+                    return Err(syn::Error::new(
+                        self.name.span(),
+                        "A space need to be specified for the `init` constraint",
+                    ));
+                };
+
+                quote!(SystemCpi::create_account(#name, &rent, &#payer, &crate::ID, #space, #signers)?)
+            }
+        };
+
+        Ok(quote! {
+            let #name: #account_ty = {
+                #maybe_signer
+                #token
+            };
+        })
+    }
+}
+
+impl ContextVisitor for InitAccountGenerator<'_> {
+    fn visit_payer(&mut self, contraint: &ConstraintPayer) -> Result<(), syn::Error> {
+        self.payer = Some(contraint.target.clone());
+
+        Ok(())
+    }
+
+    fn visit_space(&mut self, contraint: &ConstraintSpace) -> Result<(), syn::Error> {
+        match &mut self.ty {
+            InitAccountGeneratorTy::Other { space } => *space = Some(contraint.space.clone()),
+            _ => {
+                return Err(syn::Error::new(
+                    self.name.span(),
+                    "Cannot use `space` constraint with `Mint` or `TokenAccount`.",
+                ))
+            }
         }
 
         Ok(())
     }
 
-    fn extend_result(&mut self) -> Result<(), syn::Error> {
-        let (name, ty) = self.account.as_ref().unwrap();
-        let expanded = if self.has_init {
-            let Some(ref payer) = self.payer else {
-                return Err(syn::Error::new(
-                    self.get_span(),
-                    "A payer is needed for the `init` constraint",
-                ));
-            };
-            let Some(ref space) = self.space else {
-                return Err(syn::Error::new(
-                    self.get_span(),
-                    "A space need to be specified for the `init` constraint",
-                ));
-            };
+    fn visit_seeded(&mut self, constraint: &ConstraintSeeded) -> Result<(), syn::Error> {
+        self.keys = constraint.0.clone();
+        self.is_seeded = true;
 
-            if let Some(seeds) = self.get_seeds() {
-                quote! {
-                    let #name: #ty = {
-                        let system_acc = <typhoon::lib::Mut<typhoon::lib::SystemAccount> as typhoon::lib::FromAccountInfo>::try_from_info(#name)?;
-                        // TODO: avoid reusing seeds here and in verifications
-                        let bump = [bumps.#name];
-                        let seeds = #seeds;
-                        let signer = instruction::CpiSigner::from(&seeds);
-                        typhoon::lib::SystemCpi::create_account(system_acc, &rent, &#payer, &crate::ID, #space, Some(&[signer]))?
-                    };
-                }
-            } else {
-                quote! {
-                    let #name: #ty = {
-                        let system_acc = <typhoon::lib::Mut<typhoon::lib::SystemAccount> as typhoon::lib::FromAccountInfo>::try_from_info(#name)?;
-                        typhoon::lib::SystemCpi::create_account(system_acc, &rent, &#payer, &crate::ID, #space, None)?
-                    };
-                }
-            }
-        } else {
-            quote! {
-                let #name = <#ty as FromAccountInfo>::try_from_info(#name)?;
-            }
-        };
+        Ok(())
+    }
 
-        self.result.extend(expanded);
+    fn visit_seeds(&mut self, contraint: &ConstraintSeeds) -> Result<(), syn::Error> {
+        self.keys = Some(contraint.seeds.clone());
+
+        Ok(())
+    }
+
+    fn visit_token(&mut self, constraint: &ConstraintToken) -> Result<(), syn::Error> {
+        match &mut self.ty {
+            InitAccountGeneratorTy::TokenAccount {
+                mint, authority, ..
+            } => match constraint {
+                ConstraintToken::Mint(ident) => *mint = Some(ident.clone()),
+                ConstraintToken::Authority(expr) => *authority = Some(expr.clone()),
+            },
+            _ => {
+                return Err(syn::Error::new(
+                    self.name.span(),
+                    "Cannot use `token` constraint on non `TokenAccount` account.",
+                ))
+            }
+        }
+        Ok(())
+    }
+
+    fn visit_associated_token(
+        &mut self,
+        constraint: &ConstraintAssociatedToken,
+    ) -> Result<(), syn::Error> {
+        match &mut self.ty {
+            InitAccountGeneratorTy::TokenAccount {
+                mint,
+                authority,
+                is_ata,
+            } => {
+                match constraint {
+                    ConstraintAssociatedToken::Mint(ident) => *mint = Some(ident.clone()),
+                    ConstraintAssociatedToken::Authority(ident) => {
+                        *authority = Some(parse_quote!(#ident))
+                    }
+                }
+                *is_ata = true
+            }
+            _ => {
+                return Err(syn::Error::new(
+                    self.name.span(),
+                    "Cannot use `associated_token` constraint on non `TokenAccount` account.",
+                ))
+            }
+        }
+        Ok(())
+    }
+
+    fn visit_mint(&mut self, constraint: &ConstraintMint) -> Result<(), syn::Error> {
+        match &mut self.ty {
+            InitAccountGeneratorTy::Mint {
+                authority,
+                decimals,
+                freeze_authority,
+            } => match constraint {
+                ConstraintMint::Authority(expr) => *authority = Some(expr.clone()),
+                ConstraintMint::Decimals(expr) => *decimals = Some(expr.clone()),
+                ConstraintMint::FreezeAuthority(expr) => {
+                    *freeze_authority.as_mut() = Some(expr.clone())
+                }
+            },
+            _ => {
+                return Err(syn::Error::new(
+                    self.name.span(),
+                    "Cannot use `mint` constraint on non `Mint` account.",
+                ))
+            }
+        }
+        Ok(())
+    }
+}
+
+#[derive(Default)]
+pub struct InitializationGenerator {
+    need_check_system: bool,
+    need_check_token: bool,
+    need_check_ata: bool,
+    has_init: bool,
+    result: GeneratorResult,
+}
+
+impl InitializationGenerator {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    fn check_prerequisite(&self, context: &[Account], program: &str) -> Result<(), syn::Error> {
+        let has_system_program = context
+            .iter()
+            .any(|acc| acc.ty.ident == "Program" && acc.inner_ty == program);
+
+        if !has_system_program {
+            return Err(syn::Error::new(
+                Span::call_site(),
+                format!(
+                    "Using `init` requires including the `Program<{}>` account",
+                    program
+                ),
+            ));
+        }
 
         Ok(())
     }
@@ -120,17 +308,23 @@ impl InitializationGenerator {
 
 impl ConstraintGenerator for InitializationGenerator {
     fn generate(&self) -> Result<GeneratorResult, syn::Error> {
-        Ok(GeneratorResult {
-            at_init: self.result.clone(),
-            ..Default::default()
-        })
+        Ok(self.result.clone())
     }
 }
 
 impl ContextVisitor for InitializationGenerator {
     fn visit_init(&mut self, _constraint: &ConstraintInit) -> Result<(), syn::Error> {
         self.has_init = true;
-        self.need_check = true;
+        self.need_check_system = true;
+
+        Ok(())
+    }
+
+    fn visit_associated_token(
+        &mut self,
+        _constraint: &ConstraintAssociatedToken,
+    ) -> Result<(), syn::Error> {
+        self.need_check_ata = true;
 
         Ok(())
     }
@@ -140,59 +334,36 @@ impl ContextVisitor for InitializationGenerator {
             self.visit_account(account)?;
         }
 
-        if self.need_check {
-            self.check_prerequisite(accounts)?;
+        if self.need_check_system {
+            self.check_prerequisite(accounts, "System")?;
+
+            if self.need_check_token {
+                self.check_prerequisite(accounts, "TokenProgram")?;
+            }
+
+            if self.need_check_ata {
+                self.check_prerequisite(accounts, "AtaTokenProgram")?;
+            }
         }
 
         Ok(())
     }
 
     fn visit_account(&mut self, account: &Account) -> Result<(), syn::Error> {
-        *self = Self {
-            account: Some((account.name.clone(), account.ty.clone())),
-            need_check: self.need_check,
-            result: self.result.clone(),
-            ..Default::default()
-        };
         self.visit_constraints(&account.constraints)?;
-        self.extend_result()
-    }
 
-    fn visit_payer(&mut self, contraint: &ConstraintPayer) -> Result<(), syn::Error> {
-        self.payer = Some(contraint.target.clone());
+        if self.has_init {
+            if account.inner_ty == "Mint" || account.inner_ty == "TokenAccount" {
+                self.need_check_token = true;
+            }
 
-        Ok(())
-    }
-
-    fn visit_space(&mut self, contraint: &ConstraintSpace) -> Result<(), syn::Error> {
-        self.space = Some(contraint.space.clone());
-
-        Ok(())
-    }
-
-    fn visit_seeded(&mut self, constraint: &ConstraintSeeded) -> Result<(), syn::Error> {
-        if !self.is_seeded && self.keys.is_some() {
-            return Err(syn::Error::new(
-                self.get_span(),
-                "Cannot specified keys and seeds at the same time.",
-            ));
+            let mut account_generator = InitAccountGenerator::new(account);
+            account_generator.visit_account(account)?;
+            self.result
+                .at_init
+                .extend(account_generator.generate_token(&account.ty)?);
+            self.has_init = false;
         }
-
-        self.keys = constraint.0.clone();
-        self.is_seeded = true;
-
-        Ok(())
-    }
-
-    fn visit_seeds(&mut self, contraint: &ConstraintSeeds) -> Result<(), syn::Error> {
-        if self.is_seeded {
-            return Err(syn::Error::new(
-                self.get_span(),
-                "Cannot specified keys and seeds at the same time.",
-            ));
-        }
-
-        self.keys = Some(contraint.seeds.clone());
 
         Ok(())
     }

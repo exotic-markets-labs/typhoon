@@ -1,0 +1,5 @@
+error: Invalid variant for the token constraint.
+  --> tests/constraints/invalid_token_variant.fail.rs:14:22
+   |
+14 |         token::owner = mint
+   |                      ^

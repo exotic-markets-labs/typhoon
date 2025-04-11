@@ -208,9 +208,9 @@ checksum = "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
 
 [[package]]
 name = "pinocchio"
-version = "0.8.1"
+version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "530596fa307103e53257f2cf064815919ee7fbc4c7ab999f6f13cc7067c3aff1"
+checksum = "a9cc3d639f805724755597e62b79bf61f79162284a6f9d0475a59b52842567d1"
 
 [[package]]
 name = "pinocchio-associated-token-account"
@@ -445,6 +445,7 @@ name = "typhoon"
 version = "0.1.0"
 dependencies = [
  "bytemuck_derive",
+ "pinocchio",
  "pinocchio-pubkey",
  "typhoon-account-macro",
  "typhoon-accounts",
@@ -502,6 +503,7 @@ dependencies = [
  "syn",
  "trybuild",
  "typhoon",
+ "typhoon-token",
 ]
 
 [[package]]
@@ -715,9 +717,9 @@ checksum = "589f6da84c646204747d1270a2a5661ea66ed1cced2631d546fdfb155959f9ec"
 
 [[package]]
 name = "winnow"
-version = "0.7.4"
+version = "0.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0e97b544156e9bebe1a0ffbc03484fc1ffe3100cbce3ffb17eac35f7cdd7ab36"
+checksum = "63d3fcd9bba44b03821e7d699eeee959f3126dcc4aa8e4ae18ec617c2a5cea10"
 dependencies = [
  "memchr",
 ]

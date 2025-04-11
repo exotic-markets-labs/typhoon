@@ -1,5 +1,7 @@
-use bytemuck::{Pod, Zeroable};
-use typhoon::prelude::*;
+use {
+    bytemuck::{Pod, Zeroable},
+    typhoon::prelude::*,
+};
 
 program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 

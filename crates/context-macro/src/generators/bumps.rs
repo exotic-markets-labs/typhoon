@@ -165,16 +165,28 @@ impl ContextVisitor for BumpsGenerator {
     }
 
     fn visit_seeded(&mut self, constraint: &ConstraintSeeded) -> Result<(), syn::Error> {
+        if !self.is_seeded && self.seeds.is_some() {
+            return Err(syn::Error::new(
+                self.account.as_ref().unwrap().0.span(),
+                "Cannot specified keys and seeds at the same time.",
+            ));
+        }
+
         self.is_seeded = true;
         self.seeds = constraint.0.clone();
-        //TODO add check seeds constraint
 
         Ok(())
     }
 
     fn visit_seeds(&mut self, constraint: &ConstraintSeeds) -> Result<(), syn::Error> {
+        if self.is_seeded {
+            return Err(syn::Error::new(
+                self.account.as_ref().unwrap().0.span(),
+                "Cannot specified keys and seeds at the same time.",
+            ));
+        }
+
         self.seeds = Some(constraint.seeds.clone());
-        //TODO add check seeded constraint
 
         Ok(())
     }

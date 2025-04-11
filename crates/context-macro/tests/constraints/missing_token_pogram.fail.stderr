@@ -1,5 +1,5 @@
-error: Using `init` requires including the `Program<System>` account
-  --> tests/constraints/missing_system_program.fail.rs:14:1
+error: Using `init` requires including the `Program<TokenProgram>` account
+  --> tests/constraints/missing_token_pogram.fail.rs:14:1
    |
 14 | #[context]
    | ^^^^^^^^^^

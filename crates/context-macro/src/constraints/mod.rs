@@ -3,15 +3,22 @@ use syn::{
     Ident, Token,
 };
 
+mod associated_token;
 mod bump;
 mod has_one;
 mod init;
+mod mint;
 mod payer;
+mod program;
 mod seeded;
 mod seeds;
 mod space;
+mod token;
 
-pub use {bump::*, has_one::*, init::*, payer::*, seeded::*, seeds::*, space::*};
+pub use {
+    associated_token::*, bump::*, has_one::*, init::*, mint::*, payer::*, program::*, seeded::*,
+    seeds::*, space::*, token::*,
+};
 
 pub const CONSTRAINT_IDENT_STR: &str = "constraint";
 
@@ -25,6 +32,10 @@ pub enum Constraint {
     Seeds(ConstraintSeeds),
     Bump(ConstraintBump),
     HasOne(ConstraintHasOne),
+    Program(ConstraintProgram),
+    Token(ConstraintToken),
+    Mint(ConstraintMint),
+    AssociatedToken(ConstraintAssociatedToken),
 }
 
 #[derive(Clone, Default)]
@@ -53,25 +64,19 @@ pub fn parse_constraints(input: ParseStream) -> syn::Result<Vec<Constraint>> {
     while !input.is_empty() {
         let name = input.parse::<Ident>()?.to_string();
         match name.as_str() {
-            "init" => {
-                constraints.push(Constraint::Init(ConstraintInit));
-            }
-            "payer" => {
-                constraints.push(Constraint::Payer(ConstraintPayer::parse(input)?));
-            }
-            "space" => {
-                constraints.push(Constraint::Space(ConstraintSpace::parse(input)?));
-            }
-            "seeds" => {
-                constraints.push(Constraint::Seeds(ConstraintSeeds::parse(input)?));
-            }
-            "bump" => {
-                constraints.push(Constraint::Bump(ConstraintBump::parse(input)?));
-            }
-            "seeded" => {
-                constraints.push(Constraint::Seeded(ConstraintSeeded::parse(input)?));
-            }
+            "init" => constraints.push(Constraint::Init(ConstraintInit)),
+            "payer" => constraints.push(Constraint::Payer(ConstraintPayer::parse(input)?)),
+            "space" => constraints.push(Constraint::Space(ConstraintSpace::parse(input)?)),
+            "seeds" => constraints.push(Constraint::Seeds(ConstraintSeeds::parse(input)?)),
+            "bump" => constraints.push(Constraint::Bump(ConstraintBump::parse(input)?)),
+            "seeded" => constraints.push(Constraint::Seeded(ConstraintSeeded::parse(input)?)),
             "has_one" => constraints.push(Constraint::HasOne(ConstraintHasOne::parse(input)?)),
+            "program" => constraints.push(Constraint::Program(ConstraintProgram::parse(input)?)),
+            "token" => constraints.push(Constraint::Token(ConstraintToken::parse(input)?)),
+            "mint" => constraints.push(Constraint::Mint(ConstraintMint::parse(input)?)),
+            "associated_token" => constraints.push(Constraint::AssociatedToken(
+                ConstraintAssociatedToken::parse(input)?,
+            )),
             _ => return Err(syn::Error::new(input.span(), "Unknow constraint.")),
         }
 
@@ -96,11 +101,16 @@ mod tests {
                     b"seed".as_ref(),
                 ],
                 bump = counter.data()?.bump,
+                token::mint = mint,
+                token::authority = authority,
+                mint::decimals = args.decimals,
+                mint::authority = escrow.key(),
+                mint::freeze_authority = freeze_authority.key()
             )]
         };
 
         let constraints = Constraints::try_from(&attributes).unwrap();
 
-        assert_eq!(constraints.0.len(), 3);
+        assert_eq!(constraints.0.len(), 8);
     }
 }
