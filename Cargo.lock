@@ -445,6 +445,7 @@ name = "typhoon"
 version = "0.1.0"
 dependencies = [
  "bytemuck_derive",
+ "pinocchio",
  "pinocchio-pubkey",
  "typhoon-account-macro",
  "typhoon-accounts",
