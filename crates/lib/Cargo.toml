@@ -9,6 +9,7 @@ repository.workspace = true
 
 [features]
 borsh = ["typhoon-accounts/borsh"]
+std = ["pinocchio/std"]
 
 [dependencies]
 pinocchio.workspace = true
