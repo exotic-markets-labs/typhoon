@@ -324,6 +324,8 @@ impl ContextVisitor for InitializationGenerator {
         &mut self,
         _constraint: &ConstraintAssociatedToken,
     ) -> Result<(), syn::Error> {
+        self.need_check_ata = true;
+
         Ok(())
     }
 
