@@ -24,17 +24,19 @@ pub mod instruction {
 pub mod prelude {
     pub use {
         super::{bytes, instruction, lib::*, macros::*},
-        pinocchio::{
-            self,
-            account_info::AccountInfo,
-            cpi::*,
-            entrypoint, msg,
-            program_error::ProgramError,
-            pubkey::*,
-            seeds,
-            sysvars::{clock::Clock, fees::Fees, rent::Rent, Sysvar},
-            ProgramResult,
+        pinocchio_pubkey::{
+            declare_id, from_str as pubkey_from_str,
+            pinocchio::{
+                self,
+                account_info::AccountInfo,
+                cpi::*,
+                entrypoint, msg,
+                program_error::ProgramError,
+                pubkey::*,
+                seeds,
+                sysvars::{clock::Clock, fees::Fees, rent::Rent, Sysvar},
+                ProgramResult,
+            },
         },
-        pinocchio_pubkey::{declare_id, from_str as pubkey_from_str},
     };
 }

@@ -209,8 +209,7 @@ checksum = "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
 [[package]]
 name = "pinocchio"
 version = "0.8.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a9cc3d639f805724755597e62b79bf61f79162284a6f9d0475a59b52842567d1"
+source = "git+https://github.com/Aursen/pinocchio?branch=fix/cfg#8cabdf6fc94dc62a1a51647b33f026e84f5c08e6"
 
 [[package]]
 name = "pinocchio-associated-token-account"
@@ -445,7 +444,6 @@ name = "typhoon"
 version = "0.1.0"
 dependencies = [
  "bytemuck_derive",
- "pinocchio",
  "pinocchio-pubkey",
  "typhoon-account-macro",
  "typhoon-accounts",

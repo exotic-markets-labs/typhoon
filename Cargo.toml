@@ -51,3 +51,6 @@ serde_json = "1.0"
 sha2 = "0.10.8"
 syn = "2.0"
 thiserror = "2.0"
+
+[patch.crates-io]
+pinocchio = { git = "https://github.com/Aursen/pinocchio", branch = "fix/cfg" }
