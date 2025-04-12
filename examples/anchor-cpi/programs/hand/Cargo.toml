@@ -18,3 +18,6 @@ borsh = "1.5"
 bytemuck = "1.21.0"
 podded = "0.5.2"
 typhoon = { path = "../../../../crates/lib", features = ["borsh"] }
+
+[patch.crates-io]
+pinocchio = { git = "https://github.com/Aursen/pinocchio", branch = "fix/cfg" }

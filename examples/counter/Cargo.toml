@@ -26,3 +26,6 @@ solana-pubkey = "2.2.1"
 solana-signer = "2.2.1"
 solana-system-interface = "1.0.0"
 solana-transaction = "2.2.1"
+
+[patch.crates-io]
+pinocchio = { git = "https://github.com/Aursen/pinocchio", branch = "fix/cfg" }
