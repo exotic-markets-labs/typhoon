@@ -44,7 +44,7 @@ pub struct MintFromEscrowContext {
     )]
     pub escrow: Mut<Account<Escrow>>,
     #[constraint(
-        init,
+        init_if_needed,
         payer = payer,
         associated_token::mint = mint,
         associated_token::authority = owner

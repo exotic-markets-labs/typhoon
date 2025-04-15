@@ -1,13 +1,4 @@
-use crate::{
-    accounts::Account,
-    arguments::Arguments,
-    constraints::{
-        Constraint, ConstraintAssociatedToken, ConstraintBump, ConstraintHasOne, ConstraintInit,
-        ConstraintMint, ConstraintPayer, ConstraintProgram, ConstraintSeeded, ConstraintSeeds,
-        ConstraintSpace, ConstraintToken, Constraints,
-    },
-    context::Context,
-};
+use crate::{accounts::Account, arguments::Arguments, constraints::*, context::Context};
 
 pub trait ContextVisitor {
     fn visit_context(&mut self, context: &Context) -> Result<(), syn::Error> {
@@ -59,6 +50,9 @@ pub trait ContextVisitor {
             Constraint::AssociatedToken(constraint_associated_token) => {
                 self.visit_associated_token(constraint_associated_token)
             }
+            Constraint::InitIfNeeded(contraint_init_if_needed) => {
+                self.visit_init_if_needed(contraint_init_if_needed)
+            }
         }
     }
 
@@ -105,6 +99,13 @@ pub trait ContextVisitor {
     fn visit_associated_token(
         &mut self,
         _constraint: &ConstraintAssociatedToken,
+    ) -> Result<(), syn::Error> {
+        Ok(())
+    }
+
+    fn visit_init_if_needed(
+        &mut self,
+        _constraint: &ConstraintInitIfNeeded,
     ) -> Result<(), syn::Error> {
         Ok(())
     }

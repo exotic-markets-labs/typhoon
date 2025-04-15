@@ -1,6 +1,10 @@
 use {
     super::{ConstraintGenerator, GeneratorResult},
-    crate::{accounts::Account, constraints::ConstraintInit, visitor::ContextVisitor},
+    crate::{
+        accounts::Account,
+        constraints::{ConstraintInit, ConstraintInitIfNeeded},
+        visitor::ContextVisitor,
+    },
     proc_macro2::TokenStream,
     quote::quote,
 };
@@ -8,6 +12,7 @@ use {
 struct AccountGenerator<'a> {
     account: &'a Account,
     has_init: bool,
+    has_init_if_needed: bool,
 }
 
 impl<'a> AccountGenerator<'a> {
@@ -15,6 +20,7 @@ impl<'a> AccountGenerator<'a> {
         Self {
             account,
             has_init: false,
+            has_init_if_needed: false,
         }
     }
 
@@ -23,6 +29,10 @@ impl<'a> AccountGenerator<'a> {
         if self.has_init {
             Ok(quote! {
                 let #name = <Mut<SystemAccount> as FromAccountInfo>::try_from_info(#name)?;
+            })
+        } else if self.has_init_if_needed {
+            Ok(quote! {
+                let #name = <Mut<UncheckedAccount> as FromAccountInfo>::try_from_info(#name)?;
             })
         } else {
             let account_ty = &self.account.ty;
@@ -36,6 +46,15 @@ impl<'a> AccountGenerator<'a> {
 impl ContextVisitor for AccountGenerator<'_> {
     fn visit_init(&mut self, _constraint: &ConstraintInit) -> Result<(), syn::Error> {
         self.has_init = true;
+
+        Ok(())
+    }
+
+    fn visit_init_if_needed(
+        &mut self,
+        _constraint: &ConstraintInitIfNeeded,
+    ) -> Result<(), syn::Error> {
+        self.has_init_if_needed = true;
 
         Ok(())
     }

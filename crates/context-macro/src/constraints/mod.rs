@@ -7,6 +7,7 @@ mod associated_token;
 mod bump;
 mod has_one;
 mod init;
+mod init_if_needed;
 mod mint;
 mod payer;
 mod program;
@@ -16,8 +17,8 @@ mod space;
 mod token;
 
 pub use {
-    associated_token::*, bump::*, has_one::*, init::*, mint::*, payer::*, program::*, seeded::*,
-    seeds::*, space::*, token::*,
+    associated_token::*, bump::*, has_one::*, init::*, init_if_needed::*, mint::*, payer::*,
+    program::*, seeded::*, seeds::*, space::*, token::*,
 };
 
 pub const CONSTRAINT_IDENT_STR: &str = "constraint";
@@ -36,6 +37,7 @@ pub enum Constraint {
     Token(ConstraintToken),
     Mint(ConstraintMint),
     AssociatedToken(ConstraintAssociatedToken),
+    InitIfNeeded(ConstraintInitIfNeeded),
 }
 
 #[derive(Clone, Default)]
@@ -77,6 +79,7 @@ pub fn parse_constraints(input: ParseStream) -> syn::Result<Vec<Constraint>> {
             "associated_token" => constraints.push(Constraint::AssociatedToken(
                 ConstraintAssociatedToken::parse(input)?,
             )),
+            "init_if_needed" => constraints.push(Constraint::InitIfNeeded(ConstraintInitIfNeeded)),
             _ => return Err(syn::Error::new(input.span(), "Unknow constraint.")),
         }
 
@@ -105,12 +108,13 @@ mod tests {
                 token::authority = authority,
                 mint::decimals = args.decimals,
                 mint::authority = escrow.key(),
-                mint::freeze_authority = freeze_authority.key()
+                mint::freeze_authority = freeze_authority.key(),
+                init_if_needed
             )]
         };
 
         let constraints = Constraints::try_from(&attributes).unwrap();
 
-        assert_eq!(constraints.0.len(), 8);
+        assert_eq!(constraints.0.len(), 9);
     }
 }

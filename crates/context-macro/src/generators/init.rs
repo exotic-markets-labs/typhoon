@@ -3,8 +3,8 @@ use {
     crate::{
         accounts::Account,
         constraints::{
-            ConstraintAssociatedToken, ConstraintInit, ConstraintMint, ConstraintPayer,
-            ConstraintSeeded, ConstraintSeeds, ConstraintSpace, ConstraintToken,
+            ConstraintAssociatedToken, ConstraintInit, ConstraintInitIfNeeded, ConstraintMint,
+            ConstraintPayer, ConstraintSeeded, ConstraintSeeds, ConstraintSpace, ConstraintToken,
         },
         visitor::ContextVisitor,
     },
@@ -35,6 +35,7 @@ struct InitAccountGenerator<'a> {
     payer: Option<Ident>,
     is_seeded: bool,
     keys: Option<Punctuated<Expr, Token![,]>>,
+    init_if_needed: bool,
     ty: InitAccountGeneratorTy,
 }
 
@@ -60,6 +61,7 @@ impl<'a> InitAccountGenerator<'a> {
             payer: None,
             is_seeded: false,
             keys: None,
+            init_if_needed: false,
             ty,
         }
     }
@@ -160,12 +162,23 @@ impl<'a> InitAccountGenerator<'a> {
             }
         };
 
-        Ok(quote! {
-            let #name: #account_ty = {
-                #maybe_signer
-                #token
-            };
-        })
+        if self.init_if_needed {
+            Ok(quote! {
+                let #name = if <Mut<UncheckedAccount> as ChecksExt>::is_initialized(&#name) {
+                    <#account_ty as FromAccountInfo>::try_from_info(#name.into())?
+                }else {
+                    #maybe_signer
+                    #token
+                };
+            })
+        } else {
+            Ok(quote! {
+                let #name: #account_ty = {
+                    #maybe_signer
+                    #token
+                };
+            })
+        }
     }
 }
 
@@ -271,6 +284,14 @@ impl ContextVisitor for InitAccountGenerator<'_> {
         }
         Ok(())
     }
+
+    fn visit_init_if_needed(
+        &mut self,
+        _constraint: &ConstraintInitIfNeeded,
+    ) -> Result<(), syn::Error> {
+        self.init_if_needed = true;
+        Ok(())
+    }
 }
 
 #[derive(Default)]
@@ -314,6 +335,15 @@ impl ConstraintGenerator for InitializationGenerator {
 
 impl ContextVisitor for InitializationGenerator {
     fn visit_init(&mut self, _constraint: &ConstraintInit) -> Result<(), syn::Error> {
+        self.has_init = true;
+        self.need_check_system = true;
+
+        Ok(())
+    }
+    fn visit_init_if_needed(
+        &mut self,
+        _constraint: &ConstraintInitIfNeeded,
+    ) -> Result<(), syn::Error> {
         self.has_init = true;
         self.need_check_system = true;
 
