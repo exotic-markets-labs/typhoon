@@ -21,12 +21,6 @@ done
 # Get list of all crates
 CRATES=(
     "metadata-extractor"
-    "context-macro"
-    "account-macro"
-    "discriminator-macro"
-    "cpi-generator-macro"
-    "handler-macro"
-    "program-id-macro"
     "errors"
     "accounts"
     "utility"
@@ -37,6 +31,12 @@ CRATES=(
     "cpi-generator"
     "idl-generator"
     "lib"
+    "context-macro"
+    "account-macro"
+    "discriminator-macro"
+    "cpi-generator-macro"
+    "handler-macro"
+    "program-id-macro"
 )
 
 # Function to publish a crate
