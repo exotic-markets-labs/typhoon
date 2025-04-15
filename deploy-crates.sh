@@ -30,13 +30,13 @@ CRATES=(
     "discriminator"
     "cpi-generator"
     "idl-generator"
-    "lib"
-    "context-macro"
     "account-macro"
     "discriminator-macro"
     "cpi-generator-macro"
     "handler-macro"
     "program-id-macro"
+    "context-macro"
+    "lib"
 )
 
 # Function to publish a crate
@@ -56,7 +56,7 @@ publish_crate() {
         echo "Successfully published $crate"
     fi
     # Wait a bit to avoid rate limiting
-    sleep 10
+    sleep 50
 }
 
 # Publish each crate

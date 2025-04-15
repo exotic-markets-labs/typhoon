@@ -463,11 +463,12 @@ name = "typhoon-account-macro"
 version = "0.1.0-alpha.0"
 dependencies = [
  "bytemuck",
+ "pinocchio",
  "proc-macro2",
  "quote",
  "syn",
  "trybuild",
- "typhoon",
+ "typhoon-accounts",
  "typhoon-discriminator",
 ]
 
@@ -496,13 +497,17 @@ name = "typhoon-context-macro"
 version = "0.1.0-alpha.0"
 dependencies = [
  "bytemuck",
+ "pinocchio-pubkey",
  "prettyplease",
  "proc-macro2",
  "quote",
  "syn",
  "trybuild",
- "typhoon",
- "typhoon-token",
+ "typhoon-account-macro",
+ "typhoon-accounts",
+ "typhoon-context",
+ "typhoon-program-id-macro",
+ "typhoon-utility-traits",
 ]
 
 [[package]]
