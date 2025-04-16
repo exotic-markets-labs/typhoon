@@ -1,6 +1,6 @@
 use {
     crate::HandlerContext,
-    bytemuck::{try_from_bytes, Pod},
+    bytemuck::{try_from_bytes, AnyBitPattern},
     pinocchio::{account_info::AccountInfo, program_error::ProgramError},
     std::ops::Deref,
 };
@@ -24,7 +24,7 @@ impl<T> Deref for Args<'_, T> {
 
 impl<'a, T> HandlerContext<'a> for Args<'a, T>
 where
-    T: Pod,
+    T: AnyBitPattern,
 {
     fn from_entrypoint(
         _accounts: &mut &'a [AccountInfo],
