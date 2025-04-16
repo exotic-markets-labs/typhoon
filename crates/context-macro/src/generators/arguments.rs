@@ -71,7 +71,7 @@ impl ContextVisitor for ArgumentsGenerator {
                     .map(|Argument { name, ty }: &Argument| quote!(pub #name: #ty));
 
                 let generated_struct = quote! {
-                    #[derive(Debug, PartialEq, bytemuck::AnyBitPattern, Copy, Clone)]
+                    #[derive(Debug, PartialEq, bytemuck::AnyBitPattern, bytemuck::NoUninit, Copy, Clone)]
                     #[repr(C)]
                     pub struct #struct_name {
                         #(#fields),*
