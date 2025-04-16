@@ -11,7 +11,6 @@ repository.workspace = true
 borsh = ["typhoon-accounts/borsh"]
 
 [dependencies]
-pinocchio = { workspace = true, features = ["std"] }
 pinocchio-pubkey.workspace = true
 typhoon-accounts.workspace = true
 typhoon-account-macro.workspace = true
