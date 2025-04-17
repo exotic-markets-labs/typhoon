@@ -2,7 +2,7 @@ use {
     super::{ConstraintGenerator, GeneratorResult},
     crate::{
         accounts::Account,
-        constraints::{ConstraintBump, ConstraintSeeded, ConstraintSeeds},
+        constraints::{ConstraintBump, ConstraintInitIfNeeded, ConstraintSeeded, ConstraintSeeds},
         context::Context,
         extractor::InnerTyExtractor,
         visitor::ContextVisitor,
@@ -11,11 +11,13 @@ use {
     syn::{parse_quote, punctuated::Punctuated, visit::Visit, Expr, Ident, PathSegment, Token},
 };
 
+// TODO change to add builder by account
 #[derive(Default)]
 pub struct BumpsGenerator {
     context_name: Option<String>,
     account: Option<(Ident, PathSegment)>,
     bump: Option<Expr>,
+    init_if_needed: bool,
     is_seeded: bool,
     seeds: Option<Punctuated<Expr, Token![,]>>,
     result: GeneratorResult,
@@ -36,30 +38,26 @@ impl BumpsGenerator {
         let pda_key = format_ident!("{}_key", name);
         let pda_bump = format_ident!("{}_bump", name);
 
-        if let Some(bump) = &self.bump {
-            let (seeds_token, bump_token) = if self.is_seeded {
-                (
-                    quote!(#name.data()?.seeds_with_bump(&[#pda_bump])),
-                    quote!(let #pda_bump = { #bump };),
-                )
+        let (pda, seeds) = if let Some(bump) = &self.bump {
+            let seeds_token = if self.is_seeded {
+                quote!(#name.data()?.seeds_with_bump(&[#pda_bump]))
             } else {
                 let seeds = self.seeds.as_ref().ok_or(syn::Error::new(
                     name.span(),
                     "Seeds constraint is not specified.",
                 ))?;
-                (
-                    quote!([#seeds, &[#pda_bump]]),
-                    quote!(let #pda_bump = { #bump };),
-                )
+                quote!([#seeds, &[#pda_bump]])
             };
 
-            self.result.after_init.extend(quote! {
-                #bump_token
-                let #pda_key = create_program_address(&#seeds_token, &crate::ID)?;
-                if #name.key() != &#pda_key {
-                    return Err(ProgramError::InvalidSeeds);
-                }
-            });
+            (
+                quote! {
+                    {
+                        let #pda_bump = { #bump };
+                        (create_program_address(&#seeds_token, &crate::ID)?, #pda_bump)
+                    }
+                },
+                seeds_token,
+            )
         } else {
             let keys = self.seeds.as_ref().ok_or(syn::Error::new(
                 name.span(),
@@ -79,13 +77,32 @@ impl BumpsGenerator {
                 quote!([#keys])
             };
 
-            self.result.at_init.extend(quote! {
-                let (#pda_key, #pda_bump) = find_program_address(&#seeds, &crate::ID);
-                if #name.key() != &#pda_key {
-                    return Err(ProgramError::InvalidSeeds);
-                }
-            });
-        }
+            (
+                quote! {
+                    find_program_address(&#seeds, &crate::ID)
+                },
+                seeds,
+            )
+        };
+
+        let pda_assign = if self.init_if_needed {
+            quote! {
+                let (#pda_key, #pda_bump) = if <Mut<UncheckedAccount> as ChecksExt>::is_initialized(&#name) {
+                    #pda
+                }else {
+                    find_program_address(&#seeds, &crate::ID)
+                };
+            }
+        } else {
+            quote!(let (#pda_key, #pda_bump) = #pda;)
+        };
+
+        self.result.at_init.extend(quote! {
+            #pda_assign
+            if #name.key() != &#pda_key {
+                return Err(ProgramError::InvalidSeeds);
+            }
+        });
 
         Ok(())
     }
@@ -143,6 +160,7 @@ impl ContextVisitor for BumpsGenerator {
         self.bump = None;
         self.is_seeded = false;
         self.seeds = None;
+        self.init_if_needed = false;
 
         self.visit_constraints(&account.constraints)?;
 
@@ -156,7 +174,7 @@ impl ContextVisitor for BumpsGenerator {
     fn visit_bump(&mut self, constraint: &ConstraintBump) -> Result<(), syn::Error> {
         self.bump = constraint.0.clone();
 
-        if self.bump.is_none() {
+        if self.bump.is_none() || self.init_if_needed {
             self.struct_fields
                 .push(self.account.as_ref().unwrap().0.clone());
         }
@@ -187,6 +205,15 @@ impl ContextVisitor for BumpsGenerator {
         }
 
         self.seeds = Some(constraint.seeds.clone());
+
+        Ok(())
+    }
+
+    fn visit_init_if_needed(
+        &mut self,
+        _constraint: &ConstraintInitIfNeeded,
+    ) -> Result<(), syn::Error> {
+        self.init_if_needed = true;
 
         Ok(())
     }

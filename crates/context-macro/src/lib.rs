@@ -39,8 +39,8 @@ impl TokenGenerator {
         let mut generators = [
             ConstraintGenerators::Args(ArgumentsGenerator::new()),
             ConstraintGenerators::Rent(RentGenerator::new()),
-            ConstraintGenerators::Bumps(Box::new(BumpsGenerator::new())),
             ConstraintGenerators::Assign(AssignGenerator::new()),
+            ConstraintGenerators::Bumps(Box::new(BumpsGenerator::new())),
             ConstraintGenerators::Init(InitializationGenerator::new()),
             ConstraintGenerators::HasOne(HasOneGenerator::new()),
         ];
