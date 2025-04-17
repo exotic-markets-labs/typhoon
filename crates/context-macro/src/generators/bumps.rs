@@ -2,7 +2,10 @@ use {
     super::{ConstraintGenerator, GeneratorResult},
     crate::{
         accounts::Account,
-        constraints::{ConstraintBump, ConstraintInitIfNeeded, ConstraintSeeded, ConstraintSeeds},
+        constraints::{
+            ConstraintBump, ConstraintInitIfNeeded, ConstraintProgram, ConstraintSeeded,
+            ConstraintSeeds,
+        },
         context::Context,
         extractor::InnerTyExtractor,
         visitor::ContextVisitor,
@@ -20,6 +23,7 @@ pub struct BumpsGenerator {
     init_if_needed: bool,
     is_seeded: bool,
     seeds: Option<Punctuated<Expr, Token![,]>>,
+    program_id: Option<Expr>,
     result: GeneratorResult,
     struct_fields: Vec<Ident>,
 }
@@ -37,6 +41,11 @@ impl BumpsGenerator {
         let (name, ty) = self.account.as_ref().unwrap();
         let pda_key = format_ident!("{}_key", name);
         let pda_bump = format_ident!("{}_bump", name);
+        let program_id = self
+            .program_id
+            .as_ref()
+            .map(|p| quote!(#p))
+            .unwrap_or(quote!(crate::ID));
 
         let (pda, seeds) = if let Some(bump) = &self.bump {
             let seeds_token = if self.is_seeded {
@@ -52,7 +61,7 @@ impl BumpsGenerator {
             (
                 quote! {
                     let #pda_bump = { #bump };
-                    let #pda_key = create_program_address(&#seeds_token, &crate::ID)?;
+                    let #pda_key = create_program_address(&#seeds_token, &#program_id)?;
                 },
                 seeds_token,
             )
@@ -77,7 +86,7 @@ impl BumpsGenerator {
 
             (
                 quote! {
-                    let (#pda_key, #pda_bump) = find_program_address(&#seeds, &crate::ID);
+                    let (#pda_key, #pda_bump) = find_program_address(&#seeds, &#program_id);
                 },
                 seeds,
             )
@@ -89,7 +98,7 @@ impl BumpsGenerator {
                     #pda
                     (#pda_key, #pda_bump)
                 }else {
-                    find_program_address(&#seeds, &crate::ID)
+                    find_program_address(&#seeds, &#program_id)
                 };
             }
         } else {
@@ -142,6 +151,12 @@ impl ConstraintGenerator for BumpsGenerator {
 }
 
 impl ContextVisitor for BumpsGenerator {
+    fn visit_program(&mut self, constraint: &ConstraintProgram) -> Result<(), syn::Error> {
+        self.program_id = Some(constraint.0.clone());
+
+        Ok(())
+    }
+
     fn visit_context(&mut self, context: &Context) -> Result<(), syn::Error> {
         self.context_name = Some(context.item_struct.ident.to_string());
 
