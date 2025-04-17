@@ -51,10 +51,8 @@ impl BumpsGenerator {
 
             (
                 quote! {
-                    {
-                        let #pda_bump = { #bump };
-                        (create_program_address(&#seeds_token, &crate::ID)?, #pda_bump)
-                    }
+                    let #pda_bump = { #bump };
+                    let #pda_key = create_program_address(&#seeds_token, &crate::ID)?;
                 },
                 seeds_token,
             )
@@ -79,7 +77,7 @@ impl BumpsGenerator {
 
             (
                 quote! {
-                    find_program_address(&#seeds, &crate::ID)
+                    let (#pda_key, #pda_bump) = find_program_address(&#seeds, &crate::ID);
                 },
                 seeds,
             )
@@ -89,12 +87,13 @@ impl BumpsGenerator {
             quote! {
                 let (#pda_key, #pda_bump) = if <Mut<UncheckedAccount> as ChecksExt>::is_initialized(&#name) {
                     #pda
+                    (#pda_key, #pda_bump)
                 }else {
                     find_program_address(&#seeds, &crate::ID)
                 };
             }
         } else {
-            quote!(let (#pda_key, #pda_bump) = #pda;)
+            quote!(#pda)
         };
 
         self.result.at_init.extend(quote! {
