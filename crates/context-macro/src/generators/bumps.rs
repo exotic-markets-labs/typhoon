@@ -261,7 +261,7 @@ impl ContextVisitor for BumpsGenerator {
         self.visit_constraints(&account.constraints)?;
 
         let mut pda_generator = PdaGenerator::new(account);
-        pda_generator.visit_account(&account)?;
+        pda_generator.visit_account(account)?;
 
         if self.is_pda {
             let (token, is_field_generated) = pda_generator.generate()?;
