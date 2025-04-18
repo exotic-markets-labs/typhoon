@@ -2,7 +2,7 @@ use {
     super::{ConstraintGenerator, GeneratorResult},
     crate::{
         accounts::Account,
-        constraints::{ConstraintAssociatedToken, ConstraintInit},
+        constraints::{ConstraintAssociatedToken, ConstraintInit, ConstraintInitIfNeeded},
         visitor::ContextVisitor,
     },
     quote::quote,
@@ -49,6 +49,15 @@ impl ContextVisitor for RentGenerator {
 
     fn visit_init(&mut self, _contraint: &ConstraintInit) -> Result<(), syn::Error> {
         self.init_counter += 1;
+        Ok(())
+    }
+
+    fn visit_init_if_needed(
+        &mut self,
+        _constraint: &ConstraintInitIfNeeded,
+    ) -> Result<(), syn::Error> {
+        self.init_counter += 1;
+
         Ok(())
     }
 
