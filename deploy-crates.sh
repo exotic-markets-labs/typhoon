@@ -68,3 +68,4 @@ if [ "$DRY_RUN" = true ]; then
     echo "Dry run completed successfully! No crates were actually published."
 else
     echo "All crates have been published successfully!" 
+fi 
