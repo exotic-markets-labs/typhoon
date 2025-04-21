@@ -16,7 +16,7 @@ unexpected_cfgs = { level = "warn", check-cfg = [
 typhoon = { path = "../../crates/lib" }
 
 [dev-dependencies]
-litesvm = "0.6.0"
+litesvm = "0.6.1"
 solana-instruction = "2.2.1"
 solana-keypair = "2.2.1"
 solana-native-token = "2.2.1"
@@ -24,6 +24,3 @@ solana-pubkey = "2.2.1"
 solana-signer = "2.2.1"
 solana-system-interface = "1.0.0"
 solana-transaction = "2.2.1"
-
-[patch.crates-io]
-pinocchio = { git = "https://github.com/anza-xyz/pinocchio", branch = "febo/allocator-features" }
