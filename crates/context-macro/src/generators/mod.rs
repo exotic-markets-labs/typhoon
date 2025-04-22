@@ -23,7 +23,7 @@ pub enum ConstraintGenerators {
     Rent(RentGenerator),
     Args(ArgumentsGenerator),
     Assign(AssignGenerator),
-    Bumps(Box<BumpsGenerator>),
+    Bumps(BumpsGenerator),
     InitIfNeeded(InitIfNeededGenerator),
 }
 

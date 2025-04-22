@@ -1,4 +1,5 @@
 use {
+    crate::cross_checks::cross_checks,
     context::Context,
     generators::*,
     injector::FieldInjector,
@@ -53,11 +54,13 @@ impl TokenGenerator {
             ConstraintGenerators::Args(ArgumentsGenerator::new()),
             ConstraintGenerators::Assign(AssignGenerator::new()),
             ConstraintGenerators::Rent(RentGenerator::new()),
-            ConstraintGenerators::InitIfNeeded(InitIfNeededGenerator::new()),
-            ConstraintGenerators::Bumps(Box::new(BumpsGenerator::new())),
+            ConstraintGenerators::Bumps(BumpsGenerator::new()),
             ConstraintGenerators::Init(InitializationGenerator::new()),
+            ConstraintGenerators::InitIfNeeded(InitIfNeededGenerator::new()),
             ConstraintGenerators::HasOne(HasOneGenerator::new()),
         ];
+
+        cross_checks(&generation_context)?;
 
         for generator in &mut generators {
             generator.append(&mut generation_context)?;

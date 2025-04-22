@@ -1,7 +1,5 @@
-error: Using `init` requires including the `Program<System>` account
-  --> tests/constraints/missing_system_program.fail.rs:20:1
+error: One constraint requires including the `Program<System>` account.
+  --> tests/constraints/missing_system_program.fail.rs:21:1
    |
-20 | #[context]
-   | ^^^^^^^^^^
-   |
-   = note: this error originates in the attribute macro `context` (in Nightly builds, run with -Z macro-backtrace for more info)
+21 | pub struct InitContext {
+   | ^^^
