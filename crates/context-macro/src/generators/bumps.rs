@@ -101,7 +101,13 @@ impl StagedGenerator for BumpsGenerator {
                     let pda_bump = format_ident!("{}_bump", name);
                     let mut bump_gen = BumpTokenGenerator::new(account);
                     bump_gen.visit_account(account)?;
-                    let (pda_token, find_pda_token, check_token, _) = bump_gen.generate()?;
+                    let (pda_token, find_pda_token, check_token, is_field_generated) =
+                        bump_gen.generate()?;
+
+                    if is_field_generated {
+                        fields.push(account.name.clone());
+                    }
+
                     context.generated_results.inside.extend(quote! {
                         let #is_initialized_name = <Mut<UncheckedAccount> as ChecksExt>::is_initialized(&#name);
                         let (#name, #pda_key, #pda_bump) = if #is_initialized_name {
