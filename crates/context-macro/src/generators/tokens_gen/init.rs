@@ -87,7 +87,7 @@ impl<'a> InitTokenGenerator<'a> {
             self.get_seeds().map(|seeds| {
                 quote! {
                     // TODO: avoid reusing seeds here and in verifications
-                    let bump = [bumps.#name];
+                    let bump = [bumps.#name]; // TODO fix for init
                     let seeds = #seeds;
                     let signer = instruction::CpiSigner::from(&seeds);
                 }

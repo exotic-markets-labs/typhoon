@@ -51,7 +51,7 @@ impl StagedGenerator for InitIfNeededGenerator {
                         (#pda_key, #pda_bump)
                     } else {
                         #find_pda_token
-                    }
+                    };
                     #check_token
                 })
             } else {
