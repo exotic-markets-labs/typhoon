@@ -1,5 +1,9 @@
 use {
-    crate::{constraints::ConstraintToken, visitor::ContextVisitor, StagedGenerator},
+    crate::{
+        constraints::{ConstraintInit, ConstraintInitIfNeeded, ConstraintToken},
+        visitor::ContextVisitor,
+        StagedGenerator,
+    },
     quote::{format_ident, quote},
     syn::{Expr, Ident},
 };
@@ -8,6 +12,7 @@ use {
 struct TokenChecks {
     mint: Option<Ident>,
     authority: Option<Expr>,
+    has_init: bool,
 }
 
 impl ContextVisitor for TokenChecks {
@@ -16,6 +21,19 @@ impl ContextVisitor for TokenChecks {
             ConstraintToken::Mint(ident) => self.mint = Some(ident.clone()),
             ConstraintToken::Authority(expr) => self.authority = Some(expr.clone()),
         }
+        Ok(())
+    }
+
+    fn visit_init(&mut self, _constraint: &ConstraintInit) -> Result<(), syn::Error> {
+        self.has_init = true;
+        Ok(())
+    }
+
+    fn visit_init_if_needed(
+        &mut self,
+        _constraint: &ConstraintInitIfNeeded,
+    ) -> Result<(), syn::Error> {
+        self.has_init = true;
         Ok(())
     }
 }
@@ -34,7 +52,7 @@ impl StagedGenerator for TokenAccountGenerator {
             let mut checks = TokenChecks::default();
             checks.visit_account(account)?;
 
-            if checks.authority.is_some() || checks.mint.is_some() {
+            if (checks.authority.is_some() || checks.mint.is_some()) && !checks.has_init {
                 let mut check_token = Vec::with_capacity(2);
                 let name = &account.name;
                 let var_name = format_ident!("{}_state", name);
