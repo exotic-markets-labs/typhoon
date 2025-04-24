@@ -1,28 +1,15 @@
 use {
     super::tokens_gen::BumpTokenGenerator,
-    crate::{
-        constraints::ConstraintBump, visitor::ContextVisitor, GenerationContext, StagedGenerator,
-    },
+    crate::{constraints::Constraint, visitor::ContextVisitor, GenerationContext, StagedGenerator},
     quote::{format_ident, quote},
     syn::parse_quote,
 };
 
-#[derive(Default)]
-pub struct BumpsGenerator {
-    is_pda: bool,
-}
+pub struct BumpsGenerator;
 
 impl BumpsGenerator {
     pub fn new() -> Self {
-        BumpsGenerator::default()
-    }
-}
-
-impl ContextVisitor for BumpsGenerator {
-    fn visit_bump(&mut self, _constraint: &ConstraintBump) -> Result<(), syn::Error> {
-        self.is_pda = true;
-
-        Ok(())
+        BumpsGenerator
     }
 }
 
@@ -32,11 +19,21 @@ impl StagedGenerator for BumpsGenerator {
         let mut fields = Vec::new();
 
         for account in &context.input.accounts {
-            self.visit_constraints(&account.constraints)?;
-            let mut pda_generator = BumpTokenGenerator::new(account);
-            pda_generator.visit_account(account)?;
+            // let has_init_if_needed = account
+            //     .constraints
+            //     .0
+            //     .iter()
+            //     .any(|c| matches!(c, Constraint::InitIfNeeded(_)));
+            let has_bump = account
+                .constraints
+                .0
+                .iter()
+                .any(|c| matches!(c, Constraint::Bump(_)));
 
-            if self.is_pda {
+            if has_bump {
+                let mut pda_generator = BumpTokenGenerator::new(account);
+                pda_generator.visit_account(account)?;
+
                 let (pda, _, check, is_field_generated) = pda_generator.generate()?;
 
                 if is_field_generated {
@@ -47,7 +44,6 @@ impl StagedGenerator for BumpsGenerator {
                     #pda
                     #check
                 });
-                self.is_pda = false;
             }
         }
 
