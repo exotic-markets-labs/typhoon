@@ -55,8 +55,6 @@ impl TokenGenerator {
             ConstraintGenerators::Assign(AssignGenerator::new()),
             ConstraintGenerators::Rent(RentGenerator::new()),
             ConstraintGenerators::Bumps(BumpsGenerator::new()),
-            ConstraintGenerators::Init(InitializationGenerator::new()),
-            ConstraintGenerators::InitIfNeeded(InitIfNeededGenerator::new()),
             ConstraintGenerators::HasOne(HasOneGenerator::new()),
         ];
 
