@@ -55,7 +55,9 @@ impl<'a> BumpTokenGenerator<'a> {
         Ok(seeds)
     }
 
-    pub fn generate(self) -> Result<(TokenStream, TokenStream, TokenStream, bool), syn::Error> {
+    pub fn generate(
+        self,
+    ) -> Result<(TokenStream, Option<TokenStream>, TokenStream, bool), syn::Error> {
         let name = &self.account.name;
         let pda_key = format_ident!("{}_key", name);
         let pda_bump = format_ident!("{}_bump", name);
@@ -75,16 +77,18 @@ impl<'a> BumpTokenGenerator<'a> {
                 ))?;
                 quote!([#seeds, &[#pda_bump]])
             };
-            let seeds_without_bump = self.seeds_without_bump()?;
+            let seeds_without_bump = if self.init_if_needed {
+                Some(self.seeds_without_bump()?)
+            } else {
+                None
+            };
 
             (
                 quote! {
                     let #pda_bump = { #bump };
                     let #pda_key = create_program_address(&#seeds_token, &#program_id)?;
                 },
-                quote! {
-                    let (#pda_key, #pda_bump) = find_program_address(&#seeds_without_bump, &#program_id);
-                },
+                seeds_without_bump,
             )
         } else {
             let seeds = self.seeds_without_bump()?;
@@ -93,9 +97,9 @@ impl<'a> BumpTokenGenerator<'a> {
                 quote! {
                     let (#pda_key, #pda_bump) = find_program_address(&#seeds, &#program_id);
                 },
-                quote! {
+                Some(quote! {
                     let (#pda_key, #pda_bump) = find_program_address(&#seeds, &#program_id);
-                },
+                }),
             )
         };
 
