@@ -78,7 +78,10 @@ impl<'a> BumpTokenGenerator<'a> {
                 quote!([#seeds, &[#pda_bump]])
             };
             let seeds_without_bump = if self.init_if_needed {
-                Some(self.seeds_without_bump()?)
+                let seed_token = self.seeds_without_bump()?;
+                Some(
+                    quote!(let (#pda_key, #pda_bump) = find_program_address(&#seed_token, &#program_id);),
+                )
             } else {
                 None
             };
