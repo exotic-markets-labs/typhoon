@@ -85,9 +85,10 @@ impl<'a> InitTokenGenerator<'a> {
         };
         let maybe_signer = {
             self.get_seeds().map(|seeds| {
+                let pda_bump = format_ident!("{}_bump", name);
                 quote! {
                     // TODO: avoid reusing seeds here and in verifications
-                    let bump = [bumps.#name]; // TODO fix for init
+                    let bump = [#pda_bump];
                     let seeds = #seeds;
                     let signer = instruction::CpiSigner::from(&seeds);
                 }
