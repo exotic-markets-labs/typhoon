@@ -55,6 +55,8 @@ impl StagedGenerator for HasOneGenerator {
                     #(#targets)*
                 }
             });
+
+            self.targets.clear();
         }
 
         Ok(())
