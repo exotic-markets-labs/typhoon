@@ -33,6 +33,9 @@ pub enum Error {
 
     #[error("Cannot initialize a program account with the payer account")]
     TryingToInitPayerAsProgramAccount,
+
+    #[error("Token constraint was violated")]
+    TokenConstraintViolated,
 }
 
 impl FromPrimitive for Error {
@@ -47,6 +50,7 @@ impl FromPrimitive for Error {
             3006 => Some(Error::AccountDiscriminatorMismatch),
             3007 => Some(Error::HasOneConstraint),
             3008 => Some(Error::TryingToInitPayerAsProgramAccount),
+            3009 => Some(Error::TokenConstraintViolated),
             _ => None,
         }
     }
@@ -68,6 +72,7 @@ impl ToPrimitive for Error {
             Error::AccountDiscriminatorMismatch => Some(3006),
             Error::HasOneConstraint => Some(3007),
             Error::TryingToInitPayerAsProgramAccount => Some(3008),
+            Error::TokenConstraintViolated => Some(3009),
         }
     }
 

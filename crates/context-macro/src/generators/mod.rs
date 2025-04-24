@@ -3,10 +3,11 @@ mod assign;
 mod bumps;
 mod has_one;
 mod rent;
+mod token;
 mod tokens_gen;
 
 use {crate::StagedGenerator, proc_macro2::TokenStream, syn::Field};
-pub use {arguments::*, assign::*, bumps::*, has_one::*, rent::*};
+pub use {arguments::*, assign::*, bumps::*, has_one::*, rent::*, token::*};
 
 #[derive(Default, Clone)]
 pub struct GeneratorResult {
@@ -21,6 +22,7 @@ pub enum ConstraintGenerators {
     Args(ArgumentsGenerator),
     Assign(AssignGenerator),
     Bumps(BumpsGenerator),
+    Token(TokenAccountGenerator),
 }
 
 impl StagedGenerator for ConstraintGenerators {
@@ -31,6 +33,7 @@ impl StagedGenerator for ConstraintGenerators {
             ConstraintGenerators::Args(generator) => generator.append(context),
             ConstraintGenerators::Assign(generator) => generator.append(context),
             ConstraintGenerators::Bumps(generator) => generator.append(context),
+            ConstraintGenerators::Token(generator) => generator.append(context),
         }
     }
 }

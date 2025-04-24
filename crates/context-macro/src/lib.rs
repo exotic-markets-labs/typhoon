@@ -56,6 +56,7 @@ impl TokenGenerator {
             ConstraintGenerators::Rent(RentGenerator::new()),
             ConstraintGenerators::Bumps(BumpsGenerator::new()),
             ConstraintGenerators::HasOne(HasOneGenerator::new()),
+            ConstraintGenerators::Token(TokenAccountGenerator),
         ];
 
         cross_checks(&generation_context)?;
