@@ -105,13 +105,13 @@ impl StagedGenerator for BumpsGenerator {
                     context.generated_results.inside.extend(quote! {
                         let #is_initialized_name = <Mut<UncheckedAccount> as ChecksExt>::is_initialized(&#name);
                         let (#name, #pda_key, #pda_bump) = if #is_initialized_name {
-                            let acc = <#account_ty as FromAccountInfo>::try_from_info(#name.into())?;
+                            let #name = <#account_ty as FromAccountInfo>::try_from_info(#name.into())?;
                             #pda_token
-                            (acc, #pda_key, #pda_bump)
+                            (#name, #pda_key, #pda_bump)
                         }else {
                             let (#pda_key, #pda_bump) = #find_pda_token;
-                            let acc = { #init_token };
-                            (acc, #pda_key, #pda_bump)
+                            let #name = { #init_token };
+                            (#name, #pda_key, #pda_bump)
                         };
                         #check_token
                     });
