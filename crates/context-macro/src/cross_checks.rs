@@ -16,10 +16,7 @@ fn check_program_prerequisite(
     if !has_system_program {
         return Err(syn::Error::new(
             context.input.item_struct.span(),
-            format!(
-                "One constraint requires including the `Program<{}>` account.",
-                program
-            ),
+            format!("One constraint requires including the `Program<{program}>` account."),
         ));
     }
 
