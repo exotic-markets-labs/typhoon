@@ -39,6 +39,22 @@ impl<'a> BumpTokenGenerator<'a> {
         }
     }
 
+    fn seeds_without_bump(&self) -> Result<TokenStream, syn::Error> {
+        let keys = self.seeds.as_ref().ok_or(syn::Error::new(
+            self.account.name.span(),
+            "Seeds constraint is not specified.",
+        ))?;
+
+        let seeds = if matches!(self.pda_ty, PdaType::Seeded) {
+            let inner_ty = format_ident!("{}", self.account.inner_ty);
+
+            quote!(#inner_ty::derive(#keys))
+        } else {
+            quote!([#keys])
+        };
+        Ok(seeds)
+    }
+
     pub fn generate(self) -> Result<(TokenStream, TokenStream, TokenStream, bool), syn::Error> {
         let name = &self.account.name;
         let pda_key = format_ident!("{}_key", name);
@@ -49,7 +65,7 @@ impl<'a> BumpTokenGenerator<'a> {
             .map(|p| quote!(#p))
             .unwrap_or(quote!(crate::ID));
 
-        let (pda, seeds) = if let Some(bump) = &self.bump {
+        let (pda, pda_no_bump) = if let Some(bump) = &self.bump {
             let seeds_token = if matches!(self.pda_ty, PdaType::Seeded) {
                 quote!(#name.data()?.seeds_with_bump(&[#pda_bump]))
             } else {
@@ -59,39 +75,33 @@ impl<'a> BumpTokenGenerator<'a> {
                 ))?;
                 quote!([#seeds, &[#pda_bump]])
             };
+            let seeds_without_bump = self.seeds_without_bump()?;
 
             (
                 quote! {
                     let #pda_bump = { #bump };
                     let #pda_key = create_program_address(&#seeds_token, &#program_id)?;
                 },
-                seeds_token,
+                quote! {
+                    let (#pda_key, #pda_bump) = find_program_address(&#seeds_without_bump, &#program_id);
+                },
             )
         } else {
-            let keys = self.seeds.as_ref().ok_or(syn::Error::new(
-                name.span(),
-                "Seeds constraint is not specified.",
-            ))?;
-
-            let seeds = if matches!(self.pda_ty, PdaType::Seeded) {
-                let inner_ty = format_ident!("{}", self.account.inner_ty);
-
-                quote!(#inner_ty::derive(#keys))
-            } else {
-                quote!([#keys])
-            };
+            let seeds = self.seeds_without_bump()?;
 
             (
                 quote! {
                     let (#pda_key, #pda_bump) = find_program_address(&#seeds, &#program_id);
                 },
-                seeds,
+                quote! {
+                    let (#pda_key, #pda_bump) = find_program_address(&#seeds, &#program_id);
+                },
             )
         };
 
         Ok((
             pda,
-            quote!(find_program_address(&#seeds, &#program_id)),
+            pda_no_bump,
             quote! {
                 if #name.key() != &#pda_key {
                     return Err(ProgramError::InvalidSeeds);

@@ -109,7 +109,7 @@ impl StagedGenerator for BumpsGenerator {
                             #pda_token
                             (#name, #pda_key, #pda_bump)
                         }else {
-                            let (#pda_key, #pda_bump) = #find_pda_token;
+                            #find_pda_token
                             let #name = { #init_token };
                             (#name, #pda_key, #pda_bump)
                         };
