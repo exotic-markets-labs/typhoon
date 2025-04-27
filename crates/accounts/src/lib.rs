@@ -3,17 +3,17 @@ use {
     bytemuck::{AnyBitPattern, NoUninit},
     pinocchio::{
         account_info::{AccountInfo, Ref, RefMut},
-        program_error::ProgramError,
         pubkey::Pubkey,
     },
     sealed::Sealed,
+    typhoon_errors::Error,
 };
 
 mod accounts;
 mod programs;
 
 pub trait FromAccountInfo<'a>: Sized {
-    fn try_from_info(info: &'a AccountInfo) -> Result<Self, ProgramError>;
+    fn try_from_info(info: &'a AccountInfo) -> Result<Self, Error>;
 }
 
 pub trait ReadableAccount: AsRef<AccountInfo> {
@@ -21,15 +21,15 @@ pub trait ReadableAccount: AsRef<AccountInfo> {
 
     fn key(&self) -> &Pubkey;
     fn is_owned_by(&self, owner: &Pubkey) -> bool;
-    fn lamports(&self) -> Result<Ref<u64>, ProgramError>;
-    fn data(&self) -> Result<Ref<Self::DataType>, ProgramError>;
+    fn lamports(&self) -> Result<Ref<u64>, Error>;
+    fn data(&self) -> Result<Ref<Self::DataType>, Error>;
 }
 
 pub trait WritableAccount: ReadableAccount + Sealed {
     fn assign(&self, new_owner: &Pubkey);
-    fn realloc(&self, new_len: usize, zero_init: bool) -> Result<(), ProgramError>;
-    fn mut_lamports(&self) -> Result<RefMut<u64>, ProgramError>;
-    fn mut_data(&self) -> Result<RefMut<Self::DataType>, ProgramError>;
+    fn realloc(&self, new_len: usize, zero_init: bool) -> Result<(), Error>;
+    fn mut_lamports(&self) -> Result<RefMut<u64>, Error>;
+    fn mut_data(&self) -> Result<RefMut<Self::DataType>, Error>;
 }
 
 pub trait SignerAccount: ReadableAccount + Sealed {}

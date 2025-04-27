@@ -9,7 +9,7 @@ use {
         program_error::ProgramError,
         pubkey::Pubkey,
     },
-    typhoon_errors::Error,
+    typhoon_errors::{Error, ErrorCode},
 };
 
 pub struct Mut<T: ReadableAccount>(T);
@@ -18,9 +18,9 @@ impl<'a, T> FromAccountInfo<'a> for Mut<T>
 where
     T: FromAccountInfo<'a> + ReadableAccount,
 {
-    fn try_from_info(info: &'a AccountInfo) -> Result<Self, ProgramError> {
+    fn try_from_info(info: &'a AccountInfo) -> Result<Self, Error> {
         if !info.is_writable() {
-            return Err(Error::AccountNotMutable.into());
+            return Err(ErrorCode::AccountNotMutable.into());
         }
 
         Ok(Mut(T::try_from_info(info)?))
@@ -59,11 +59,11 @@ where
         self.0.is_owned_by(owner)
     }
 
-    fn lamports(&self) -> Result<Ref<u64>, ProgramError> {
+    fn lamports(&self) -> Result<Ref<u64>, Error> {
         self.0.lamports()
     }
 
-    fn data(&self) -> Result<Ref<Self::DataType>, ProgramError> {
+    fn data(&self) -> Result<Ref<Self::DataType>, Error> {
         self.0.data()
     }
 }
@@ -77,16 +77,22 @@ macro_rules! impl_writable {
                 }
             }
 
-            fn realloc(&self, new_len: usize, zero_init: bool) -> Result<(), ProgramError> {
-                self.0.as_ref().realloc(new_len, zero_init)
+            fn realloc(&self, new_len: usize, zero_init: bool) -> Result<(), Error> {
+                self.0
+                    .as_ref()
+                    .realloc(new_len, zero_init)
+                    .map_err(Into::into)
             }
 
-            fn mut_lamports(&self) -> Result<RefMut<u64>, ProgramError> {
-                self.0.as_ref().try_borrow_mut_lamports()
+            fn mut_lamports(&self) -> Result<RefMut<u64>, Error> {
+                self.0
+                    .as_ref()
+                    .try_borrow_mut_lamports()
+                    .map_err(Into::into)
             }
 
-            fn mut_data(&self) -> Result<RefMut<Self::DataType>, ProgramError> {
-                self.0.as_ref().try_borrow_mut_data()
+            fn mut_data(&self) -> Result<RefMut<Self::DataType>, Error> {
+                self.0.as_ref().try_borrow_mut_data().map_err(Into::into)
             }
         }
     };
@@ -103,16 +109,22 @@ impl<T> WritableAccount for Mut<Program<'_, T>> {
         }
     }
 
-    fn realloc(&self, new_len: usize, zero_init: bool) -> Result<(), ProgramError> {
-        self.0.as_ref().realloc(new_len, zero_init)
+    fn realloc(&self, new_len: usize, zero_init: bool) -> Result<(), Error> {
+        self.0
+            .as_ref()
+            .realloc(new_len, zero_init)
+            .map_err(Into::into)
     }
 
-    fn mut_lamports(&self) -> Result<RefMut<u64>, ProgramError> {
-        self.0.as_ref().try_borrow_mut_lamports()
+    fn mut_lamports(&self) -> Result<RefMut<u64>, Error> {
+        self.0
+            .as_ref()
+            .try_borrow_mut_lamports()
+            .map_err(Into::into)
     }
 
-    fn mut_data(&self) -> Result<RefMut<Self::DataType>, ProgramError> {
-        self.0.as_ref().try_borrow_mut_data()
+    fn mut_data(&self) -> Result<RefMut<Self::DataType>, Error> {
+        self.0.as_ref().try_borrow_mut_data().map_err(Into::into)
     }
 }
 
@@ -123,17 +135,23 @@ impl<T: Discriminator + RefFromBytes> WritableAccount for Mut<Account<'_, T>> {
         }
     }
 
-    fn realloc(&self, new_len: usize, zero_init: bool) -> Result<(), ProgramError> {
-        self.0.as_ref().realloc(new_len, zero_init)
+    fn realloc(&self, new_len: usize, zero_init: bool) -> Result<(), Error> {
+        self.0
+            .as_ref()
+            .realloc(new_len, zero_init)
+            .map_err(Into::into)
     }
 
-    fn mut_lamports(&self) -> Result<RefMut<u64>, ProgramError> {
-        self.0.as_ref().try_borrow_mut_lamports()
+    fn mut_lamports(&self) -> Result<RefMut<u64>, Error> {
+        self.0
+            .as_ref()
+            .try_borrow_mut_lamports()
+            .map_err(Into::into)
     }
 
-    fn mut_data(&self) -> Result<RefMut<Self::DataType>, ProgramError> {
+    fn mut_data(&self) -> Result<RefMut<Self::DataType>, Error> {
         RefMut::filter_map(self.0.as_ref().try_borrow_mut_data()?, T::read_mut)
-            .map_err(|_| ProgramError::InvalidAccountData)
+            .map_err(|_| ProgramError::InvalidAccountData.into())
     }
 }
 

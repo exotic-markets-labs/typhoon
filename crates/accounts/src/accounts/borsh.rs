@@ -5,7 +5,7 @@ use {
         program_error::ProgramError,
         pubkey::Pubkey,
     },
-    typhoon_errors::Error,
+    typhoon_errors::{Error, ErrorCode},
 };
 
 pub struct BorshAccount<'a, T>
@@ -29,28 +29,28 @@ impl<'a, T> FromAccountInfo<'a> for BorshAccount<'a, T>
 where
     T: Owner + Discriminator + borsh::BorshSerialize + borsh::BorshDeserialize,
 {
-    fn try_from_info(info: &'a AccountInfo) -> Result<Self, ProgramError> {
+    fn try_from_info(info: &'a AccountInfo) -> Result<Self, Error> {
         if info.is_owned_by(&pinocchio_system::ID) && *info.try_borrow_lamports()? == 0 {
-            return Err(ProgramError::UninitializedAccount);
+            return Err(ProgramError::UninitializedAccount.into());
         }
 
         if !info.is_owned_by(&T::OWNER) {
-            return Err(Error::AccountOwnedByWrongProgram.into());
+            return Err(ErrorCode::AccountOwnedByWrongProgram.into());
         }
 
         let account_data = info.try_borrow_data()?;
 
         if account_data.len() < T::DISCRIMINATOR.len() {
-            return Err(ProgramError::AccountDataTooSmall);
+            return Err(ProgramError::AccountDataTooSmall.into());
         }
 
         let (discriminator, mut data) = account_data.split_at(T::DISCRIMINATOR.len());
 
         if T::DISCRIMINATOR != discriminator {
-            return Err(Error::AccountDiscriminatorMismatch.into());
+            return Err(ErrorCode::AccountDiscriminatorMismatch.into());
         }
 
-        let state = T::deserialize(&mut data).map_err(|_| Error::BorshIoError)?;
+        let state = T::deserialize(&mut data).map_err(|_| ErrorCode::BorshIoError)?;
 
         Ok(BorshAccount { info, data: state })
     }
@@ -88,11 +88,11 @@ where
         self.info.is_owned_by(owner)
     }
 
-    fn lamports(&self) -> Result<Ref<u64>, ProgramError> {
-        self.info.try_borrow_lamports()
+    fn lamports(&self) -> Result<Ref<u64>, Error> {
+        self.info.try_borrow_lamports().map_err(Into::into)
     }
 
-    fn data(&self) -> Result<Ref<Self::DataType>, ProgramError> {
-        self.info.try_borrow_data()
+    fn data(&self) -> Result<Ref<Self::DataType>, Error> {
+        self.info.try_borrow_data().map_err(Into::into)
     }
 }

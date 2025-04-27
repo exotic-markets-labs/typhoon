@@ -13,4 +13,5 @@ pinocchio.workspace = true
 pinocchio-token = { workspace = true }
 pinocchio-associated-token-account = { workspace = true }
 typhoon-accounts.workspace = true
+typhoon-errors.workspace = true
 typhoon-utility.workspace = true

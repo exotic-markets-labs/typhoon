@@ -5,13 +5,13 @@ use {
         Mint, TokenAccount, TokenProgram,
     },
     pinocchio::{
-        account_info::AccountInfo, instruction::Signer, program_error::ProgramError,
-        pubkey::Pubkey, sysvars::rent::Rent,
+        account_info::AccountInfo, instruction::Signer, pubkey::Pubkey, sysvars::rent::Rent,
     },
     typhoon_accounts::{
         Account, FromAccountInfo, Mut, ProgramId, ReadableAccount, SystemAccount, UncheckedAccount,
         WritableAccount,
     },
+    typhoon_errors::Error,
     typhoon_utility::create_or_assign,
 };
 
@@ -23,7 +23,7 @@ pub trait SPLCreate<'a>: WritableAccount + Into<&'a AccountInfo> {
         mint: &impl ReadableAccount,
         owner: &Pubkey,
         seeds: Option<&[Signer]>,
-    ) -> Result<Mut<Account<'a, TokenAccount>>, ProgramError> {
+    ) -> Result<Mut<Account<'a, TokenAccount>>, Error> {
         create_or_assign(
             &self,
             rent,
@@ -50,7 +50,7 @@ pub trait SPLCreate<'a>: WritableAccount + Into<&'a AccountInfo> {
         owner: &impl ReadableAccount,
         system_program: &impl ReadableAccount,
         token_program: &impl ReadableAccount,
-    ) -> Result<Mut<Account<'a, TokenAccount>>, ProgramError> {
+    ) -> Result<Mut<Account<'a, TokenAccount>>, Error> {
         Create {
             funding_account: payer.as_ref(),
             account: self.as_ref(),
@@ -71,7 +71,7 @@ pub trait SPLCreate<'a>: WritableAccount + Into<&'a AccountInfo> {
         owner: &impl ReadableAccount,
         system_program: &impl ReadableAccount,
         token_program: &impl ReadableAccount,
-    ) -> Result<Mut<Account<'a, TokenAccount>>, ProgramError> {
+    ) -> Result<Mut<Account<'a, TokenAccount>>, Error> {
         CreateIdempotent {
             funding_account: payer.as_ref(),
             account: self.as_ref(),
@@ -93,7 +93,7 @@ pub trait SPLCreate<'a>: WritableAccount + Into<&'a AccountInfo> {
         decimals: u8,
         freeze_authority: Option<&Pubkey>,
         seeds: Option<&[Signer]>,
-    ) -> Result<Mut<Account<'a, Mint>>, ProgramError> {
+    ) -> Result<Mut<Account<'a, Mint>>, Error> {
         create_or_assign(&self, rent, payer, &TokenProgram::ID, Mint::LEN, seeds)?;
 
         InitializeMint2 {

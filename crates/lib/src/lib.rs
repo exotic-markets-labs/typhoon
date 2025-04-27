@@ -1,3 +1,5 @@
+use typhoon_errors::{CustomError, Error};
+
 pub mod macros {
     pub use {
         typhoon_account_macro::*, typhoon_context_macro::*, typhoon_cpi_generator_macro::*,
@@ -21,9 +23,11 @@ pub mod instruction {
     };
 }
 
+pub type ProgramResult<T = (), E = CustomError> = Result<T, Error<E>>;
+
 pub mod prelude {
     pub use {
-        super::{bytes, instruction, lib::*, macros::*},
+        super::{bytes, instruction, lib::*, macros::*, ProgramResult},
         pinocchio_pubkey::{
             declare_id, from_str as pubkey_from_str,
             pinocchio::{
@@ -35,7 +39,6 @@ pub mod prelude {
                 pubkey::*,
                 seeds,
                 sysvars::{clock::Clock, fees::Fees, rent::Rent, Sysvar},
-                ProgramResult,
             },
         },
     };

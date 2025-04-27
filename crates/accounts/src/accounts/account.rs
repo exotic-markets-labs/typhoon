@@ -6,7 +6,7 @@ use {
         pubkey::Pubkey,
     },
     std::marker::PhantomData,
-    typhoon_errors::Error,
+    typhoon_errors::{Error, ErrorCode},
 };
 
 pub struct Account<'a, T>
@@ -21,23 +21,23 @@ impl<'a, T> FromAccountInfo<'a> for Account<'a, T>
 where
     T: Owner + Discriminator + RefFromBytes,
 {
-    fn try_from_info(info: &'a AccountInfo) -> Result<Self, ProgramError> {
+    fn try_from_info(info: &'a AccountInfo) -> Result<Self, Error> {
         if info.is_owned_by(&pinocchio_system::ID) && *info.try_borrow_lamports()? == 0 {
-            return Err(ProgramError::UninitializedAccount);
+            return Err(ProgramError::UninitializedAccount.into());
         }
 
         if !info.is_owned_by(&T::OWNER) {
-            return Err(Error::AccountOwnedByWrongProgram.into());
+            return Err(ErrorCode::AccountOwnedByWrongProgram.into());
         }
 
         let account_data = info.try_borrow_data()?;
 
         if account_data.len() < T::DISCRIMINATOR.len() {
-            return Err(ProgramError::AccountDataTooSmall);
+            return Err(ProgramError::AccountDataTooSmall.into());
         }
 
         if T::DISCRIMINATOR != &account_data[..T::DISCRIMINATOR.len()] {
-            return Err(Error::AccountDiscriminatorMismatch.into());
+            return Err(ErrorCode::AccountDiscriminatorMismatch.into());
         }
 
         Ok(Account {
@@ -79,12 +79,12 @@ where
         self.info.is_owned_by(owner)
     }
 
-    fn lamports(&self) -> Result<Ref<u64>, ProgramError> {
-        self.info.try_borrow_lamports()
+    fn lamports(&self) -> Result<Ref<u64>, Error> {
+        self.info.try_borrow_lamports().map_err(Into::into)
     }
 
-    fn data(&self) -> Result<Ref<Self::DataType>, ProgramError> {
+    fn data(&self) -> Result<Ref<Self::DataType>, Error> {
         Ref::filter_map(self.info.try_borrow_data()?, T::read)
-            .map_err(|_| ProgramError::InvalidAccountData)
+            .map_err(|_| Error::new_solana(ProgramError::InvalidAccountData))
     }
 }

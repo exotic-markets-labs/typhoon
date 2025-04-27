@@ -11,4 +11,5 @@ repository.workspace = true
 pinocchio.workspace = true
 pinocchio-system.workspace = true
 typhoon-accounts.workspace = true
+typhoon-errors.workspace = true
 typhoon-utility.workspace = true

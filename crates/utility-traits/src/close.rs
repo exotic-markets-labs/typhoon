@@ -1,10 +1,10 @@
 use {
-    pinocchio::{program_error::ProgramError, ProgramResult},
-    typhoon_accounts::WritableAccount,
+    pinocchio::program_error::ProgramError, typhoon_accounts::WritableAccount,
+    typhoon_errors::Error,
 };
 
 pub trait CloseAccount: WritableAccount {
-    fn close(&self, destination: &impl WritableAccount) -> ProgramResult {
+    fn close(&self, destination: &impl WritableAccount) -> Result<(), Error> {
         let dest_lamports = *destination.lamports()?;
         let source_lamports = *self.lamports()?;
 
