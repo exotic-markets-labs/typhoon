@@ -12,7 +12,7 @@ use {
     typhoon_accounts::*,
     typhoon_context::HandlerContext,
     typhoon_context_macro::*,
-    typhoon_errors::{CustomError, Error},
+    typhoon_errors::*,
     typhoon_program_id_macro::program_id,
     typhoon_utility_traits::SystemCpi,
 };

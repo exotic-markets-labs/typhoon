@@ -36,7 +36,7 @@ impl StagedGenerator for HasOneGenerator {
 
             let name = &account.name;
             let var_name = format_ident!("{}_state", name);
-            let basic_error: Expr = parse_quote!(Error::HasOneConstraint);
+            let basic_error: Expr = parse_quote!(ErrorCode::HasOneConstraint);
 
             let targets = self.targets.iter().map(|(target, error)| {
                 let target = &target;
