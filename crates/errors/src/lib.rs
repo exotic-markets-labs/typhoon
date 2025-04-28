@@ -5,7 +5,7 @@ mod extension;
 pub use {default_custom::*, error_code::*, extension::*};
 use {
     num_traits::{FromPrimitive, ToPrimitive},
-    pinocchio::program_error::ProgramError,
+    pinocchio::{log, program_error::ProgramError},
     std::fmt::Display,
 };
 
@@ -62,11 +62,26 @@ where
     T: Display + FromPrimitive + ToPrimitive,
 {
     fn from(value: Error<T>) -> Self {
-        //todo log here
         match value.error {
             ErrorType::Solana(program_error) => program_error,
-            ErrorType::Typhoon(error_code) => ProgramError::Custom(error_code.to_u32().unwrap()),
-            ErrorType::Custom(custom) => ProgramError::Custom(custom.to_u32().unwrap()),
+            ErrorType::Typhoon(err_code) => {
+                if let Some(account) = value.account_name {
+                    log::sol_log(&format!("Account {account} with error: {err_code}"));
+                // TODO use msg when it's more stable
+                } else {
+                    log::sol_log(&format!("Error: {err_code}"));
+                };
+
+                ProgramError::Custom(err_code.to_u32().unwrap())
+            }
+            ErrorType::Custom(custom) => {
+                if let Some(account) = value.account_name {
+                    log::sol_log(&format!("Account {account} with error: {custom}"));
+                } else {
+                    log::sol_log(&format!("Error: {custom}"));
+                };
+                ProgramError::Custom(custom.to_u32().unwrap())
+            }
         }
     }
 }
