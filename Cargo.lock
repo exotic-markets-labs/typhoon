@@ -500,6 +500,7 @@ dependencies = [
  "bytemuck",
  "paste",
  "pinocchio",
+ "typhoon-errors",
 ]
 
 [[package]]
@@ -516,6 +517,7 @@ dependencies = [
  "typhoon-account-macro",
  "typhoon-accounts",
  "typhoon-context",
+ "typhoon-errors",
  "typhoon-program-id-macro",
  "typhoon-utility-traits",
 ]

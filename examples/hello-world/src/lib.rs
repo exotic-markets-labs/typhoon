@@ -6,7 +6,7 @@ handlers! {
     hello_world,
 }
 
-pub fn hello_world() -> Result<(), ProgramError> {
+pub fn hello_world() -> ProgramResult {
     msg!("Hello World");
 
     Ok(())

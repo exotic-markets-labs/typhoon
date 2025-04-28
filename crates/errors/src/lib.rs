@@ -1,14 +1,13 @@
 mod default_custom;
 mod error_code;
+mod extension;
 
+pub use {default_custom::*, error_code::*, extension::*};
 use {
     num_traits::{FromPrimitive, ToPrimitive},
     pinocchio::program_error::ProgramError,
     std::fmt::Display,
 };
-
-pub use default_custom::*;
-pub use error_code::*;
 
 pub enum ErrorType<T = CustomError>
 where
@@ -52,8 +51,8 @@ where
         }
     }
 
-    pub fn with_account(mut self, name: String) -> Self {
-        self.account_name = Some(name);
+    pub fn with_account(mut self, name: impl ToString) -> Self {
+        self.account_name = Some(name.to_string());
         self
     }
 }
@@ -63,6 +62,7 @@ where
     T: Display + FromPrimitive + ToPrimitive,
 {
     fn from(value: Error<T>) -> Self {
+        //todo log here
         match value.error {
             ErrorType::Solana(program_error) => program_error,
             ErrorType::Typhoon(error_code) => ProgramError::Custom(error_code.to_u32().unwrap()),

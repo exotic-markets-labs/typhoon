@@ -50,7 +50,7 @@ where
             return Err(ErrorCode::AccountDiscriminatorMismatch.into());
         }
 
-        let state = T::deserialize(&mut data).map_err(|_| ErrorCode::BorshIoError)?;
+        let state = T::deserialize(&mut data).map_err(|_| ProgramError::BorshIoError)?;
 
         Ok(BorshAccount { info, data: state })
     }

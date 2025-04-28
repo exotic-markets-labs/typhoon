@@ -23,5 +23,6 @@ trybuild.workspace = true
 typhoon-account-macro.workspace = true
 typhoon-accounts.workspace = true
 typhoon-context.workspace = true
+typhoon-errors.workspace = true
 typhoon-program-id-macro.workspace = true
 typhoon-utility-traits.workspace = true

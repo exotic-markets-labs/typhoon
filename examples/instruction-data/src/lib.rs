@@ -56,13 +56,13 @@ handlers! {
     set_and_add_values,
 }
 
-pub fn initialize(ctx: InitContext) -> Result<(), ProgramError> {
+pub fn initialize(ctx: InitContext) -> ProgramResult {
     ctx.buffer.mut_data()?.value1 = ctx.args.value.into();
 
     Ok(())
 }
 
-pub fn set_value(ctx: SetValueContext, more_args: Args<PodU64>) -> Result<(), ProgramError> {
+pub fn set_value(ctx: SetValueContext, more_args: Args<PodU64>) -> ProgramResult {
     let mut data = ctx.buffer.mut_data()?;
     data.value1 = ctx.args.value.into();
     data.value2 = (*more_args).into();
@@ -70,10 +70,7 @@ pub fn set_value(ctx: SetValueContext, more_args: Args<PodU64>) -> Result<(), Pr
     Ok(())
 }
 
-pub fn set_and_add_values(
-    ctx_a: SetValueContext,
-    ctx_b: SetValueContext,
-) -> Result<(), ProgramError> {
+pub fn set_and_add_values(ctx_a: SetValueContext, ctx_b: SetValueContext) -> ProgramResult {
     let value_a = ctx_a.args.value.into();
     let value_b = ctx_b.args.value.into();
     ctx_a.buffer.mut_data()?.value1 = value_a;

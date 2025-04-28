@@ -59,6 +59,7 @@ impl<'a> BumpTokenGenerator<'a> {
         self,
     ) -> Result<(TokenStream, Option<TokenStream>, TokenStream, bool), syn::Error> {
         let name = &self.account.name;
+        let name_str = name.to_string();
         let pda_key = format_ident!("{}_key", name);
         let pda_bump = format_ident!("{}_bump", name);
         let program_id = self
@@ -111,7 +112,7 @@ impl<'a> BumpTokenGenerator<'a> {
             pda_no_bump,
             quote! {
                 if #name.key() != &#pda_key {
-                    return Err(ProgramError::InvalidSeeds);
+                    return Err(Error::new_solana(ProgramError::InvalidSeeds).with_account(#name_str));
                 }
             },
             self.bump.is_none() || self.init_if_needed,

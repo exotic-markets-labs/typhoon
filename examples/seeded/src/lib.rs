@@ -29,7 +29,7 @@ pub struct IncrementContext {
     pub counter: Mut<Account<Counter>>,
 }
 
-pub fn initialize(ctx: InitContext) -> Result<(), ProgramError> {
+pub fn initialize(ctx: InitContext) -> ProgramResult {
     *ctx.counter.mut_data()? = Counter {
         admin: ctx.args.admin,
         count: 0,
@@ -40,7 +40,7 @@ pub fn initialize(ctx: InitContext) -> Result<(), ProgramError> {
     Ok(())
 }
 
-pub fn increment(ctx: IncrementContext) -> Result<(), ProgramError> {
+pub fn increment(ctx: IncrementContext) -> ProgramResult {
     ctx.counter.mut_data()?.count += 1;
 
     Ok(())

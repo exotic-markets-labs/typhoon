@@ -55,7 +55,7 @@ pub struct MintFromEscrowContext {
     pub system_program: Program<System>,
 }
 
-pub fn mint_from_escrow(ctx: MintFromEscrowContext) -> Result<(), ProgramError> {
+pub fn mint_from_escrow(ctx: MintFromEscrowContext) -> ProgramResult {
     MintTo {
         mint: ctx.mint.as_ref(),
         account: ctx.token_account.as_ref(),

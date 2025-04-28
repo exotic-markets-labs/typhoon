@@ -1,6 +1,7 @@
-use std::fmt::Display;
-
-use num_traits::{FromPrimitive, ToPrimitive};
+use {
+    num_traits::{FromPrimitive, ToPrimitive},
+    std::fmt::Display,
+};
 
 pub struct CustomError;
 

@@ -6,7 +6,7 @@ handlers! {
     pull_lever,
 }
 
-pub fn pull_lever(ctx: PullLever, name: Args<PodStr<50>>) -> Result<(), ProgramError> {
+pub fn pull_lever(ctx: PullLever, name: Args<PodStr<50>>) -> ProgramResult {
     crate::lever_cpi::SwitchPower {
         power: ctx.power.as_ref(),
         name: name.as_ref(),

@@ -39,7 +39,7 @@ impl ToTokens for Handlers {
                 program_id: &Pubkey,
                 accounts: &[AccountInfo],
                 instruction_data: &[u8],
-            ) -> ProgramResult {
+            ) -> Result<(), ProgramError> {
                 if program_id != &crate::ID {
                     return Err(ProgramError::IncorrectProgramId);
                 }

@@ -1,5 +1,7 @@
-use num_derive::{FromPrimitive, ToPrimitive};
-use thiserror::Error;
+use {
+    num_derive::{FromPrimitive, ToPrimitive},
+    thiserror::Error,
+};
 
 #[derive(Debug, Error, FromPrimitive, ToPrimitive)]
 #[repr(u32)]
@@ -18,9 +20,6 @@ pub enum ErrorCode {
 
     #[error("The current owner of this account is not the expected one")]
     AccountOwnedByWrongProgram,
-
-    #[error("Failed to serialize or deserialize account data")]
-    BorshIoError,
 
     #[error("Discriminator did not match what was expected")]
     AccountDiscriminatorMismatch,

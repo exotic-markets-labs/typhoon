@@ -26,18 +26,19 @@ impl<'a> AccountGenerator<'a> {
 
     pub fn generate(&self) -> Result<TokenStream, syn::Error> {
         let name = &self.account.name;
+        let name_str = name.to_string();
         if self.has_init {
             Ok(quote! {
-                let #name = <Mut<SystemAccount> as FromAccountInfo>::try_from_info(#name)?;
+                let #name = <Mut<SystemAccount> as FromAccountInfo>::try_from_info(#name).trace_account(#name_str)?;
             })
         } else if self.has_init_if_needed {
             Ok(quote! {
-                let #name = <Mut<UncheckedAccount> as FromAccountInfo>::try_from_info(#name)?;
+                let #name = <Mut<UncheckedAccount> as FromAccountInfo>::try_from_info(#name).trace_account(#name_str)?;
             })
         } else {
             let account_ty = &self.account.ty;
             Ok(quote! {
-                let #name = <#account_ty as FromAccountInfo>::try_from_info(#name)?;
+                let #name = <#account_ty as FromAccountInfo>::try_from_info(#name).trace_account(#name_str)?;
             })
         }
     }

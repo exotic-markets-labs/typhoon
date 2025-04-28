@@ -12,9 +12,12 @@ use {
     typhoon_accounts::*,
     typhoon_context::HandlerContext,
     typhoon_context_macro::*,
+    typhoon_errors::{CustomError, Error},
     typhoon_program_id_macro::program_id,
     typhoon_utility_traits::SystemCpi,
 };
+
+pub type ProgramResult<T = (), E = CustomError> = Result<T, Error<E>>;
 
 program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 

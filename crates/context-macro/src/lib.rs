@@ -105,9 +105,9 @@ impl ToTokens for TokenGenerator {
                 fn from_entrypoint(
                     accounts: &mut &'info [AccountInfo],
                     instruction_data: &mut &'info [u8],
-                ) -> Result<Self, ProgramError> {
+                ) -> ProgramResult<Self> {
                     let [#(#name_list,)* rem @ ..] = accounts else {
-                        return Err(ProgramError::NotEnoughAccountKeys);
+                        return Err(ProgramError::NotEnoughAccountKeys.into());
                     };
 
                     #inside

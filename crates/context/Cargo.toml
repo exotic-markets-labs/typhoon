@@ -11,3 +11,4 @@ repository.workspace = true
 bytemuck.workspace = true
 paste.workspace = true
 pinocchio.workspace = true
+typhoon-errors.workspace = true

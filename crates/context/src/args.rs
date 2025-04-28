@@ -3,6 +3,7 @@ use {
     bytemuck::{try_from_bytes, AnyBitPattern},
     pinocchio::{account_info::AccountInfo, program_error::ProgramError},
     std::ops::Deref,
+    typhoon_errors::Error,
 };
 
 #[derive(Debug)]
@@ -29,7 +30,7 @@ where
     fn from_entrypoint(
         _accounts: &mut &'a [AccountInfo],
         instruction_data: &mut &'a [u8],
-    ) -> Result<Self, ProgramError> {
+    ) -> Result<Self, Error> {
         let arg: &T = try_from_bytes(&instruction_data[..std::mem::size_of::<T>()])
             .map_err(|_| ProgramError::InvalidInstructionData)?;
 
