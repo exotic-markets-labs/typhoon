@@ -1,192 +1,170 @@
 use {
-    super::{ConstraintGenerator, GeneratorResult},
+    super::tokens_gen::{BumpTokenGenerator, InitTokenGenerator},
     crate::{
-        accounts::Account,
-        constraints::{ConstraintBump, ConstraintSeeded, ConstraintSeeds},
-        context::Context,
-        extractor::InnerTyExtractor,
+        constraints::{ConstraintBump, ConstraintInit, ConstraintInitIfNeeded},
         visitor::ContextVisitor,
+        GenerationContext, StagedGenerator,
     },
     quote::{format_ident, quote},
-    syn::{parse_quote, punctuated::Punctuated, visit::Visit, Expr, Ident, PathSegment, Token},
+    syn::{parse_quote, Ident},
 };
 
 #[derive(Default)]
-pub struct BumpsGenerator {
-    context_name: Option<String>,
-    account: Option<(Ident, PathSegment)>,
-    bump: Option<Expr>,
-    is_seeded: bool,
-    seeds: Option<Punctuated<Expr, Token![,]>>,
-    result: GeneratorResult,
-    struct_fields: Vec<Ident>,
+struct Checks {
+    has_bump: bool,
+    has_init_if_needed: bool,
+    has_init: bool,
 }
+
+impl Checks {
+    pub fn new() -> Self {
+        Checks::default()
+    }
+}
+
+impl ContextVisitor for Checks {
+    fn visit_init_if_needed(
+        &mut self,
+        _constraint: &ConstraintInitIfNeeded,
+    ) -> Result<(), syn::Error> {
+        self.has_init_if_needed = true;
+        Ok(())
+    }
+
+    fn visit_bump(&mut self, _constraint: &ConstraintBump) -> Result<(), syn::Error> {
+        self.has_bump = true;
+        Ok(())
+    }
+
+    fn visit_init(&mut self, _constraint: &ConstraintInit) -> Result<(), syn::Error> {
+        self.has_init = true;
+        Ok(())
+    }
+}
+
+pub struct BumpsGenerator;
 
 impl BumpsGenerator {
     pub fn new() -> Self {
-        BumpsGenerator::default()
-    }
-
-    pub fn is_pda(&self) -> bool {
-        self.is_seeded || self.seeds.is_some()
-    }
-
-    fn extend_checks(&mut self) -> Result<(), syn::Error> {
-        let (name, ty) = self.account.as_ref().unwrap();
-        let pda_key = format_ident!("{}_key", name);
-        let pda_bump = format_ident!("{}_bump", name);
-
-        if let Some(bump) = &self.bump {
-            let (seeds_token, bump_token) = if self.is_seeded {
-                (
-                    quote!(#name.data()?.seeds_with_bump(&[#pda_bump])),
-                    quote!(let #pda_bump = { #bump };),
-                )
-            } else {
-                let seeds = self.seeds.as_ref().ok_or(syn::Error::new(
-                    name.span(),
-                    "Seeds constraint is not specified.",
-                ))?;
-                (
-                    quote!([#seeds, &[#pda_bump]]),
-                    quote!(let #pda_bump = { #bump };),
-                )
-            };
-
-            self.result.after_init.extend(quote! {
-                #bump_token
-                let #pda_key = create_program_address(&#seeds_token, &crate::ID)?;
-                if #name.key() != &#pda_key {
-                    return Err(ProgramError::InvalidSeeds);
-                }
-            });
-        } else {
-            let keys = self.seeds.as_ref().ok_or(syn::Error::new(
-                name.span(),
-                "Seeds constraint is not specified.",
-            ))?;
-
-            let seeds = if self.is_seeded {
-                let mut inner_ty_extractor = InnerTyExtractor::new();
-                inner_ty_extractor.visit_path_segment(ty);
-                let inner_ty_str = inner_ty_extractor
-                    .ty
-                    .ok_or(syn::Error::new(name.span(), "Cannot find the inner type."))?;
-                let inner_ty = format_ident!("{inner_ty_str}");
-
-                quote!(#inner_ty::derive(#keys))
-            } else {
-                quote!([#keys])
-            };
-
-            self.result.at_init.extend(quote! {
-                let (#pda_key, #pda_bump) = find_program_address(&#seeds, &crate::ID);
-                if #name.key() != &#pda_key {
-                    return Err(ProgramError::InvalidSeeds);
-                }
-            });
-        }
-
-        Ok(())
+        BumpsGenerator
     }
 }
 
-impl ConstraintGenerator for BumpsGenerator {
-    fn generate(&self) -> Result<GeneratorResult, syn::Error> {
-        let mut result = self.result.clone();
+impl BumpsGenerator {
+    fn append_field(&mut self, context: &mut GenerationContext, fields: Vec<Ident>) {
+        let context_name = &context.input.item_struct.ident;
+        let struct_name = format_ident!("{}Bumps", context_name);
+        let struct_fields = &fields;
+        let bumps_struct = quote! {
+            #[derive(Debug, PartialEq)]
+            pub struct #struct_name {
+                #(pub #struct_fields: u8,)*
+            }
+        };
 
-        if !self.struct_fields.is_empty() {
-            let struct_name = format_ident!("{}Bumps", self.context_name.as_ref().unwrap());
-            let struct_fields = &self.struct_fields;
-            let bumps_struct = quote! {
-                #[derive(Debug, PartialEq)]
-                pub struct #struct_name {
-                    #(pub #struct_fields: u8,)*
-                }
+        context.generated_results.outside.extend(bumps_struct);
+        let assign_fields = fields.iter().map(|n| {
+            let bump_ident = format_ident!("{}_bump", n);
+            quote!(#n: #bump_ident)
+        });
+        context.generated_results.inside.extend(quote! {
+            let bumps = #struct_name {
+                #(#assign_fields),*
             };
+        });
 
-            result.global_outside = bumps_struct;
-            let assign_fields = self.struct_fields.iter().map(|n| {
-                let bump_ident = format_ident!("{}_bump", n);
-                quote!(#n: #bump_ident)
-            });
-            result.at_init.extend(quote! {
-                let bumps = #struct_name {
-                    #(#assign_fields),*
-                };
-            });
-
-            result.new_fields.push(parse_quote! {
-                pub bumps: #struct_name
-            });
-        }
-
-        Ok(result)
+        context.generated_results.new_fields.push(parse_quote! {
+            pub bumps: #struct_name
+        });
     }
 }
 
-impl ContextVisitor for BumpsGenerator {
-    fn visit_context(&mut self, context: &Context) -> Result<(), syn::Error> {
-        self.context_name = Some(context.item_struct.ident.to_string());
+impl StagedGenerator for BumpsGenerator {
+    fn append(&mut self, context: &mut GenerationContext) -> Result<(), syn::Error> {
+        let mut fields = Vec::new();
 
-        self.visit_accounts(&context.accounts)?;
+        for account in &context.input.accounts {
+            let mut checks = Checks::new();
+            checks.visit_account(account)?;
 
-        if let Some(args) = &context.args {
-            self.visit_arguments(args)?;
+            let name = &account.name;
+            let account_ty = &account.ty;
+
+            if checks.has_init_if_needed {
+                let is_initialized_name = format_ident!("{}_is_initialized", name);
+                let mut init_gen = InitTokenGenerator::new(account);
+                init_gen.visit_account(account)?;
+                let init_token = init_gen.generate()?;
+
+                if checks.has_bump {
+                    let pda_key = format_ident!("{}_key", name);
+                    let pda_bump = format_ident!("{}_bump", name);
+                    let mut bump_gen = BumpTokenGenerator::new(account);
+                    bump_gen.visit_account(account)?;
+                    let (pda_token, find_pda_token, check_token, is_field_generated) =
+                        bump_gen.generate()?;
+
+                    if is_field_generated {
+                        fields.push(account.name.clone());
+                    }
+
+                    context.generated_results.inside.extend(quote! {
+                        let #is_initialized_name = <Mut<UncheckedAccount> as ChecksExt>::is_initialized(&#name);
+                        let (#name, #pda_key, #pda_bump) = if #is_initialized_name {
+                            let #name = <#account_ty as FromAccountInfo>::try_from_info(#name.into())?;
+                            #pda_token
+                            (#name, #pda_key, #pda_bump)
+                        }else {
+                            #find_pda_token
+                            let #name = { #init_token };
+                            (#name, #pda_key, #pda_bump)
+                        };
+                        #check_token
+                    });
+                } else {
+                    context.generated_results.inside.extend(quote! {
+                        let #is_initialized_name = <Mut<UncheckedAccount> as ChecksExt>::is_initialized(&#name);
+                        let #name = if #is_initialized_name {
+                            <#account_ty as FromAccountInfo>::try_from_info(#name.into())?
+                        }else {
+                            #init_token
+                        };
+                });
+                }
+            } else {
+                if checks.has_bump {
+                    let mut pda_generator = BumpTokenGenerator::new(account);
+                    pda_generator.visit_account(account)?;
+
+                    let (pda, _, check, is_field_generated) = pda_generator.generate()?;
+
+                    if is_field_generated {
+                        fields.push(account.name.clone());
+                    }
+
+                    context.generated_results.inside.extend(quote! {
+                        #pda
+                        #check
+                    });
+                }
+
+                if checks.has_init {
+                    let mut init_gen = InitTokenGenerator::new(account);
+                    init_gen.visit_account(account)?;
+                    let init_token = init_gen.generate()?;
+
+                    context.generated_results.inside.extend(quote! {
+                        let #name: #account_ty = {
+                            #init_token
+                        };
+                    });
+                }
+            }
         }
 
-        Ok(())
-    }
-
-    fn visit_account(&mut self, account: &Account) -> Result<(), syn::Error> {
-        self.account = Some((account.name.clone(), account.ty.clone()));
-        self.bump = None;
-        self.is_seeded = false;
-        self.seeds = None;
-
-        self.visit_constraints(&account.constraints)?;
-
-        if self.is_pda() {
-            self.extend_checks()?;
+        if !fields.is_empty() {
+            self.append_field(context, fields);
         }
-
-        Ok(())
-    }
-
-    fn visit_bump(&mut self, constraint: &ConstraintBump) -> Result<(), syn::Error> {
-        self.bump = constraint.0.clone();
-
-        if self.bump.is_none() {
-            self.struct_fields
-                .push(self.account.as_ref().unwrap().0.clone());
-        }
-
-        Ok(())
-    }
-
-    fn visit_seeded(&mut self, constraint: &ConstraintSeeded) -> Result<(), syn::Error> {
-        if !self.is_seeded && self.seeds.is_some() {
-            return Err(syn::Error::new(
-                self.account.as_ref().unwrap().0.span(),
-                "Cannot specified keys and seeds at the same time.",
-            ));
-        }
-
-        self.is_seeded = true;
-        self.seeds = constraint.0.clone();
-
-        Ok(())
-    }
-
-    fn visit_seeds(&mut self, constraint: &ConstraintSeeds) -> Result<(), syn::Error> {
-        if self.is_seeded {
-            return Err(syn::Error::new(
-                self.account.as_ref().unwrap().0.span(),
-                "Cannot specified keys and seeds at the same time.",
-            ));
-        }
-
-        self.seeds = Some(constraint.seeds.clone());
 
         Ok(())
     }

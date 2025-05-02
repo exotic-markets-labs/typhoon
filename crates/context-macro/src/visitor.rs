@@ -1,28 +1,6 @@
-use crate::{accounts::Account, arguments::Arguments, constraints::*, context::Context};
+use crate::{accounts::Account, constraints::*};
 
 pub trait ContextVisitor {
-    fn visit_context(&mut self, context: &Context) -> Result<(), syn::Error> {
-        self.visit_accounts(&context.accounts)?;
-
-        if let Some(args) = &context.args {
-            self.visit_arguments(args)?;
-        }
-
-        Ok(())
-    }
-
-    fn visit_arguments(&mut self, _arguments: &Arguments) -> Result<(), syn::Error> {
-        Ok(())
-    }
-
-    fn visit_accounts(&mut self, accounts: &Vec<Account>) -> Result<(), syn::Error> {
-        for account in accounts {
-            self.visit_account(account)?;
-        }
-
-        Ok(())
-    }
-
     fn visit_account(&mut self, account: &Account) -> Result<(), syn::Error> {
         self.visit_constraints(&account.constraints)
     }

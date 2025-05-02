@@ -54,7 +54,7 @@ pub fn account(
     let item = parse_macro_input!(item as Item);
 
     quote! {
-        #[derive(bytemuck::Pod, bytemuck::Zeroable, AccountState, Copy, Clone)]
+        #[derive(bytemuck::NoUninit, bytemuck::AnyBitPattern, AccountState, Copy, Clone)]
         #[repr(C)]
         #item
     }

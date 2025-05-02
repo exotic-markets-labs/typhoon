@@ -1,6 +1,6 @@
 pub use {accounts::*, programs::*};
 use {
-    bytemuck::Pod,
+    bytemuck::{AnyBitPattern, NoUninit},
     pinocchio::{
         account_info::{AccountInfo, Ref, RefMut},
         program_error::ProgramError,
@@ -65,7 +65,7 @@ pub trait RefFromBytes {
 
 impl<T> RefFromBytes for T
 where
-    T: Pod + Discriminator,
+    T: Discriminator + AnyBitPattern + NoUninit,
 {
     fn read(data: &[u8]) -> Option<&Self> {
         let dis_len = T::DISCRIMINATOR.len();

@@ -168,7 +168,7 @@ fn gen_serialization(serialization: &IdlSerialization) -> proc_macro2::TokenStre
             quote!(#[derive(borsh::BorshSerialize, borsh::BorshDeserialize)])
         }
         IdlSerialization::BytemuckUnsafe | IdlSerialization::Bytemuck => {
-            quote!(#[derive(bytemuck::Pod, bytemuck::Zeroable, Clone, Copy)])
+            quote!(#[derive(bytemuck::NoUninit, bytemuck::AnyBitPattern, Clone, Copy)])
         }
         _ => unimplemented!(),
     }
@@ -232,7 +232,7 @@ mod tests {
         let result = gen_serialization(&IdlSerialization::Bytemuck).to_string();
         assert_eq!(
             result,
-            quote!(#[derive(bytemuck::Pod, bytemuck::Zeroable, Clone, Copy)]).to_string()
+            quote!(#[derive(bytemuck::NoUninit, bytemuck::AnyBitPattern, Clone, Copy)]).to_string()
         );
     }
 
