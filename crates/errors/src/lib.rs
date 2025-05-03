@@ -66,7 +66,7 @@ where
             ErrorType::Solana(program_error) => program_error,
             ErrorType::Typhoon(err_code) => {
                 if let Some(account) = value.account_name {
-                    log::sol_log(&format!("Account {account} with error: {err_code}"));
+                    log::sol_log(&format!("Error: {err_code}, on account '{account}'"));
                 // TODO use msg when it's more stable
                 } else {
                     log::sol_log(&format!("Error: {err_code}"));
@@ -76,7 +76,7 @@ where
             }
             ErrorType::Custom(custom) => {
                 if let Some(account) = value.account_name {
-                    log::sol_log(&format!("Account {account} with error: {custom}"));
+                    log::sol_log(&format!("Error: {custom}, on account '{account}'"));
                 } else {
                     log::sol_log(&format!("Error: {custom}"));
                 };
