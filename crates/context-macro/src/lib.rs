@@ -36,38 +36,30 @@ struct TokenGenerator {
 }
 
 trait StagedGenerator {
-    fn append(&mut self, context: &mut GenerationContext) -> Result<(), syn::Error>;
-}
-
-struct GenerationContext {
-    input: Context,
-    generated_results: GeneratorResult,
+    fn append(&mut self, result: &mut GeneratorResult) -> Result<(), syn::Error>;
 }
 
 impl TokenGenerator {
     pub fn new(context: Context) -> Result<Self, syn::Error> {
-        let mut generation_context = GenerationContext {
-            input: context,
-            generated_results: GeneratorResult::default(),
-        };
+        let mut generated_results = GeneratorResult::default();
         let mut generators = [
-            ConstraintGenerators::Args(ArgumentsGenerator::new()),
-            ConstraintGenerators::Assign(AssignGenerator::new()),
-            ConstraintGenerators::Rent(RentGenerator::new()),
-            ConstraintGenerators::Bumps(BumpsGenerator::new()),
-            ConstraintGenerators::HasOne(HasOneGenerator::new()),
-            ConstraintGenerators::Token(TokenAccountGenerator),
+            ConstraintGenerators::Args(ArgumentsGenerator::new(&context)),
+            ConstraintGenerators::Assign(AssignGenerator::new(&context)),
+            ConstraintGenerators::Rent(RentGenerator::new(&context)),
+            ConstraintGenerators::Bumps(BumpsGenerator::new(&context)),
+            ConstraintGenerators::HasOne(HasOneGenerator::new(&context)),
+            ConstraintGenerators::Token(TokenAccountGenerator::new(&context)),
         ];
 
-        cross_checks(&generation_context)?;
+        cross_checks(&context)?;
 
         for generator in &mut generators {
-            generator.append(&mut generation_context)?;
+            generator.append(&mut generated_results)?;
         }
 
         Ok(TokenGenerator {
-            context: generation_context.input,
-            result: generation_context.generated_results,
+            context,
+            result: generated_results,
         })
     }
 }

@@ -1,24 +1,27 @@
 use {
+    super::GeneratorResult,
     crate::{
-        constraints::ConstraintHasOne, visitor::ContextVisitor, GenerationContext, StagedGenerator,
+        constraints::ConstraintHasOne, context::Context, visitor::ContextVisitor, StagedGenerator,
     },
     quote::{format_ident, quote},
     syn::{parse_quote, Expr, Ident},
 };
 
-pub struct HasOneGenerator {
+pub struct HasOneGenerator<'a> {
+    context: &'a Context,
     targets: Vec<(Ident, Option<Expr>)>,
 }
 
-impl HasOneGenerator {
-    pub fn new() -> Self {
+impl<'a> HasOneGenerator<'a> {
+    pub fn new(context: &'a Context) -> Self {
         Self {
             targets: Vec::new(),
+            context,
         }
     }
 }
 
-impl ContextVisitor for HasOneGenerator {
+impl ContextVisitor for HasOneGenerator<'_> {
     fn visit_has_one(&mut self, constraint: &ConstraintHasOne) -> Result<(), syn::Error> {
         self.targets
             .push((constraint.join_target.clone(), constraint.error.clone()));
@@ -26,9 +29,9 @@ impl ContextVisitor for HasOneGenerator {
     }
 }
 
-impl StagedGenerator for HasOneGenerator {
-    fn append(&mut self, context: &mut GenerationContext) -> Result<(), syn::Error> {
-        for account in &context.input.accounts {
+impl StagedGenerator for HasOneGenerator<'_> {
+    fn append(&mut self, result: &mut GeneratorResult) -> Result<(), syn::Error> {
+        for account in &self.context.accounts {
             self.visit_account(account)?;
             if self.targets.is_empty() {
                 continue;
@@ -49,7 +52,7 @@ impl StagedGenerator for HasOneGenerator {
                 }
             });
 
-            context.generated_results.inside.extend(quote! {
+            result.inside.extend(quote! {
                 {
                     let #var_name = #name.data()?;
                     #(#targets)*

@@ -1,9 +1,11 @@
 use {
+    super::GeneratorResult,
     crate::{
         accounts::Account,
         constraints::{ConstraintInit, ConstraintInitIfNeeded},
+        context::Context,
         visitor::ContextVisitor,
-        GenerationContext, StagedGenerator,
+        StagedGenerator,
     },
     proc_macro2::TokenStream,
     quote::quote,
@@ -61,23 +63,20 @@ impl ContextVisitor for AccountGenerator<'_> {
     }
 }
 
-pub struct AssignGenerator;
+pub struct AssignGenerator<'a>(&'a Context);
 
-impl AssignGenerator {
-    pub fn new() -> Self {
-        AssignGenerator
+impl<'a> AssignGenerator<'a> {
+    pub fn new(context: &'a Context) -> Self {
+        AssignGenerator(context)
     }
 }
 
-impl StagedGenerator for AssignGenerator {
-    fn append(&mut self, context: &mut GenerationContext) -> Result<(), syn::Error> {
-        for account in &context.input.accounts {
+impl StagedGenerator for AssignGenerator<'_> {
+    fn append(&mut self, context: &mut GeneratorResult) -> Result<(), syn::Error> {
+        for account in &self.0.accounts {
             let mut generator = AccountGenerator::new(account);
             generator.visit_account(account)?;
-            context
-                .generated_results
-                .inside
-                .extend(generator.generate()?);
+            context.inside.extend(generator.generate()?);
         }
 
         Ok(())

@@ -1,21 +1,17 @@
 use {
-    crate::{constraints::Constraint, GenerationContext},
+    crate::{constraints::Constraint, context::Context},
     syn::spanned::Spanned,
 };
 
-fn check_program_prerequisite(
-    context: &GenerationContext,
-    program: &str,
-) -> Result<(), syn::Error> {
+fn check_program_prerequisite(context: &Context, program: &str) -> Result<(), syn::Error> {
     let has_system_program = context
-        .input
         .accounts
         .iter()
         .any(|acc| acc.ty.ident == "Program" && acc.inner_ty == program);
 
     if !has_system_program {
         return Err(syn::Error::new(
-            context.input.item_struct.span(),
+            context.item_struct.span(),
             format!("One constraint requires including the `Program<{program}>` account."),
         ));
     }
@@ -23,8 +19,8 @@ fn check_program_prerequisite(
     Ok(())
 }
 
-pub fn cross_checks(context: &GenerationContext) -> Result<(), syn::Error> {
-    for acc in &context.input.accounts {
+pub fn cross_checks(context: &Context) -> Result<(), syn::Error> {
+    for acc in &context.accounts {
         if acc
             .constraints
             .0

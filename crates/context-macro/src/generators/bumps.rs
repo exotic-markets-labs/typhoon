@@ -1,9 +1,13 @@
 use {
-    super::tokens_gen::{BumpTokenGenerator, InitTokenGenerator},
+    super::{
+        tokens_gen::{BumpTokenGenerator, InitTokenGenerator},
+        GeneratorResult,
+    },
     crate::{
         constraints::{ConstraintBump, ConstraintInit, ConstraintInitIfNeeded},
+        context::Context,
         visitor::ContextVisitor,
-        GenerationContext, StagedGenerator,
+        StagedGenerator,
     },
     quote::{format_ident, quote},
     syn::{parse_quote, Ident},
@@ -42,17 +46,17 @@ impl ContextVisitor for Checks {
     }
 }
 
-pub struct BumpsGenerator;
+pub struct BumpsGenerator<'a>(&'a Context);
 
-impl BumpsGenerator {
-    pub fn new() -> Self {
-        BumpsGenerator
+impl<'a> BumpsGenerator<'a> {
+    pub fn new(context: &'a Context) -> Self {
+        BumpsGenerator(context)
     }
 }
 
-impl BumpsGenerator {
-    fn append_field(&mut self, context: &mut GenerationContext, fields: Vec<Ident>) {
-        let context_name = &context.input.item_struct.ident;
+impl BumpsGenerator<'_> {
+    fn append_field(&mut self, result: &mut GeneratorResult, fields: Vec<Ident>) {
+        let context_name = &self.0.item_struct.ident;
         let struct_name = format_ident!("{}Bumps", context_name);
         let struct_fields = &fields;
         let bumps_struct = quote! {
@@ -62,28 +66,28 @@ impl BumpsGenerator {
             }
         };
 
-        context.generated_results.outside.extend(bumps_struct);
+        result.outside.extend(bumps_struct);
         let assign_fields = fields.iter().map(|n| {
             let bump_ident = format_ident!("{}_bump", n);
             quote!(#n: #bump_ident)
         });
-        context.generated_results.inside.extend(quote! {
+        result.inside.extend(quote! {
             let bumps = #struct_name {
                 #(#assign_fields),*
             };
         });
 
-        context.generated_results.new_fields.push(parse_quote! {
+        result.new_fields.push(parse_quote! {
             pub bumps: #struct_name
         });
     }
 }
 
-impl StagedGenerator for BumpsGenerator {
-    fn append(&mut self, context: &mut GenerationContext) -> Result<(), syn::Error> {
+impl StagedGenerator for BumpsGenerator<'_> {
+    fn append(&mut self, result: &mut GeneratorResult) -> Result<(), syn::Error> {
         let mut fields = Vec::new();
 
-        for account in &context.input.accounts {
+        for account in &self.0.accounts {
             let mut checks = Checks::new();
             checks.visit_account(account)?;
 
@@ -108,7 +112,7 @@ impl StagedGenerator for BumpsGenerator {
                         fields.push(account.name.clone());
                     }
 
-                    context.generated_results.inside.extend(quote! {
+                    result.inside.extend(quote! {
                         let #is_initialized_name = <Mut<UncheckedAccount> as ChecksExt>::is_initialized(&#name);
                         let (#name, #pda_key, #pda_bump) = if #is_initialized_name {
                             let #name = <#account_ty as FromAccountInfo>::try_from_info(#name.into())?;
@@ -122,7 +126,7 @@ impl StagedGenerator for BumpsGenerator {
                         #check_token
                     });
                 } else {
-                    context.generated_results.inside.extend(quote! {
+                    result.inside.extend(quote! {
                         let #is_initialized_name = <Mut<UncheckedAccount> as ChecksExt>::is_initialized(&#name);
                         let #name = if #is_initialized_name {
                             <#account_ty as FromAccountInfo>::try_from_info(#name.into())?
@@ -142,7 +146,7 @@ impl StagedGenerator for BumpsGenerator {
                         fields.push(account.name.clone());
                     }
 
-                    context.generated_results.inside.extend(quote! {
+                    result.inside.extend(quote! {
                         #pda
                         #check
                     });
@@ -153,7 +157,7 @@ impl StagedGenerator for BumpsGenerator {
                     init_gen.visit_account(account)?;
                     let init_token = init_gen.generate()?;
 
-                    context.generated_results.inside.extend(quote! {
+                    result.inside.extend(quote! {
                         let #name: #account_ty = {
                             #init_token
                         };
@@ -163,7 +167,7 @@ impl StagedGenerator for BumpsGenerator {
         }
 
         if !fields.is_empty() {
-            self.append_field(context, fields);
+            self.append_field(result, fields);
         }
 
         Ok(())

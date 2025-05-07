@@ -1,26 +1,26 @@
 use {
-    crate::{constraints::Constraint, GenerationContext, StagedGenerator},
+    super::GeneratorResult,
+    crate::{constraints::Constraint, context::Context, StagedGenerator},
     quote::quote,
 };
 
-pub struct RentGenerator;
+pub struct RentGenerator<'a>(&'a Context);
 
-impl RentGenerator {
-    pub fn new() -> Self {
-        Self
+impl<'a> RentGenerator<'a> {
+    pub fn new(context: &'a Context) -> Self {
+        Self(context)
     }
 }
 
-impl StagedGenerator for RentGenerator {
-    fn append(&mut self, context: &mut GenerationContext) -> Result<(), syn::Error> {
-        if context.input.accounts.iter().any(|acc| {
+impl StagedGenerator for RentGenerator<'_> {
+    fn append(&mut self, result: &mut GeneratorResult) -> Result<(), syn::Error> {
+        if self.0.accounts.iter().any(|acc| {
             acc.constraints
                 .0
                 .iter()
                 .any(|c| matches!(c, Constraint::Init(_) | Constraint::InitIfNeeded(_)))
         }) {
-            context
-                .generated_results
+            result
                 .inside
                 .extend(quote!(let rent = <Rent as Sysvar>::get()?;));
         }

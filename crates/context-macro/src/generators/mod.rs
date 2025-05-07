@@ -16,17 +16,17 @@ pub struct GeneratorResult {
     pub new_fields: Vec<Field>,
 }
 
-pub enum ConstraintGenerators {
-    HasOne(HasOneGenerator),
-    Rent(RentGenerator),
-    Args(ArgumentsGenerator),
-    Assign(AssignGenerator),
-    Bumps(BumpsGenerator),
-    Token(TokenAccountGenerator),
+pub enum ConstraintGenerators<'a> {
+    HasOne(HasOneGenerator<'a>),
+    Rent(RentGenerator<'a>),
+    Args(ArgumentsGenerator<'a>),
+    Assign(AssignGenerator<'a>),
+    Bumps(BumpsGenerator<'a>),
+    Token(TokenAccountGenerator<'a>),
 }
 
-impl StagedGenerator for ConstraintGenerators {
-    fn append(&mut self, context: &mut crate::GenerationContext) -> Result<(), syn::Error> {
+impl StagedGenerator for ConstraintGenerators<'_> {
+    fn append(&mut self, context: &mut GeneratorResult) -> Result<(), syn::Error> {
         match self {
             ConstraintGenerators::HasOne(generator) => generator.append(context),
             ConstraintGenerators::Rent(generator) => generator.append(context),

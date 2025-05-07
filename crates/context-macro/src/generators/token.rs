@@ -1,6 +1,8 @@
 use {
+    super::GeneratorResult,
     crate::{
         constraints::{ConstraintInit, ConstraintInitIfNeeded, ConstraintToken},
+        context::Context,
         visitor::ContextVisitor,
         StagedGenerator,
     },
@@ -38,17 +40,17 @@ impl ContextVisitor for TokenChecks {
     }
 }
 
-pub struct TokenAccountGenerator;
+pub struct TokenAccountGenerator<'a>(&'a Context);
 
-// impl<'a> TokenAccountGenerator<'a> {
-//     pub fn new(context: &'a Context) -> Self {
-//         Self { context }
-//     }
-// }
+impl<'a> TokenAccountGenerator<'a> {
+    pub fn new(context: &'a Context) -> Self {
+        Self(context)
+    }
+}
 
-impl StagedGenerator for TokenAccountGenerator {
-    fn append(&mut self, context: &mut crate::GenerationContext) -> Result<(), syn::Error> {
-        for account in &context.input.accounts {
+impl StagedGenerator for TokenAccountGenerator<'_> {
+    fn append(&mut self, result: &mut GeneratorResult) -> Result<(), syn::Error> {
+        for account in &self.0.accounts {
             let mut checks = TokenChecks::default();
             checks.visit_account(account)?;
 
@@ -73,7 +75,7 @@ impl StagedGenerator for TokenAccountGenerator {
                     });
                 }
 
-                context.generated_results.inside.extend(quote! {
+                result.inside.extend(quote! {
                     {
                         let #var_name = #name.data()?;
                         #(#check_token)*

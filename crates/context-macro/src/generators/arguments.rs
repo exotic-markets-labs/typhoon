@@ -1,27 +1,29 @@
 use {
+    super::GeneratorResult,
     crate::{
         arguments::{Argument, Arguments},
-        GenerationContext, StagedGenerator,
+        context::Context,
+        StagedGenerator,
     },
     quote::{format_ident, quote},
     syn::parse_quote,
 };
 
-pub struct ArgumentsGenerator;
+pub struct ArgumentsGenerator<'a>(&'a Context);
 
-impl ArgumentsGenerator {
-    pub fn new() -> Self {
-        ArgumentsGenerator
+impl<'a> ArgumentsGenerator<'a> {
+    pub fn new(context: &'a Context) -> Self {
+        ArgumentsGenerator(context)
     }
 }
 
-impl StagedGenerator for ArgumentsGenerator {
-    fn append(&mut self, context: &mut GenerationContext) -> Result<(), syn::Error> {
-        let Some(ref args) = context.input.args else {
+impl StagedGenerator for ArgumentsGenerator<'_> {
+    fn append(&mut self, context: &mut GeneratorResult) -> Result<(), syn::Error> {
+        let Some(ref args) = self.0.args else {
             return Ok(());
         };
 
-        let context_name = &context.input.item_struct.ident;
+        let context_name = &self.0.item_struct.ident;
         let (name, args_struct) = match args {
             Arguments::Struct(name) => (name.clone(), None),
             Arguments::Values(args) => {
@@ -43,15 +45,14 @@ impl StagedGenerator for ArgumentsGenerator {
         };
 
         context
-            .generated_results
             .new_fields
             .push(parse_quote!(pub args: Args<'info, #name>));
-        context.generated_results.inside.extend(
+        context.inside.extend(
             quote!(let args = Args::<#name>::from_entrypoint(accounts, instruction_data)?;),
         );
 
         if let Some(args_struct) = args_struct {
-            context.generated_results.outside.extend(args_struct);
+            context.outside.extend(args_struct);
         }
 
         Ok(())
