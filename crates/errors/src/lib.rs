@@ -2,16 +2,15 @@ mod default_custom;
 mod error_code;
 mod extension;
 
-pub use {default_custom::*, error_code::*, extension::*};
-use {
-    num_traits::{FromPrimitive, ToPrimitive},
-    pinocchio::{log, program_error::ProgramError},
-    std::fmt::Display,
+use pinocchio::{
+    log::sol_log,
+    program_error::{ProgramError, ToStr},
 };
+pub use {default_custom::*, error_code::*, extension::*};
 
-pub enum ErrorType<T = CustomError>
+pub enum ErrorType<T>
 where
-    T: Display + FromPrimitive + ToPrimitive,
+    T: 'static + ToStr + TryFrom<u32>,
 {
     Solana(ProgramError),
     Typhoon(ErrorCode),
@@ -20,7 +19,7 @@ where
 
 pub struct Error<T = CustomError>
 where
-    T: Display + FromPrimitive + ToPrimitive,
+    T: 'static + ToStr + TryFrom<u32>,
 {
     error: ErrorType<T>,
     account_name: Option<String>,
@@ -28,7 +27,7 @@ where
 
 impl<T> Error<T>
 where
-    T: Display + FromPrimitive + ToPrimitive,
+    T: 'static + ToStr + TryFrom<u32>,
 {
     pub fn new_solana(error: ProgramError) -> Self {
         Self {
@@ -57,38 +56,9 @@ where
     }
 }
 
-impl<T> From<Error<T>> for ProgramError
-where
-    T: Display + FromPrimitive + ToPrimitive,
-{
-    fn from(value: Error<T>) -> Self {
-        match value.error {
-            ErrorType::Solana(program_error) => program_error,
-            ErrorType::Typhoon(err_code) => {
-                if let Some(account) = value.account_name {
-                    log::sol_log(&format!("Error: {err_code}, on account '{account}'"));
-                // TODO use msg when it's more stable
-                } else {
-                    log::sol_log(&format!("Error: {err_code}"));
-                };
-
-                ProgramError::Custom(err_code.to_u32().unwrap())
-            }
-            ErrorType::Custom(custom) => {
-                if let Some(account) = value.account_name {
-                    log::sol_log(&format!("Error: {custom}, on account '{account}'"));
-                } else {
-                    log::sol_log(&format!("Error: {custom}"));
-                };
-                ProgramError::Custom(custom.to_u32().unwrap())
-            }
-        }
-    }
-}
-
 impl<T> From<ErrorCode> for Error<T>
 where
-    T: Display + FromPrimitive + ToPrimitive,
+    T: 'static + ToStr + TryFrom<u32>,
 {
     fn from(value: ErrorCode) -> Self {
         Error::new_typhoon(value)
@@ -97,9 +67,36 @@ where
 
 impl<T> From<ProgramError> for Error<T>
 where
-    T: Display + FromPrimitive + ToPrimitive,
+    T: 'static + ToStr + TryFrom<u32>,
 {
     fn from(value: ProgramError) -> Self {
         Error::new_solana(value)
+    }
+}
+
+impl<T> From<Error<T>> for ProgramError
+where
+    T: 'static + ToStr + TryFrom<u32> + Into<u32>,
+{
+    fn from(value: Error<T>) -> Self {
+        let program_error = match value.error {
+            ErrorType::Solana(program_error) => {
+                sol_log(program_error.to_str::<CustomError>());
+                program_error
+            }
+            ErrorType::Typhoon(error_code) => {
+                sol_log(error_code.to_str::<ErrorCode>());
+                ProgramError::Custom(error_code.into())
+            }
+            ErrorType::Custom(custom_error) => {
+                sol_log(custom_error.to_str::<T>());
+                ProgramError::Custom(custom_error.into())
+            }
+        };
+        if let Some(account_name) = value.account_name {
+            sol_log(&format!("Account origin: {}", account_name));
+        }
+
+        program_error
     }
 }

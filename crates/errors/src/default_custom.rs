@@ -1,32 +1,29 @@
-use {
-    num_traits::{FromPrimitive, ToPrimitive},
-    std::fmt::Display,
-};
+use pinocchio::program_error::{ProgramError, ToStr};
 
 pub struct CustomError;
 
-impl Display for CustomError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "")
+impl TryFrom<u32> for CustomError {
+    type Error = ProgramError;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        match value {
+            200 => Ok(CustomError),
+            _ => Err(ProgramError::InvalidArgument),
+        }
     }
 }
 
-impl FromPrimitive for CustomError {
-    fn from_i64(_n: i64) -> Option<Self> {
-        None
-    }
-
-    fn from_u64(_n: u64) -> Option<Self> {
-        None
+impl ToStr for CustomError {
+    fn to_str<E>(&self) -> &'static str
+    where
+        E: 'static + ToStr + TryFrom<u32>,
+    {
+        "Error: Custom error"
     }
 }
 
-impl ToPrimitive for CustomError {
-    fn to_i64(&self) -> Option<i64> {
-        None
-    }
-
-    fn to_u64(&self) -> Option<u64> {
-        None
+impl From<CustomError> for u32 {
+    fn from(_: CustomError) -> Self {
+        200
     }
 }

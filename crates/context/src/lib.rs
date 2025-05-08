@@ -4,10 +4,7 @@ mod args;
 mod remaining_accounts;
 
 pub use args::*;
-use {
-    pinocchio::{account_info::AccountInfo, program_error::ProgramError},
-    typhoon_errors::Error,
-};
+use {pinocchio::account_info::AccountInfo, typhoon_errors::Error};
 
 pub trait HandlerContext<'a>: Sized {
     fn from_entrypoint(
@@ -23,7 +20,7 @@ pub trait Handler<'a, T> {
         self,
         accounts: &mut &'a [AccountInfo],
         instruction_data: &mut &'a [u8],
-    ) -> Result<Self::Output, ProgramError>;
+    ) -> Result<Self::Output, Error>;
 }
 
 impl<'a, F, O> Handler<'a, ()> for F
@@ -36,8 +33,8 @@ where
         self,
         _accounts: &mut &'a [AccountInfo],
         _instruction_data: &mut &'a [u8],
-    ) -> Result<Self::Output, ProgramError> {
-        (self)().map_err(Into::into)
+    ) -> Result<Self::Output, Error> {
+        (self)()
     }
 }
 
@@ -56,12 +53,12 @@ macro_rules! impl_handler {
                 self,
                 accounts: &mut &'a [AccountInfo],
                 instruction_data: &mut &'a [u8],
-            ) -> Result<Self::Output, ProgramError> {
+            ) -> Result<Self::Output, Error> {
                 paste! {
                     $(
                         let [<$t:lower>] = $t::from_entrypoint(accounts, instruction_data)?;
                     )*
-                    (self)($( [<$t:lower>], )*).map_err(Into::into)
+                    (self)($( [<$t:lower>], )*)
                 }
             }
         }
@@ -80,7 +77,7 @@ pub fn handle<'a, T, H>(
     mut accounts: &'a [AccountInfo],
     mut instruction_data: &'a [u8],
     handler: H,
-) -> Result<H::Output, ProgramError>
+) -> Result<H::Output, Error>
 where
     H: Handler<'a, T>,
 {

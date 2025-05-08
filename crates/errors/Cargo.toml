@@ -9,6 +9,3 @@ repository.workspace = true
 
 [dependencies]
 pinocchio.workspace = true
-num-derive.workspace = true
-num-traits.workspace = true
-thiserror.workspace = true
