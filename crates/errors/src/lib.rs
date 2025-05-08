@@ -94,7 +94,7 @@ where
             }
         };
         if let Some(account_name) = value.account_name {
-            sol_log(&format!("Account origin: {}", account_name));
+            sol_log(&format!("Account origin: {account_name}"));
         }
 
         program_error
