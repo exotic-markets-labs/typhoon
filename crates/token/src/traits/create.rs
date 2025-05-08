@@ -15,7 +15,7 @@ use {
     typhoon_utility::create_or_assign,
 };
 
-pub trait SPLCreate<'a>: WritableAccount + Into<&'a AccountInfo> {
+pub trait SplCreate<'a>: WritableAccount + Into<&'a AccountInfo> {
     fn create_token_account(
         self,
         rent: &Rent,
@@ -108,5 +108,5 @@ pub trait SPLCreate<'a>: WritableAccount + Into<&'a AccountInfo> {
     }
 }
 
-impl<'a> SPLCreate<'a> for Mut<SystemAccount<'a>> {}
-impl<'a> SPLCreate<'a> for Mut<UncheckedAccount<'a>> {}
+impl<'a> SplCreate<'a> for Mut<SystemAccount<'a>> {}
+impl<'a> SplCreate<'a> for Mut<UncheckedAccount<'a>> {}

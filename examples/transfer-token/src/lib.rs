@@ -2,7 +2,7 @@ use {
     bytemuck::{Pod, Zeroable},
     typhoon::prelude::*,
     typhoon_token::{
-        spl_instructions::MintTo, AtaTokenProgram, Mint, SPLCreate, TokenAccount, TokenProgram,
+        spl_instructions::MintTo, AtaTokenProgram, Mint, SplCreate, TokenAccount, TokenProgram,
     },
 };
 
