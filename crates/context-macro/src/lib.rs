@@ -17,6 +17,7 @@ mod extractor;
 mod generators;
 mod injector;
 mod remover;
+mod utils;
 mod visitor;
 
 #[proc_macro_attribute]
