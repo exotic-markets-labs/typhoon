@@ -2,7 +2,7 @@ use pinocchio::program_error::{ProgramError, ToStr};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum ErrorCode {
-    InvalidProgramExecutable,
+    InvalidProgramExecutable = 100,
     AccountNotInitialized,
     AccountNotMutable,
     AccountNotSigner,
@@ -32,19 +32,9 @@ impl TryFrom<u32> for ErrorCode {
     }
 }
 
-impl From<ErrorCode> for u32 {
-    fn from(value: ErrorCode) -> Self {
-        match value {
-            ErrorCode::InvalidProgramExecutable => 100,
-            ErrorCode::AccountNotInitialized => 101,
-            ErrorCode::AccountNotMutable => 102,
-            ErrorCode::AccountNotSigner => 103,
-            ErrorCode::AccountOwnedByWrongProgram => 104,
-            ErrorCode::AccountDiscriminatorMismatch => 105,
-            ErrorCode::HasOneConstraint => 106,
-            ErrorCode::TryingToInitPayerAsProgramAccount => 107,
-            ErrorCode::TokenConstraintViolated => 108,
-        }
+impl From<ErrorCode> for ProgramError {
+    fn from(e: ErrorCode) -> Self {
+        ProgramError::Custom(e as u32)
     }
 }
 

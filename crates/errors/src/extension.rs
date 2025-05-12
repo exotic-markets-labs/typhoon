@@ -1,13 +1,10 @@
-use {crate::Error, pinocchio::program_error::ToStr};
+use crate::Error;
 
 pub trait ResultExtension {
     fn trace_account(self, name: impl ToString) -> Self;
 }
 
-impl<T, E> ResultExtension for Result<T, Error<E>>
-where
-    E: 'static + ToStr + TryFrom<u32>,
-{
+impl<T> ResultExtension for Result<T, Error> {
     fn trace_account(self, name: impl ToString) -> Self {
         self.map_err(|err| err.with_account(name))
     }

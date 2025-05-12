@@ -112,7 +112,7 @@ impl<'a> BumpTokenGenerator<'a> {
             pda_no_bump,
             quote! {
                 if #name.key() != &#pda_key {
-                    return Err(Error::new_solana(ProgramError::InvalidSeeds).with_account(#name_str));
+                    return Err(Error::new(ProgramError::InvalidSeeds).with_account(#name_str));
                 }
             },
             self.bump.is_none() || self.init_if_needed,

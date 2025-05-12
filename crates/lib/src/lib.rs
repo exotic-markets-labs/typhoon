@@ -1,4 +1,4 @@
-use typhoon_errors::{CustomError, Error};
+use typhoon_errors::Error;
 
 pub mod macros {
     pub use {
@@ -23,7 +23,7 @@ pub mod instruction {
     };
 }
 
-pub type ProgramResult<T = (), E = CustomError> = Result<T, Error<E>>;
+pub type ProgramResult<T = ()> = Result<T, Error>;
 
 pub mod prelude {
     pub use {

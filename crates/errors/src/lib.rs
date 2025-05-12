@@ -1,51 +1,18 @@
-mod default_custom;
 mod error_code;
 mod extension;
 
-use pinocchio::{
-    log::sol_log,
-    program_error::{ProgramError, ToStr},
-};
-pub use {default_custom::*, error_code::*, extension::*};
+use pinocchio::program_error::{ProgramError, ToStr};
+pub use {error_code::*, extension::*};
 
-pub enum ErrorType<T>
-where
-    T: 'static + ToStr + TryFrom<u32>,
-{
-    Solana(ProgramError),
-    Typhoon(ErrorCode),
-    Custom(T),
-}
-
-pub struct Error<T = CustomError>
-where
-    T: 'static + ToStr + TryFrom<u32>,
-{
-    error: ErrorType<T>,
+pub struct Error {
+    error: ProgramError,
     account_name: Option<String>,
 }
 
-impl<T> Error<T>
-where
-    T: 'static + ToStr + TryFrom<u32>,
-{
-    pub fn new_solana(error: ProgramError) -> Self {
-        Self {
-            error: ErrorType::Solana(error),
-            account_name: None,
-        }
-    }
-
-    pub fn new_typhoon(error: ErrorCode) -> Self {
-        Self {
-            error: ErrorType::Typhoon(error),
-            account_name: None,
-        }
-    }
-
-    pub fn new_custom(error: T) -> Self {
-        Self {
-            error: ErrorType::Custom(error),
+impl Error {
+    pub fn new(error: impl Into<ProgramError>) -> Self {
+        Error {
+            error: error.into(),
             account_name: None,
         }
     }
@@ -54,49 +21,61 @@ where
         self.account_name = Some(name.to_string());
         self
     }
-}
 
-impl<T> From<ErrorCode> for Error<T>
-where
-    T: 'static + ToStr + TryFrom<u32>,
-{
-    fn from(value: ErrorCode) -> Self {
-        Error::new_typhoon(value)
+    pub fn account_name(&self) -> Option<&String> {
+        self.account_name.as_ref()
     }
 }
 
-impl<T> From<ProgramError> for Error<T>
-where
-    T: 'static + ToStr + TryFrom<u32>,
-{
-    fn from(value: ProgramError) -> Self {
-        Error::new_solana(value)
-    }
-}
-
-impl<T> From<Error<T>> for ProgramError
-where
-    T: 'static + ToStr + TryFrom<u32> + Into<u32>,
-{
-    fn from(value: Error<T>) -> Self {
-        let program_error = match value.error {
-            ErrorType::Solana(program_error) => {
-                sol_log(program_error.to_str::<CustomError>());
-                program_error
+impl ToStr for Error {
+    fn to_str<E>(&self) -> &'static str
+    where
+        E: 'static + ToStr + TryFrom<u32>,
+    {
+        if let ProgramError::Custom(code) = self.error {
+            if (100..200).contains(&code) {
+                return self.error.to_str::<ErrorCode>();
             }
-            ErrorType::Typhoon(error_code) => {
-                sol_log(error_code.to_str::<ErrorCode>());
-                ProgramError::Custom(error_code.into())
-            }
-            ErrorType::Custom(custom_error) => {
-                sol_log(custom_error.to_str::<T>());
-                ProgramError::Custom(custom_error.into())
-            }
-        };
-        if let Some(account_name) = value.account_name {
-            sol_log(&format!("Account origin: {account_name}"));
         }
-
-        program_error
+        self.error.to_str::<E>()
     }
+}
+
+impl From<ProgramError> for Error {
+    fn from(error: ProgramError) -> Self {
+        Error {
+            error,
+            account_name: None,
+        }
+    }
+}
+
+impl From<ErrorCode> for Error {
+    fn from(value: ErrorCode) -> Self {
+        Error {
+            error: value.into(),
+            account_name: None,
+        }
+    }
+}
+
+impl From<Error> for ProgramError {
+    fn from(value: Error) -> Self {
+        value.error
+    }
+}
+
+#[macro_export]
+macro_rules! impl_error_logger {
+    ($error:ident) => {
+        #[cfg(feature = "logging")]
+        #[cold]
+        fn log_error(error: &ErrorV2) {
+            pinocchio::log::sol_log(error.to_str::<$error>());
+
+            if let Some(account_name) = error.account_name() {
+                pinocchio::log::sol_log(&std::format!("Account origin: {account_name}"));
+            }
+        }
+    };
 }

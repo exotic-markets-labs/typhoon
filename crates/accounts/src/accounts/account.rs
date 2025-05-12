@@ -85,6 +85,6 @@ where
 
     fn data(&self) -> Result<Ref<Self::DataType>, Error> {
         Ref::filter_map(self.info.try_borrow_data()?, T::read)
-            .map_err(|_| Error::new_solana(ProgramError::InvalidAccountData))
+            .map_err(|_| ProgramError::InvalidAccountData.into())
     }
 }

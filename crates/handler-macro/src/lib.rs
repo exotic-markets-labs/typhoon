@@ -28,7 +28,7 @@ impl ToTokens for Handlers {
         let instructions = self.instructions.iter().enumerate().map(|(i, val)| {
             let i = i as u8;
             quote! {
-                #i => handle(accounts, data, #val)?,
+                #i => handle(accounts, data, #val),
             }
         });
 
@@ -45,12 +45,15 @@ impl ToTokens for Handlers {
                 }
 
                 let (discriminator, data) = instruction_data.split_first().ok_or(ProgramError::InvalidInstructionData)?;
-                match discriminator {
+                let result = match discriminator {
                     #(#instructions)*
-                    _ => return Err(ProgramError::InvalidInstructionData),
-                }
+                    _ => Err(ProgramError::InvalidInstructionData.into()),
+                };
 
-                Ok(())
+                #[cfg(feature = "logging")]
+                result.inspect_err(log_error);
+
+                result.map_err(Into::into)
             }
         };
 
