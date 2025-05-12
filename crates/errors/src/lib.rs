@@ -6,7 +6,7 @@ pub use {error_code::*, extension::*};
 
 pub struct Error {
     error: ProgramError,
-    account_name: Option<String>,
+    account_name: Option<&'static str>,
 }
 
 impl Error {
@@ -17,13 +17,13 @@ impl Error {
         }
     }
 
-    pub fn with_account(mut self, name: impl ToString) -> Self {
-        self.account_name = Some(name.to_string());
+    pub fn with_account(mut self, name: &'static str) -> Self {
+        self.account_name = Some(name);
         self
     }
 
-    pub fn account_name(&self) -> Option<&String> {
-        self.account_name.as_ref()
+    pub fn account_name(&self) -> Option<&str> {
+        self.account_name
     }
 }
 
