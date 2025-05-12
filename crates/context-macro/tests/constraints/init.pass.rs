@@ -17,7 +17,7 @@ use {
     typhoon_utility_traits::SystemCpi,
 };
 
-pub type ProgramResult<T = (), E = CustomError> = Result<T, Error<E>>;
+pub type ProgramResult<T = ()> = Result<T, Error>;
 
 program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
