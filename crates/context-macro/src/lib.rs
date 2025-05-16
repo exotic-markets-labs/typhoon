@@ -47,6 +47,7 @@ impl TokenGenerator {
             ConstraintGenerators::Args(ArgumentsGenerator::new(&context)),
             ConstraintGenerators::Assign(AssignGenerator::new(&context)),
             ConstraintGenerators::Rent(RentGenerator::new(&context)),
+            ConstraintGenerators::State(StateGenerator::new(&context)),
             ConstraintGenerators::Bumps(BumpsGenerator::new(&context)),
             ConstraintGenerators::HasOne(HasOneGenerator::new(&context)),
             ConstraintGenerators::Token(TokenAccountGenerator::new(&context)),
