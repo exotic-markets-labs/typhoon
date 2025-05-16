@@ -93,6 +93,7 @@ impl ToTokens for TokenGenerator {
 
             struct_fields.push(new_field.ident.as_ref().unwrap());
         }
+        let drop_vars = self.result.drop_vars.iter().map(|v| quote!(drop(#v);));
 
         let impl_context = quote! {
             impl #impl_generics HandlerContext<#new_lifetime> for #name #ty_generics #where_clause {
@@ -105,6 +106,8 @@ impl ToTokens for TokenGenerator {
                     };
 
                     #inside
+
+                    #(#drop_vars)*
 
                     *accounts = rem;
 

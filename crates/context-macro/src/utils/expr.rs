@@ -1,8 +1,18 @@
-use syn::{parse::Parse, Expr, Ident};
+use {
+    quote::{format_ident, quote, ToTokens},
+    syn::{parse::Parse, Expr, Ident},
+};
 
+#[derive(Clone)]
 pub struct ContextExpr {
     name: Option<Ident>,
     expr: Expr,
+}
+
+impl ContextExpr {
+    pub fn name(&self) -> Option<&Ident> {
+        self.name.as_ref()
+    }
 }
 
 impl Parse for ContextExpr {
@@ -10,6 +20,18 @@ impl Parse for ContextExpr {
         let expr = Expr::parse(input)?;
 
         Ok(ContextExpr::from(expr.clone()))
+    }
+}
+
+impl ToTokens for ContextExpr {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        let expr = &self.expr;
+        if let Some(name) = &self.name {
+            let state_name = format_ident!("{name}_state");
+            quote!(#state_name #expr).to_tokens(tokens);
+        } else {
+            quote!(#expr).to_tokens(tokens);
+        }
     }
 }
 
@@ -27,7 +49,7 @@ impl ContextExpr {
         match expr {
             Expr::MethodCall(method_call) => {
                 let name = Self::extract_name(method_call.receiver.as_ref())?;
-                let expr = Self::create_method_call_expr(&method_call);
+                let expr = Self::create_method_call_expr(method_call);
                 Ok(ContextExpr {
                     name: Some(name),
                     expr,
@@ -35,16 +57,13 @@ impl ContextExpr {
             }
             Expr::Field(field_expr) => {
                 let name = Self::extract_name(field_expr.base.as_ref())?;
-                let expr = Self::create_field_expr(&field_expr);
+                let expr = Self::create_field_expr(field_expr);
                 Ok(ContextExpr {
                     name: Some(name),
                     expr,
                 })
             }
-            _ => Err(syn::Error::new_spanned(
-                &expr,
-                "Unsupported expression type",
-            )),
+            _ => Err(syn::Error::new_spanned(expr, "Unsupported expression type")),
         }
     }
 
@@ -122,20 +141,20 @@ impl ContextExpr {
 
 #[cfg(test)]
 mod from_expr_tests {
-    use super::*;
-    use quote::{quote, ToTokens};
-    use syn::parse_quote;
+    use {
+        super::*,
+        quote::{quote, ToTokens},
+        syn::parse_quote,
+    };
 
     #[test]
     fn test_method_call_with_try() {
         // Test for pattern: counter.data()?.bump()
         let expr: Expr = parse_quote!(counter.data()?.bump());
-        let context_expr = ContextExpr::try_from(expr).unwrap();
+        let context_expr = ContextExpr::from(expr);
 
-        assert_eq!(context_expr.name.unwrap().to_string(), "counter");
-
-        let inner_expr = context_expr.expr.to_token_stream();
-        let expected_expr = quote!(.bump());
+        let inner_expr = context_expr.to_token_stream();
+        let expected_expr = quote!(counter_state.bump());
         assert_eq!(expected_expr.to_string(), inner_expr.to_string());
     }
 
@@ -143,23 +162,21 @@ mod from_expr_tests {
     fn test_field_access_with_try() {
         // Test for pattern: counter.data()?.bump
         let expr: Expr = parse_quote!(counter.data()?.bump);
-        let context_expr = ContextExpr::try_from(expr).unwrap();
+        let context_expr = ContextExpr::from(expr);
 
-        assert_eq!(context_expr.name.unwrap().to_string(), "counter");
-
-        let inner_expr = context_expr.expr.to_token_stream().to_string();
-        let expected_expr = quote!(.bump);
+        let inner_expr = context_expr.to_token_stream().to_string();
+        let expected_expr = quote!(counter_state.bump);
         assert_eq!(expected_expr.to_string(), inner_expr.to_string());
     }
 
     #[test]
     fn test_other_expr() {
         let expr: Expr = parse_quote!(counter.random()?.bump);
-        let context_expr = ContextExpr::try_from(expr).unwrap();
+        let context_expr = ContextExpr::from(expr);
 
         assert_eq!(context_expr.name, None);
 
-        let inner_expr = context_expr.expr.to_token_stream().to_string();
+        let inner_expr = context_expr.to_token_stream().to_string();
         let expected_expr = quote!(counter.random()?.bump);
         assert_eq!(expected_expr.to_string(), inner_expr.to_string());
     }

@@ -75,12 +75,7 @@ impl StagedGenerator for TokenAccountGenerator<'_> {
                     });
                 }
 
-                result.inside.extend(quote! {
-                    {
-                        let #var_name = #name.data()?;
-                        #(#check_token)*
-                    }
-                });
+                result.inside.extend(check_token);
             }
         }
         Ok(())

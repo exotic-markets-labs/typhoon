@@ -5,6 +5,7 @@ use {
             ConstraintAssociatedToken, ConstraintBump, ConstraintInitIfNeeded, ConstraintProgram,
             ConstraintSeeded, ConstraintSeeds,
         },
+        utils::ContextExpr,
         visitor::ContextVisitor,
     },
     proc_macro2::TokenStream,
@@ -24,7 +25,7 @@ pub struct BumpTokenGenerator<'a> {
     pda_ty: PdaType,
     seeds: Option<Punctuated<Expr, Token![,]>>,
     program_id: Option<Expr>,
-    bump: Option<Expr>,
+    bump: Option<ContextExpr>,
 }
 
 impl<'a> BumpTokenGenerator<'a> {
@@ -70,7 +71,8 @@ impl<'a> BumpTokenGenerator<'a> {
 
         let (pda, pda_no_bump) = if let Some(bump) = &self.bump {
             let seeds_token = if matches!(self.pda_ty, PdaType::Seeded) {
-                quote!(#name.data()?.seeds_with_bump(&[#pda_bump]))
+                let var_name = format_ident!("{name}_state");
+                quote!(#var_name.seeds_with_bump(&[#pda_bump]))
             } else {
                 let seeds = self.seeds.as_ref().ok_or(syn::Error::new(
                     name.span(),
@@ -89,7 +91,7 @@ impl<'a> BumpTokenGenerator<'a> {
 
             (
                 quote! {
-                    let #pda_bump = { #bump };
+                    let #pda_bump = #bump;
                     let #pda_key = create_program_address(&#seeds_token, &#program_id)?;
                 },
                 seeds_without_bump,

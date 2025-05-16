@@ -52,12 +52,7 @@ impl StagedGenerator for HasOneGenerator<'_> {
                 }
             });
 
-            result.inside.extend(quote! {
-                {
-                    let #var_name = #name.data()?;
-                    #(#targets)*
-                }
-            });
+            result.inside.extend(targets);
 
             self.targets.clear();
         }

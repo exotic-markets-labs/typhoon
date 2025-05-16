@@ -1,10 +1,13 @@
-use syn::{
-    parse::{Parse, ParseStream},
-    Expr, Token,
+use {
+    crate::utils::ContextExpr,
+    syn::{
+        parse::{Parse, ParseStream},
+        Token,
+    },
 };
 
 #[derive(Clone)]
-pub struct ConstraintBump(pub Option<Expr>);
+pub struct ConstraintBump(pub Option<ContextExpr>);
 
 impl Parse for ConstraintBump {
     fn parse(input: ParseStream) -> syn::Result<Self> {

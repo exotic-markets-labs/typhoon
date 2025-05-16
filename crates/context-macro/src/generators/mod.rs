@@ -3,17 +3,23 @@ mod assign;
 mod bumps;
 mod has_one;
 mod rent;
+mod state;
 mod token;
 mod tokens_gen;
 
-use {crate::StagedGenerator, proc_macro2::TokenStream, syn::Field};
-pub use {arguments::*, assign::*, bumps::*, has_one::*, rent::*, token::*};
+use {
+    crate::StagedGenerator,
+    proc_macro2::TokenStream,
+    syn::{Field, Ident},
+};
+pub use {arguments::*, assign::*, bumps::*, has_one::*, rent::*, state::*, token::*};
 
 #[derive(Default, Clone)]
 pub struct GeneratorResult {
     pub outside: TokenStream,
     pub inside: TokenStream,
     pub new_fields: Vec<Field>,
+    pub drop_vars: Vec<Ident>,
 }
 
 pub enum ConstraintGenerators<'a> {
@@ -23,6 +29,7 @@ pub enum ConstraintGenerators<'a> {
     Assign(AssignGenerator<'a>),
     Bumps(BumpsGenerator<'a>),
     Token(TokenAccountGenerator<'a>),
+    State(StateGenerator<'a>),
 }
 
 impl StagedGenerator for ConstraintGenerators<'_> {
@@ -34,6 +41,7 @@ impl StagedGenerator for ConstraintGenerators<'_> {
             ConstraintGenerators::Assign(generator) => generator.append(context),
             ConstraintGenerators::Bumps(generator) => generator.append(context),
             ConstraintGenerators::Token(generator) => generator.append(context),
+            ConstraintGenerators::State(generator) => generator.append(context),
         }
     }
 }
