@@ -13,10 +13,6 @@ pub struct Counter {
     pub count: u64,
 }
 
-impl Counter {
-    const SPACE: usize = 8 + std::mem::size_of::<Counter>();
-}
-
 #[context]
 #[args(admin: Pubkey, bump: u8)]
 pub struct InitContext {
