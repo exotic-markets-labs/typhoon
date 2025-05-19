@@ -19,6 +19,7 @@
 ## 📚 Installation
 
 To get started with Typhoon, add it to your Rust project using Cargo:
+
 ```bash
 cargo add typhoon
 ```
@@ -26,6 +27,7 @@ cargo add typhoon
 ## 🚀 Getting Started
 
 Here’s a quick example to show how Typhoon simplifies Solana program development:
+
 ```rust
 use typhoon::prelude::*;
 
@@ -37,7 +39,6 @@ pub struct InitContext {
     #[constraint(
         init,
         payer = payer,
-        space = Counter::SPACE
     )]
     pub counter: Mut<Account<Counter>>,
     pub system: Program<System>,

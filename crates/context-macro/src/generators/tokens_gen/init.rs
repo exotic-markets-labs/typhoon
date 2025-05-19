@@ -147,12 +147,9 @@ impl<'a> InitTokenGenerator<'a> {
                 }
             }
             InitTokenGeneratorTy::Other { space } => {
-                let Some(ref space) = space else {
-                    return Err(syn::Error::new(
-                        name.span(),
-                        "A space need to be specified for the `init` constraint",
-                    ));
-                };
+                let account_ty = format_ident!("{}", self.account.inner_ty);
+                let default_space = parse_quote!(#account_ty::SPACE);
+                let space = space.as_ref().unwrap_or(&default_space);
 
                 quote!(SystemCpi::create_account(#name, &rent, &#payer, &crate::ID, #space, #signers)?)
             }

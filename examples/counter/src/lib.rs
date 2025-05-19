@@ -8,7 +8,6 @@ pub struct InitContext {
     #[constraint(
         init,
         payer = payer,
-        space = Counter::SPACE
     )]
     pub counter: Mut<Account<Counter>>,
     pub system: Program<System>,
