@@ -52,7 +52,3 @@ pub fn close(
 pub struct Counter {
     pub count: u64,
 }
-
-impl Counter {
-    const SPACE: usize = 8 + std::mem::size_of::<Counter>();
-}

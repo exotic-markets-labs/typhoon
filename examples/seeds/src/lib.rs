@@ -61,6 +61,7 @@ pub fn increment(ctx: IncrementContext) -> ProgramResult {
 }
 
 #[account]
+#[no_space]
 pub struct Counter {
     pub bump: u8,
     pub admin: Pubkey,

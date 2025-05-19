@@ -7,11 +7,12 @@ use {
 
 mod keys;
 
-#[proc_macro_derive(AccountState, attributes(key))]
+#[proc_macro_derive(AccountState, attributes(key, no_space))]
 pub fn derive_account(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let item = parse_macro_input!(item as Item);
-    let (name, generics, fields) = match item {
+    let (attrs, name, generics, fields) = match item {
         Item::Struct(ref item_struct) => (
+            &item_struct.attrs,
             &item_struct.ident,
             &item_struct.generics,
             &item_struct.fields,
@@ -21,6 +22,16 @@ pub fn derive_account(item: proc_macro::TokenStream) -> proc_macro::TokenStream 
                 .into_compile_error()
                 .into()
         }
+    };
+
+    let space_token = if attrs.iter().any(|a| a.path().is_ident("no_space")) {
+        None
+    } else {
+        Some(quote! {
+            impl #name {
+                pub const SPACE: usize = <#name as Discriminator>::DISCRIMINATOR.len() + std::mem::size_of::<#name>();
+            }
+        })
     };
     let (_, ty_generics, where_clause) = generics.split_for_impl();
 
@@ -39,6 +50,8 @@ pub fn derive_account(item: proc_macro::TokenStream) -> proc_macro::TokenStream 
         impl Discriminator for #name #ty_generics #where_clause {
             const DISCRIMINATOR: &'static [u8] = &[#(#discriminator),*];
         }
+
+        #space_token
 
         #seeded_trait
     }

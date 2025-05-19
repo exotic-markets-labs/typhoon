@@ -47,6 +47,7 @@ pub fn increment(ctx: IncrementContext) -> ProgramResult {
 }
 
 #[account]
+#[no_space]
 pub struct Counter {
     #[key]
     pub admin: Pubkey,

@@ -85,7 +85,3 @@ pub struct Buffer {
     pub value1: u64,
     pub value2: u64,
 }
-
-impl Buffer {
-    const SPACE: usize = 8 + std::mem::size_of::<Buffer>();
-}
