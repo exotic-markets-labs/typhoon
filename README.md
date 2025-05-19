@@ -69,9 +69,6 @@ pub struct Counter {
     pub count: u64,
 }
 
-impl Counter {
-    const SPACE: usize = std::mem::size_of::<Counter>();
-}
 ```
 
 ## 📦 Examples
