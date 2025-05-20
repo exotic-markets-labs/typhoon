@@ -1,11 +1,11 @@
 use {
     crate::{Discriminator, FromAccountInfo, Owner, ReadableAccount, RefFromBytes},
+    core::marker::PhantomData,
     pinocchio::{
         account_info::{AccountInfo, Ref},
         program_error::ProgramError,
         pubkey::Pubkey,
     },
-    std::marker::PhantomData,
     typhoon_errors::{Error, ErrorCode},
 };
 

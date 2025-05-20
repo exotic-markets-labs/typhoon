@@ -594,6 +594,7 @@ dependencies = [
 name = "typhoon-utility"
 version = "0.1.0-alpha.5"
 dependencies = [
+ "borsh",
  "pinocchio",
  "pinocchio-system",
  "typhoon-accounts",

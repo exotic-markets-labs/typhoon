@@ -1,3 +1,5 @@
+#![no_std]
+
 use {
     bytemuck::{Pod, Zeroable},
     typhoon::prelude::*,

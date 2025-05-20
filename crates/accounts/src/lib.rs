@@ -1,3 +1,5 @@
+#![no_std]
+
 pub use {accounts::*, programs::*};
 use {
     bytemuck::{AnyBitPattern, NoUninit},
@@ -69,11 +71,11 @@ where
 {
     fn read(data: &[u8]) -> Option<&Self> {
         let dis_len = T::DISCRIMINATOR.len();
-        bytemuck::try_from_bytes(&data[dis_len..std::mem::size_of::<T>() + dis_len]).ok()
+        bytemuck::try_from_bytes(&data[dis_len..core::mem::size_of::<T>() + dis_len]).ok()
     }
 
     fn read_mut(data: &mut [u8]) -> Option<&mut Self> {
         let dis_len = T::DISCRIMINATOR.len();
-        bytemuck::try_from_bytes_mut(&mut data[dis_len..std::mem::size_of::<T>() + dis_len]).ok()
+        bytemuck::try_from_bytes_mut(&mut data[dis_len..core::mem::size_of::<T>() + dis_len]).ok()
     }
 }

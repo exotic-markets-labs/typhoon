@@ -1,3 +1,5 @@
+#![no_std]
+
 use typhoon::prelude::*;
 
 program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
@@ -70,5 +72,5 @@ pub struct Counter {
 }
 
 impl Counter {
-    const SPACE: usize = 8 + std::mem::size_of::<Counter>();
+    const SPACE: usize = 8 + core::mem::size_of::<Counter>();
 }

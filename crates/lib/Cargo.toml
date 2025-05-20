@@ -8,7 +8,7 @@ authors.workspace = true
 repository.workspace = true
 
 [features]
-borsh = ["typhoon-accounts/borsh"]
+borsh = ["typhoon-accounts/borsh", "typhoon-utility/borsh"]
 
 [dependencies]
 pinocchio-pubkey.workspace = true

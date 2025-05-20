@@ -1,3 +1,5 @@
+#![no_std]
+
 use typhoon_errors::Error;
 
 pub mod macros {
@@ -34,7 +36,7 @@ pub mod prelude {
                 self,
                 account_info::AccountInfo,
                 cpi::*,
-                entrypoint, msg,
+                entrypoint, msg, nostd_panic_handler,
                 program_error::ProgramError,
                 pubkey::*,
                 seeds,

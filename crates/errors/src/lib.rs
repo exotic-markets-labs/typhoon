@@ -1,3 +1,5 @@
+#![no_std]
+
 mod error_code;
 mod extension;
 

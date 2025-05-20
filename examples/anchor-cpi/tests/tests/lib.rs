@@ -1,6 +1,5 @@
 use {
     litesvm::LiteSVM,
-    podded::pod::PodStr,
     solana_instruction::{AccountMeta, Instruction},
     solana_keypair::Keypair,
     solana_native_token::LAMPORTS_PER_SOL,
@@ -57,17 +56,12 @@ fn anchor_cpi_test() {
     svm.send_transaction(tx).unwrap();
 
     // Pull the lever
-    let arg: PodStr<50> = PodStr::from("Chris");
     let ix = Instruction {
         accounts: vec![
             AccountMeta::new(power_kp.pubkey(), false),
             AccountMeta::new_readonly(lever_id, false),
         ],
-        data: [0]
-            .iter()
-            .chain(bytemuck::bytes_of(&arg))
-            .cloned()
-            .collect(),
+        data: [0].iter().chain(b"Chris").cloned().collect(),
         program_id: hand_id,
     };
 
@@ -83,17 +77,12 @@ fn anchor_cpi_test() {
         .contains(&"Program log: The power is now on.".to_string()));
 
     // Pull it again
-    let arg: PodStr<50> = PodStr::from("Ashley");
     let ix = Instruction {
         accounts: vec![
             AccountMeta::new(power_kp.pubkey(), false),
             AccountMeta::new_readonly(lever_id, false),
         ],
-        data: [0]
-            .iter()
-            .chain(bytemuck::bytes_of(&arg))
-            .cloned()
-            .collect(),
+        data: [0].iter().chain(b"Ashley").cloned().collect(),
         program_id: hand_id,
     };
 

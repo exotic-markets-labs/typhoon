@@ -1,3 +1,5 @@
+#![no_std]
+
 mod create_account;
 
 pub mod bytes;

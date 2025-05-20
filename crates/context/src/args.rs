@@ -1,8 +1,8 @@
 use {
     crate::HandlerContext,
     bytemuck::{try_from_bytes, AnyBitPattern},
+    core::ops::Deref,
     pinocchio::{account_info::AccountInfo, program_error::ProgramError},
-    std::ops::Deref,
     typhoon_errors::Error,
 };
 
@@ -31,10 +31,10 @@ where
         _accounts: &mut &'a [AccountInfo],
         instruction_data: &mut &'a [u8],
     ) -> Result<Self, Error> {
-        let arg: &T = try_from_bytes(&instruction_data[..std::mem::size_of::<T>()])
+        let arg: &T = try_from_bytes(&instruction_data[..core::mem::size_of::<T>()])
             .map_err(|_| ProgramError::InvalidInstructionData)?;
 
-        let (_, remaining) = instruction_data.split_at(std::mem::size_of::<T>());
+        let (_, remaining) = instruction_data.split_at(core::mem::size_of::<T>());
 
         *instruction_data = remaining;
 

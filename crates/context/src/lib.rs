@@ -1,3 +1,5 @@
+#![no_std]
+
 use paste::paste;
 
 mod args;

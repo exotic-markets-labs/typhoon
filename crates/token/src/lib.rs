@@ -1,11 +1,13 @@
+#![no_std]
+
 use {
+    core::{mem::transmute, ops::Deref},
     pinocchio::pubkey::{find_program_address, Pubkey},
     pinocchio_associated_token_account::ID as ATA_PROGRAM_ID,
     pinocchio_token::{
         state::{Mint as SplMint, TokenAccount as SplTokenAccount},
         ID as TOKEN_PROGRAM_ID,
     },
-    std::{mem::transmute, ops::Deref},
     typhoon_accounts::{Discriminator, Owner, ProgramId, RefFromBytes},
 };
 

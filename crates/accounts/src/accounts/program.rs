@@ -1,10 +1,10 @@
 use {
     crate::{FromAccountInfo, ProgramId, ReadableAccount},
+    core::marker::PhantomData,
     pinocchio::{
         account_info::{AccountInfo, Ref},
         pubkey::Pubkey,
     },
-    std::marker::PhantomData,
     typhoon_errors::{Error, ErrorCode},
 };
 

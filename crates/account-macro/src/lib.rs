@@ -29,7 +29,7 @@ pub fn derive_account(item: proc_macro::TokenStream) -> proc_macro::TokenStream 
     } else {
         Some(quote! {
             impl #name {
-                pub const SPACE: usize = <#name as Discriminator>::DISCRIMINATOR.len() + std::mem::size_of::<#name>();
+                pub const SPACE: usize = <#name as Discriminator>::DISCRIMINATOR.len() + core::mem::size_of::<#name>();
             }
         })
     };
