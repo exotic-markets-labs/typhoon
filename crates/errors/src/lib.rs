@@ -74,13 +74,17 @@ macro_rules! impl_error_logger {
         #[cold]
         fn log_error(error: &Error) {
             pinocchio::log::sol_log(error.to_str::<$error>());
-
             if let Some(account_name) = error.account_name() {
-                // TODO optimize this
-                let mut buffer: [u8; 50] = [0; 50];
-                buffer.copy_from_slice(b"Account origin: ");
-                buffer.copy_from_slice(account_name.as_bytes());
-                pinocchio::log::sol_log(unsafe { core::str::from_utf8_unchecked(&buffer) });
+                let mut buffer = [bytes::UNINIT_BYTE; 50];
+                let total_len = account_name.len() + 16;
+                bytes::write_bytes(&mut buffer[..16], b"Account origin: ");
+                bytes::write_bytes(&mut buffer[16..total_len], account_name.as_bytes());
+                pinocchio::log::sol_log(unsafe {
+                    core::str::from_utf8_unchecked(core::slice::from_raw_parts(
+                        buffer.as_ptr() as _,
+                        total_len,
+                    ))
+                });
             }
         }
     };
