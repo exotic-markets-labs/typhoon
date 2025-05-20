@@ -52,9 +52,12 @@ impl ToTokens for Handlers {
                 };
 
                 #[cfg(feature = "logging")]
-                result.inspect_err(log_error);
+                result.inspect_err(log_error)?;
 
-                result.map_err(Into::into)
+                #[cfg(not(feature = "logging"))]
+                result?;
+
+                Ok(())
             }
         };
 
