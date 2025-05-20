@@ -75,7 +75,7 @@ macro_rules! impl_error_logger {
         fn log_error(error: &Error) {
             pinocchio::log::sol_log(error.to_str::<$error>());
 
-            if let Some(account_name) = error.account_name() {
+            if let Some(ref account_name) = error.account_name() {
                 // TODO optimize this
                 let mut buffer: [u8; 50] = [0; 50];
                 buffer.copy_from_slice(b"Account origin: ");
