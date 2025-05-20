@@ -34,7 +34,6 @@ impl ToTokens for Handlers {
 
         let expanded = quote! {
             entrypoint!(process_instruction);
-            nostd_panic_handler!();
 
             pub fn process_instruction(
                 program_id: &Pubkey,

@@ -10,6 +10,8 @@ use {
 
 program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
+nostd_panic_handler!();
+
 handlers! {
     mint_from_escrow,
 }

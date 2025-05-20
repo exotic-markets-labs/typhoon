@@ -7,6 +7,7 @@ use {crate::error::SeedsError, typhoon::prelude::*};
 program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
 impl_error_logger!(SeedsError);
+nostd_panic_handler!();
 
 handlers! {
     initialize,
