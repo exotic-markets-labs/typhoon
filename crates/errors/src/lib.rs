@@ -76,7 +76,11 @@ macro_rules! impl_error_logger {
             pinocchio::log::sol_log(error.to_str::<$error>());
 
             if let Some(account_name) = error.account_name() {
-                pinocchio::log::sol_log(core::concat!("Account origin: ", account_name));
+                // TODO optimize this
+                let mut buffer: [u8; 50] = [0; 50];
+                buffer.copy_from_slice(b"Account origin: ");
+                buffer.copy_from_slice(account_name.as_bytes());
+                pinocchio::log::sol_log_slice(&buffer);
             }
         }
     };
