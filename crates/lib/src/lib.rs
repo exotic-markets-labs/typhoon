@@ -37,7 +37,7 @@ pub mod prelude {
                 account_info::AccountInfo,
                 cpi::*,
                 entrypoint, msg, nostd_panic_handler,
-                program_error::ProgramError,
+                program_error::{ProgramError, ToStr},
                 pubkey::*,
                 seeds,
                 sysvars::{clock::Clock, fees::Fees, rent::Rent, Sysvar},

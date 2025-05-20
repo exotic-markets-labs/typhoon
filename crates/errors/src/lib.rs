@@ -72,11 +72,11 @@ macro_rules! impl_error_logger {
     ($error:ident) => {
         #[cfg(feature = "logging")]
         #[cold]
-        fn log_error(error: &ErrorV2) {
+        fn log_error(error: &Error) {
             pinocchio::log::sol_log(error.to_str::<$error>());
 
             if let Some(account_name) = error.account_name() {
-                pinocchio::log::sol_log(&std::format!("Account origin: {account_name}"));
+                pinocchio::log::sol_log(core::concat!("Account origin: ", account_name));
             }
         }
     };

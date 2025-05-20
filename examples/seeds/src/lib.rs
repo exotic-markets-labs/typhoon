@@ -1,6 +1,8 @@
 #![no_std]
 
-use typhoon::prelude::*;
+mod error;
+
+use {crate::error::SeedsError, typhoon::prelude::*};
 
 program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
@@ -30,7 +32,7 @@ pub struct InitContext {
 pub struct IncrementContext {
     pub admin: Signer,
     #[constraint(
-        has_one = admin,
+        has_one = admin @ SeedsError::InvalidOwner,
         seeds = [
             b"counter".as_ref(),
         ],
