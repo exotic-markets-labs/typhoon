@@ -3,7 +3,6 @@ mod borsh;
 
 #[cfg(feature = "borsh")]
 pub use borsh::*;
-
 use core::mem::MaybeUninit;
 
 pub const UNINIT_BYTE: MaybeUninit<u8> = MaybeUninit::<u8>::uninit();
