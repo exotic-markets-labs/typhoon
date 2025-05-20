@@ -80,7 +80,7 @@ macro_rules! impl_error_logger {
                 let mut buffer: [u8; 50] = [0; 50];
                 buffer.copy_from_slice(b"Account origin: ");
                 buffer.copy_from_slice(account_name.as_bytes());
-                pinocchio::log::sol_log_slice(&buffer);
+                pinocchio::log::sol_log(unsafe { core::str::from_utf8_unchecked(&buffer) });
             }
         }
     };
