@@ -76,7 +76,7 @@ macro_rules! impl_error_logger {
             pinocchio::log::sol_log(error.to_str::<$error>());
             if let Some(account_name) = error.account_name() {
                 let mut buffer = [bytes::UNINIT_BYTE; 50];
-                let total_len = account_name.len() + 16;
+                let total_len = core::cmp::min(account_name.len() + 16, 50);
                 bytes::write_bytes(&mut buffer[..16], b"Account origin: ");
                 bytes::write_bytes(&mut buffer[16..total_len], account_name.as_bytes());
                 pinocchio::log::sol_log(unsafe {
