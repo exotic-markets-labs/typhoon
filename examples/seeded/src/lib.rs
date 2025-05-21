@@ -5,6 +5,7 @@ use typhoon::prelude::*;
 program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
 nostd_panic_handler!();
+no_allocator!();
 
 handlers! {
     initialize,

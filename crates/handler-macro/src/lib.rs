@@ -33,7 +33,7 @@ impl ToTokens for Handlers {
         });
 
         let expanded = quote! {
-            entrypoint!(process_instruction);
+            program_entrypoint!(process_instruction);
 
             pub fn process_instruction(
                 program_id: &Pubkey,

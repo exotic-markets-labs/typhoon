@@ -8,6 +8,7 @@ program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
 impl_error_logger!(SeedsError);
 nostd_panic_handler!();
+no_allocator!();
 
 handlers! {
     initialize,
