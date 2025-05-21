@@ -429,6 +429,7 @@ checksum = "1dccffe3ce07af9386bfd29e80c0ab1a8205a2fc34e4bcd40364df902cfa8f3f"
 name = "typhoon"
 version = "0.1.0-alpha.7"
 dependencies = [
+ "pinocchio",
  "pinocchio-pubkey",
  "typhoon-account-macro",
  "typhoon-accounts",
