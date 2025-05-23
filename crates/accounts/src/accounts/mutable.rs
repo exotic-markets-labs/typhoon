@@ -1,7 +1,7 @@
 use {
     super::{Account, Program, SystemAccount, UncheckedAccount},
     crate::{
-        Discriminator, FromAccountInfo, ReadableAccount, RefFromBytes, Signer, SignerAccount,
+        Discriminator, FromAccountInfo, Meta, ReadableAccount, RefFromBytes, Signer, SignerAccount,
         WritableAccount,
     },
     pinocchio::{
@@ -156,3 +156,7 @@ impl<T: Discriminator + RefFromBytes> WritableAccount for Mut<Account<'_, T>> {
 }
 
 impl SignerAccount for Mut<Signer<'_>> {}
+
+impl<T: ReadableAccount + Meta> Meta for Mut<T> {
+    const META: (bool, bool, bool) = (T::META.0, true, T::META.2);
+}

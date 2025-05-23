@@ -1,5 +1,5 @@
 use {
-    crate::{Discriminator, FromAccountInfo, Owner, ReadableAccount},
+    crate::{Discriminator, FromAccountInfo, Meta, Owner, ReadableAccount},
     pinocchio::{
         account_info::{AccountInfo, Ref},
         program_error::ProgramError,
@@ -95,4 +95,8 @@ where
     fn data(&self) -> Result<Ref<Self::DataType>, Error> {
         self.info.try_borrow_data().map_err(Into::into)
     }
+}
+
+impl<T: Owner + Discriminator> Meta for BorshAccount<'_, T> {
+    const META: (bool, bool, bool) = (false, false, false);
 }

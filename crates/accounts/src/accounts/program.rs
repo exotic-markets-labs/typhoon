@@ -1,5 +1,5 @@
 use {
-    crate::{FromAccountInfo, ProgramId, ReadableAccount},
+    crate::{FromAccountInfo, Meta, ProgramId, ReadableAccount},
     core::marker::PhantomData,
     pinocchio::{
         account_info::{AccountInfo, Ref},
@@ -67,4 +67,8 @@ impl<T> ReadableAccount for Program<'_, T> {
     fn data(&self) -> Result<Ref<Self::DataType>, Error> {
         self.info.try_borrow_data().map_err(Into::into)
     }
+}
+
+impl<T> Meta for Program<'_, T> {
+    const META: (bool, bool, bool) = (false, false, false);
 }

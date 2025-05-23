@@ -1,5 +1,5 @@
 use {
-    crate::{FromAccountInfo, ReadableAccount},
+    crate::{FromAccountInfo, Meta, ReadableAccount},
     pinocchio::{
         account_info::{AccountInfo, Ref},
         pubkey::Pubkey,
@@ -51,4 +51,8 @@ impl ReadableAccount for SystemAccount<'_> {
     fn data(&self) -> Result<Ref<Self::DataType>, Error> {
         self.info.try_borrow_data().map_err(Into::into)
     }
+}
+
+impl Meta for SystemAccount<'_> {
+    const META: (bool, bool, bool) = (false, false, false);
 }

@@ -1,0 +1,18 @@
+[package]
+name = "typhoon-instruction-builder"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[features]
+client = ["dep:solana-instruction", "dep:solana-pubkey"]
+cpi = ["dep:pinocchio"]
+
+[dependencies]
+bytemuck.workspace = true
+pinocchio = { workspace = true, optional = true }
+solana-instruction = { workspace = true, optional = true }
+solana-pubkey = { workspace = true, optional = true }
+typhoon-to-metas-macro.workspace = true
