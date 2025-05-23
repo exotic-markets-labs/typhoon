@@ -1,5 +1,5 @@
 use {
-    crate::{Discriminator, FromAccountInfo, Owner, ReadableAccount, RefFromBytes},
+    crate::{Discriminator, FromAccountInfo, Meta, Owner, ReadableAccount, RefFromBytes},
     core::marker::PhantomData,
     pinocchio::{
         account_info::{AccountInfo, Ref},
@@ -87,4 +87,8 @@ where
         Ref::filter_map(self.info.try_borrow_data()?, T::read)
             .map_err(|_| ProgramError::InvalidAccountData.into())
     }
+}
+
+impl<T: Discriminator + RefFromBytes> Meta for Account<'_, T> {
+    const META: (bool, bool, bool) = (false, false, false);
 }

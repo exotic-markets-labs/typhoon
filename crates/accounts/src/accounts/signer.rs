@@ -1,5 +1,5 @@
 use {
-    crate::{FromAccountInfo, ReadableAccount, SignerAccount},
+    crate::{FromAccountInfo, Meta, ReadableAccount, SignerAccount},
     pinocchio::{
         account_info::{AccountInfo, Ref},
         pubkey::Pubkey,
@@ -53,4 +53,8 @@ impl ReadableAccount for Signer<'_> {
     fn data(&self) -> Result<Ref<Self::DataType>, Error> {
         self.info.try_borrow_data().map_err(Into::into)
     }
+}
+
+impl Meta for Signer<'_> {
+    const META: (bool, bool, bool) = (false, false, true);
 }
