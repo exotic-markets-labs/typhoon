@@ -79,3 +79,8 @@ where
         bytemuck::try_from_bytes_mut(&mut data[dis_len..core::mem::size_of::<T>() + dis_len]).ok()
     }
 }
+
+pub trait Meta {
+    /// (optional, writable, signer)
+    const META: (bool, bool, bool);
+}

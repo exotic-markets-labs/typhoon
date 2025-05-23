@@ -29,9 +29,11 @@ typhoon-discriminator-macro = { version = "0.1.0-alpha.8", path = "crates/discri
 typhoon-errors = { version = "0.1.0-alpha.8", path = "crates/errors" }
 typhoon-handler-macro = { version = "0.1.0-alpha.8", path = "crates/handler-macro" }
 typhoon-idl-generator = { version = "0.1.0-alpha.8", path = "crates/idl-generator" }
+typhoon-instruction-builder = { version = "0.1.0-alpha.8", path = "crates/instruction-builder" }
 typhoon-metadata-extractor = { version = "0.1.0-alpha.8", path = "crates/metadata-extractor" }
 typhoon-program-id-macro = { version = "0.1.0-alpha.8", path = "crates/program-id-macro" }
 typhoon-token = { version = "0.1.0-alpha.8", path = "crates/token" }
+typhoon-to-metas-macro = { version = "0.1.0-alpha.8", path = "crates/to-metas-macro" }
 typhoon-utility = { version = "0.1.0-alpha.8", path = "crates/utility" }
 typhoon-utility-traits = { version = "0.1.0-alpha.8", path = "crates/utility-traits" }
 heck = "0.5.0"
@@ -48,3 +50,5 @@ quote = "1.0"
 serde_json = "1.0"
 sha2 = "0.10.8"
 syn = "2.0"
+solana-instruction = "2.2"
+solana-pubkey = "2.2"

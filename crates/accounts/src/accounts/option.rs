@@ -1,5 +1,5 @@
 use {
-    crate::{FromAccountInfo, ReadableAccount},
+    crate::{FromAccountInfo, Meta, ReadableAccount},
     pinocchio::{account_info::AccountInfo, pubkey::Pubkey},
     typhoon_errors::Error,
 };
@@ -15,4 +15,8 @@ where
             T::try_from_info(info).map(Some)
         }
     }
+}
+
+impl<T: Meta> Meta for Option<T> {
+    const META: (bool, bool, bool) = (true, T::META.1, T::META.2);
 }
