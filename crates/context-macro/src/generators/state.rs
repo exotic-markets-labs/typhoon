@@ -10,25 +10,29 @@ use {
         StagedGenerator,
     },
     quote::{format_ident, quote},
-    std::collections::HashSet,
+    std::collections::HashMap,
     syn::Ident,
 };
 
-struct TokenCheck {
+struct Checks {
     has_token: bool,
     has_init: bool,
+    has_init_if_needed: bool,
+    has_one: bool,
 }
 
-impl TokenCheck {
+impl Checks {
     pub fn new() -> Self {
-        TokenCheck {
+        Checks {
             has_token: false,
             has_init: false,
+            has_init_if_needed: false,
+            has_one: false,
         }
     }
 }
 
-impl ContextVisitor for TokenCheck {
+impl ContextVisitor for Checks {
     fn visit_init(&mut self, _constraint: &ConstraintInit) -> Result<(), syn::Error> {
         self.has_init = true;
         Ok(())
@@ -38,7 +42,7 @@ impl ContextVisitor for TokenCheck {
         &mut self,
         _constraint: &ConstraintInitIfNeeded,
     ) -> Result<(), syn::Error> {
-        self.has_init = true;
+        self.has_init_if_needed = true;
         Ok(())
     }
 
@@ -46,11 +50,16 @@ impl ContextVisitor for TokenCheck {
         self.has_token = true;
         Ok(())
     }
+
+    fn visit_has_one(&mut self, _constraint: &ConstraintHasOne) -> Result<(), syn::Error> {
+        self.has_one = true;
+        Ok(())
+    }
 }
 
 pub struct StateGenerator<'a> {
     context: &'a Context,
-    state: HashSet<Ident>,
+    state: HashMap<Ident, bool>,
     current_account: Option<&'a Ident>,
 }
 
@@ -58,7 +67,7 @@ impl<'a> StateGenerator<'a> {
     pub fn new(context: &'a Context) -> Self {
         StateGenerator {
             context,
-            state: HashSet::new(),
+            state: HashMap::new(),
             current_account: None,
         }
     }
@@ -66,27 +75,41 @@ impl<'a> StateGenerator<'a> {
 
 impl StagedGenerator for StateGenerator<'_> {
     fn append(&mut self, result: &mut GeneratorResult) -> Result<(), syn::Error> {
+        let mut account_checks: HashMap<&Ident, (bool, bool)> = HashMap::new();
         for account in &self.context.accounts {
             self.current_account = Some(&account.name);
 
-            let mut token_check = TokenCheck::new();
-            token_check.visit_account(account)?;
+            let mut checks = Checks::new();
+            checks.visit_account(account)?;
 
-            if token_check.has_token && !token_check.has_init {
-                self.state.insert(account.name.to_owned());
-            }
+            account_checks.insert(&account.name, (checks.has_init_if_needed, checks.has_one));
 
             self.visit_account(account)?;
+
+            if checks.has_token
+                && !checks.has_init
+                && !checks.has_init_if_needed
+                && !self.state.contains_key(&account.name)
+            {
+                self.state.insert(account.name.to_owned(), false);
+            }
         }
 
-        let tokens = self.state.drain().map(|name| {
+        for (name, has_bump) in self.state.drain() {
             let var_name = format_ident!("{name}_state");
-            let token = quote!(let #var_name = #name.data()?;);
-            result.drop_vars.push(var_name);
-            token
-        });
 
-        result.inside.extend(tokens);
+            let Some((has_init_if_needed, has_one)) = account_checks.get(&name) else {
+                continue;
+            };
+
+            if has_bump && *has_init_if_needed && !*has_one {
+                continue;
+            };
+
+            let token = quote!(let #var_name = #name.data()?;);
+            result.inside.extend(token);
+            result.drop_vars.push(var_name);
+        }
 
         Ok(())
     }
@@ -94,19 +117,18 @@ impl StagedGenerator for StateGenerator<'_> {
 
 impl ContextVisitor for StateGenerator<'_> {
     fn visit_has_one(&mut self, _constraint: &ConstraintHasOne) -> Result<(), syn::Error> {
-        let current_account = self.current_account.ok_or(syn::Error::new_spanned(
-            &self.context.item_struct,
-            "Not in account context",
-        ))?;
+        let account_name = self.current_account.unwrap();
+        if !self.state.contains_key(account_name) {
+            self.state.insert(account_name.clone(), false);
+        }
 
-        self.state.insert(current_account.to_owned());
         Ok(())
     }
 
     fn visit_bump(&mut self, constraint: &ConstraintBump) -> Result<(), syn::Error> {
         if let Some(c) = &constraint.0 {
             if let Some(name) = c.name() {
-                self.state.insert(name.clone());
+                self.state.insert(name.clone(), true);
             }
         }
 
