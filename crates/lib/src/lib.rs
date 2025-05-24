@@ -20,9 +20,7 @@ pub mod bytes {
 }
 
 pub mod instruction {
-    pub use pinocchio_pubkey::pinocchio::instruction::{
-        AccountMeta, Instruction, Seed, Signer as CpiSigner,
-    };
+    pub use pinocchio::instruction::{AccountMeta, Instruction, Seed, Signer as CpiSigner};
 }
 
 pub type ProgramResult<T = ()> = Result<T, Error>;

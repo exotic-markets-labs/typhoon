@@ -56,9 +56,7 @@ impl<'a> BumpTokenGenerator<'a> {
         Ok(seeds)
     }
 
-    pub fn generate(
-        self,
-    ) -> Result<(TokenStream, Option<TokenStream>, TokenStream, bool), syn::Error> {
+    pub fn generate(self) -> Result<(TokenStream, Option<TokenStream>, TokenStream), syn::Error> {
         let name = &self.account.name;
         let name_str = name.to_string();
         let pda_key = format_ident!("{}_key", name);
@@ -70,8 +68,8 @@ impl<'a> BumpTokenGenerator<'a> {
             .unwrap_or(quote!(crate::ID));
 
         let (pda, pda_no_bump) = if let Some(bump) = &self.bump {
+            let var_name = format_ident!("{name}_state");
             let seeds_token = if matches!(self.pda_ty, PdaType::Seeded) {
-                let var_name = format_ident!("{name}_state");
                 quote!(#var_name.seeds_with_bump(&[#pda_bump]))
             } else {
                 let seeds = self.seeds.as_ref().ok_or(syn::Error::new(
@@ -89,10 +87,21 @@ impl<'a> BumpTokenGenerator<'a> {
                 None
             };
 
+            let (state_assign, drop) = if bump.name().is_some() && self.init_if_needed {
+                (
+                    Some(quote!(let #var_name = #name.data()?;)),
+                    Some(quote!(drop(#var_name);)),
+                )
+            } else {
+                (None, None)
+            };
+
             (
                 quote! {
+                    #state_assign
                     let #pda_bump = #bump;
                     let #pda_key = create_program_address(&#seeds_token, &#program_id)?;
+                    #drop
                 },
                 seeds_without_bump,
             )
@@ -117,7 +126,6 @@ impl<'a> BumpTokenGenerator<'a> {
                     return Err(Error::new(ProgramError::InvalidSeeds).with_account(#name_str));
                 }
             },
-            self.bump.is_none() || self.init_if_needed,
         ))
     }
 }

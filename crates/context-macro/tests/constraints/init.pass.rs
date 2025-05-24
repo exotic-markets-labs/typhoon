@@ -1,10 +1,15 @@
+mod instruction {
+    pub use pinocchio_pubkey::pinocchio::instruction::{Seed, Signer as CpiSigner};
+}
+
 use {
     pinocchio_pubkey::{
         declare_id,
         pinocchio::{
             account_info::AccountInfo,
             program_error::ProgramError,
-            pubkey::Pubkey,
+            pubkey::{Pubkey, *},
+            seeds,
             sysvars::{rent::Rent, Sysvar},
         },
     },
@@ -26,15 +31,30 @@ pub struct Counter {
     pub count: u64,
 }
 
+#[account]
+pub struct CounterData {
+    #[key]
+    pub payer: Pubkey,
+    pub bump: u8,
+}
+
 #[context]
 pub struct InitContext {
     pub payer: Mut<Signer>,
     #[constraint(
         init,
         payer = payer,
-        space = Counter::SPACE
+        space = Counter::SPACE,
     )]
     pub counter: Mut<Account<Counter>>,
+    #[constraint(
+        init_if_needed,
+        payer = payer,
+        seeded = [payer.key()],
+        bump = counter_data.data()?.bump
+        has_one = payer
+    )]
+    pub counter_data: Mut<Account<CounterData>>,
     pub program: Program<System>,
 }
 
