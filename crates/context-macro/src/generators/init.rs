@@ -1,12 +1,14 @@
 use {
-    super::tokens_gen::{BumpTokenGenerator, InitTokenGenerator},
+    super::tokens_gen::{BumpTokenGenerator, InitTokenGenerator, StateTokenGenerator},
     crate::{
+        accounts::Account,
         constraints::{ConstraintBump, ConstraintInit, ConstraintInitIfNeeded},
         context::Context,
         visitor::ContextVisitor,
         StagedGenerator,
     },
-    quote::quote,
+    proc_macro2::TokenStream,
+    quote::{format_ident, quote},
 };
 
 #[derive(Default)]
@@ -48,16 +50,76 @@ impl<'a> InitGenerator<'a> {
     pub fn new(context: &'a Context) -> Self {
         Self(context)
     }
+
+    pub fn generate_init_if_needed(
+        &self,
+        account: &Account,
+        has_bump: bool,
+    ) -> Result<TokenStream, syn::Error> {
+        let name = &account.name;
+        let account_ty = &account.ty;
+
+        let mut init_gen = InitTokenGenerator::new(account);
+        init_gen.visit_account(account)?;
+        let init_token = init_gen.generate()?;
+
+        let expanded = if has_bump {
+            let pda_key = format_ident!("{}_key", name);
+            let pda_bump = format_ident!("{}_bump", name);
+            let mut bump_gen = BumpTokenGenerator::new(account);
+            bump_gen.visit_account(account)?;
+            let (pda_token, find_pda_token, check_token) = bump_gen.generate()?;
+
+            quote! {
+                let (#name, #pda_key, #pda_bump) = if !#name.is_owned_by(&Pubkey::default()) {
+                    let #name = <#account_ty as FromAccountInfo>::try_from_info(#name.into())?;
+                    #pda_token
+                    (#name, #pda_key, #pda_bump)
+                }else {
+                    #find_pda_token
+                    let #name = { #init_token };
+                    (#name, #pda_key, #pda_bump)
+                };
+                #check_token
+            }
+        } else {
+            quote! {
+                    let #name = if !#name.is_owned_by(&Pubkey::default()) {
+                        <#account_ty as FromAccountInfo>::try_from_info(#name.into())?
+                    }else {
+                        #init_token
+                    };
+            }
+        };
+
+        Ok(expanded)
+    }
 }
 
 impl StagedGenerator for InitGenerator<'_> {
     fn append(&mut self, result: &mut super::GeneratorResult) -> Result<(), syn::Error> {
+        let state_gen = StateTokenGenerator::analyze(self.0)?;
         for account in &self.0.accounts {
             let mut checks = Checks::new();
             checks.visit_account(account)?;
 
+            let maybe_state = state_gen.get_token(&account.name);
+
             if checks.has_init_if_needed {
+                let token = self.generate_init_if_needed(account, checks.has_bump)?;
+                result.inside.extend(token);
+
+                if let Some((token, var_name)) = maybe_state {
+                    result.inside.extend(token);
+                    result.drop_vars.push(var_name);
+                }
+
                 continue;
+            }
+
+            if let Some((token, var_name)) = maybe_state {
+                result.inside.extend(token);
+                result.drop_vars.push(var_name);
             }
 
             if checks.has_bump {

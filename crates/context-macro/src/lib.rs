@@ -5,6 +5,7 @@ use {
     injector::FieldInjector,
     proc_macro::TokenStream,
     quote::{quote, ToTokens},
+    sorter::sort_accounts,
     syn::{parse_macro_input, parse_quote, visit_mut::VisitMut, Attribute, Ident, Lifetime},
 };
 
@@ -17,6 +18,7 @@ mod extractor;
 mod generators;
 mod injector;
 mod remover;
+mod sorter;
 mod utils;
 mod visitor;
 
@@ -41,14 +43,14 @@ trait StagedGenerator {
 }
 
 impl TokenGenerator {
-    pub fn new(context: Context) -> Result<Self, syn::Error> {
+    pub fn new(mut context: Context) -> Result<Self, syn::Error> {
+        sort_accounts(&mut context)?;
+
         let mut generated_results = GeneratorResult::default();
         let mut generators = [
             ConstraintGenerators::Args(ArgumentsGenerator::new(&context)),
             ConstraintGenerators::Assign(AssignGenerator::new(&context)),
             ConstraintGenerators::Rent(RentGenerator::new(&context)),
-            ConstraintGenerators::InitIfNeeded(InitIfNeededGenerator::new(&context)),
-            ConstraintGenerators::State(StateGenerator::new(&context)),
             ConstraintGenerators::Init(InitGenerator::new(&context)),
             ConstraintGenerators::Bumps(BumpsGenerator::new(&context)),
             ConstraintGenerators::HasOne(HasOneGenerator::new(&context)),
