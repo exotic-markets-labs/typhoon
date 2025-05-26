@@ -50,7 +50,10 @@ impl<T> AsRef<AccountInfo> for Program<'_, T> {
 }
 
 impl<T> ReadableAccount for Program<'_, T> {
-    type DataType = [u8];
+    type Data<'a>
+        = Ref<'a, [u8]>
+    where
+        Self: 'a;
 
     fn key(&self) -> &Pubkey {
         self.info.key()
@@ -64,7 +67,7 @@ impl<T> ReadableAccount for Program<'_, T> {
         self.info.try_borrow_lamports().map_err(Into::into)
     }
 
-    fn data(&self) -> Result<Ref<Self::DataType>, Error> {
+    fn data<'a>(&'a self) -> Result<Self::Data<'a>, Error> {
         self.info.try_borrow_data().map_err(Into::into)
     }
 }

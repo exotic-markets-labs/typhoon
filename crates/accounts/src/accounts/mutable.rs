@@ -12,7 +12,7 @@ use {
     typhoon_errors::{Error, ErrorCode},
 };
 
-pub struct Mut<T: ReadableAccount>(T);
+pub struct Mut<T: ReadableAccount>(pub(crate) T);
 
 impl<'a, T> FromAccountInfo<'a> for Mut<T>
 where
@@ -49,7 +49,10 @@ impl<T> ReadableAccount for Mut<T>
 where
     T: ReadableAccount,
 {
-    type DataType = T::DataType;
+    type Data<'a>
+        = T::Data<'a>
+    where
+        Self: 'a;
 
     fn key(&self) -> &Pubkey {
         self.0.key()
@@ -63,7 +66,7 @@ where
         self.0.lamports()
     }
 
-    fn data(&self) -> Result<Ref<Self::DataType>, Error> {
+    fn data<'a>(&'a self) -> Result<Self::Data<'a>, Error> {
         self.0.data()
     }
 }
@@ -71,6 +74,11 @@ where
 macro_rules! impl_writable {
     ($name: ident) => {
         impl WritableAccount for Mut<$name<'_>> {
+            type DataMut<'a>
+                = RefMut<'a, [u8]>
+            where
+                Self: 'a;
+
             fn assign(&self, new_owner: &Pubkey) {
                 unsafe {
                     self.0.as_ref().assign(new_owner);
@@ -91,7 +99,7 @@ macro_rules! impl_writable {
                     .map_err(Into::into)
             }
 
-            fn mut_data(&self) -> Result<RefMut<Self::DataType>, Error> {
+            fn mut_data<'a>(&'a self) -> Result<Self::DataMut<'a>, Error> {
                 self.0.as_ref().try_borrow_mut_data().map_err(Into::into)
             }
         }
@@ -103,6 +111,11 @@ impl_writable!(SystemAccount);
 impl_writable!(UncheckedAccount);
 
 impl<T> WritableAccount for Mut<Program<'_, T>> {
+    type DataMut<'a>
+        = RefMut<'a, [u8]>
+    where
+        Self: 'a;
+
     fn assign(&self, new_owner: &Pubkey) {
         unsafe {
             self.0.as_ref().assign(new_owner);
@@ -123,12 +136,17 @@ impl<T> WritableAccount for Mut<Program<'_, T>> {
             .map_err(Into::into)
     }
 
-    fn mut_data(&self) -> Result<RefMut<Self::DataType>, Error> {
+    fn mut_data<'a>(&'a self) -> Result<Self::DataMut<'a>, Error> {
         self.0.as_ref().try_borrow_mut_data().map_err(Into::into)
     }
 }
 
 impl<T: Discriminator + RefFromBytes> WritableAccount for Mut<Account<'_, T>> {
+    type DataMut<'a>
+        = RefMut<'a, T>
+    where
+        Self: 'a;
+
     fn assign(&self, new_owner: &Pubkey) {
         unsafe {
             self.0.as_ref().assign(new_owner);
@@ -149,7 +167,7 @@ impl<T: Discriminator + RefFromBytes> WritableAccount for Mut<Account<'_, T>> {
             .map_err(Into::into)
     }
 
-    fn mut_data(&self) -> Result<RefMut<Self::DataType>, Error> {
+    fn mut_data<'a>(&'a self) -> Result<Self::DataMut<'a>, Error> {
         RefMut::filter_map(self.0.as_ref().try_borrow_mut_data()?, T::read_mut)
             .map_err(|_| ProgramError::InvalidAccountData.into())
     }
