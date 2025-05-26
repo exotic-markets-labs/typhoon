@@ -69,7 +69,10 @@ impl<T> ReadableAccount for Account<'_, T>
 where
     T: RefFromBytes + Discriminator,
 {
-    type DataType = T;
+    type Data<'a>
+        = Ref<'a, T>
+    where
+        Self: 'a;
 
     fn key(&self) -> &Pubkey {
         self.info.key()
@@ -83,7 +86,7 @@ where
         self.info.try_borrow_lamports().map_err(Into::into)
     }
 
-    fn data(&self) -> Result<Ref<Self::DataType>, Error> {
+    fn data<'a>(&'a self) -> Result<Self::Data<'a>, Error> {
         Ref::filter_map(self.info.try_borrow_data()?, T::read)
             .map_err(|_| ProgramError::InvalidAccountData.into())
     }

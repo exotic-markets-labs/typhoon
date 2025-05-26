@@ -19,19 +19,25 @@ pub trait FromAccountInfo<'a>: Sized {
 }
 
 pub trait ReadableAccount: AsRef<AccountInfo> {
-    type DataType: ?Sized;
+    type Data<'a>
+    where
+        Self: 'a;
 
     fn key(&self) -> &Pubkey;
     fn is_owned_by(&self, owner: &Pubkey) -> bool;
     fn lamports(&self) -> Result<Ref<u64>, Error>;
-    fn data(&self) -> Result<Ref<Self::DataType>, Error>;
+    fn data<'a>(&'a self) -> Result<Self::Data<'a>, Error>;
 }
 
 pub trait WritableAccount: ReadableAccount + Sealed {
+    type DataMut<'a>
+    where
+        Self: 'a;
+
     fn assign(&self, new_owner: &Pubkey);
     fn realloc(&self, new_len: usize, zero_init: bool) -> Result<(), Error>;
     fn mut_lamports(&self) -> Result<RefMut<u64>, Error>;
-    fn mut_data(&self) -> Result<RefMut<Self::DataType>, Error>;
+    fn mut_data<'a>(&'a self) -> Result<Self::DataMut<'a>, Error>;
 }
 
 pub trait SignerAccount: ReadableAccount + Sealed {}

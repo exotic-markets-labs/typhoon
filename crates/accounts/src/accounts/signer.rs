@@ -36,7 +36,10 @@ impl AsRef<AccountInfo> for Signer<'_> {
 impl SignerAccount for Signer<'_> {}
 
 impl ReadableAccount for Signer<'_> {
-    type DataType = [u8];
+    type Data<'a>
+        = Ref<'a, [u8]>
+    where
+        Self: 'a;
 
     fn key(&self) -> &Pubkey {
         self.info.key()
@@ -50,7 +53,7 @@ impl ReadableAccount for Signer<'_> {
         self.info.try_borrow_lamports().map_err(Into::into)
     }
 
-    fn data(&self) -> Result<Ref<Self::DataType>, Error> {
+    fn data<'a>(&'a self) -> Result<Self::Data<'a>, Error> {
         self.info.try_borrow_data().map_err(Into::into)
     }
 }
