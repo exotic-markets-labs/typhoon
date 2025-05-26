@@ -427,7 +427,7 @@ checksum = "1dccffe3ce07af9386bfd29e80c0ab1a8205a2fc34e4bcd40364df902cfa8f3f"
 
 [[package]]
 name = "typhoon"
-version = "0.1.0-alpha.8"
+version = "0.1.0-alpha.9"
 dependencies = [
  "pinocchio",
  "pinocchio-pubkey",
@@ -445,7 +445,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-account-macro"
-version = "0.1.0-alpha.8"
+version = "0.1.0-alpha.9"
 dependencies = [
  "bytemuck",
  "pinocchio",
@@ -459,7 +459,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-accounts"
-version = "0.1.0-alpha.8"
+version = "0.1.0-alpha.9"
 dependencies = [
  "borsh",
  "bytemuck",
@@ -470,7 +470,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-context"
-version = "0.1.0-alpha.8"
+version = "0.1.0-alpha.9"
 dependencies = [
  "bytemuck",
  "paste",
@@ -480,7 +480,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-context-macro"
-version = "0.1.0-alpha.8"
+version = "0.1.0-alpha.9"
 dependencies = [
  "bytemuck",
  "pinocchio-pubkey",
@@ -499,7 +499,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-cpi-generator"
-version = "0.1.0-alpha.8"
+version = "0.1.0-alpha.9"
 dependencies = [
  "anchor-lang-idl-spec",
  "five8_const",
@@ -511,7 +511,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-cpi-generator-macro"
-version = "0.1.0-alpha.8"
+version = "0.1.0-alpha.9"
 dependencies = [
  "anchor-lang-idl-spec",
  "serde_json",
@@ -521,14 +521,14 @@ dependencies = [
 
 [[package]]
 name = "typhoon-discriminator"
-version = "0.1.0-alpha.8"
+version = "0.1.0-alpha.9"
 dependencies = [
  "sha2",
 ]
 
 [[package]]
 name = "typhoon-discriminator-macro"
-version = "0.1.0-alpha.8"
+version = "0.1.0-alpha.9"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -539,14 +539,14 @@ dependencies = [
 
 [[package]]
 name = "typhoon-errors"
-version = "0.1.0-alpha.8"
+version = "0.1.0-alpha.9"
 dependencies = [
  "pinocchio",
 ]
 
 [[package]]
 name = "typhoon-handler-macro"
-version = "0.1.0-alpha.8"
+version = "0.1.0-alpha.9"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -555,14 +555,14 @@ dependencies = [
 
 [[package]]
 name = "typhoon-idl-generator"
-version = "0.1.0-alpha.8"
+version = "0.1.0-alpha.9"
 dependencies = [
  "typhoon-metadata-extractor",
 ]
 
 [[package]]
 name = "typhoon-metadata-extractor"
-version = "0.1.0-alpha.8"
+version = "0.1.0-alpha.9"
 dependencies = [
  "cargo-manifest",
  "syn",
@@ -570,7 +570,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-program-id-macro"
-version = "0.1.0-alpha.8"
+version = "0.1.0-alpha.9"
 dependencies = [
  "cargo-manifest",
  "heck",
@@ -581,7 +581,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-token"
-version = "0.1.0-alpha.8"
+version = "0.1.0-alpha.9"
 dependencies = [
  "pinocchio",
  "pinocchio-associated-token-account",
@@ -593,7 +593,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-utility"
-version = "0.1.0-alpha.8"
+version = "0.1.0-alpha.9"
 dependencies = [
  "borsh",
  "pinocchio",
@@ -604,7 +604,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-utility-traits"
-version = "0.1.0-alpha.8"
+version = "0.1.0-alpha.9"
 dependencies = [
  "pinocchio",
  "pinocchio-system",
