@@ -1,3 +1,5 @@
+#![no_std]
+
 use sha2::{Digest, Sha256};
 
 pub struct DiscriminatorBuilder<'a> {

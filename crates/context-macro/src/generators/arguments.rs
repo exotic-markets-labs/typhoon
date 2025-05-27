@@ -1,86 +1,58 @@
 use {
-    super::{ConstraintGenerator, GeneratorResult},
+    super::GeneratorResult,
     crate::{
         arguments::{Argument, Arguments},
         context::Context,
-        visitor::ContextVisitor,
+        StagedGenerator,
     },
-    proc_macro2::{Span, TokenStream},
     quote::{format_ident, quote},
-    syn::{parse_quote, Ident},
+    syn::parse_quote,
 };
 
-#[derive(Default)]
-pub struct ArgumentsGenerator {
-    context_name: Option<Ident>,
-    arg_name: Option<Ident>,
-    arg_struct: Option<TokenStream>,
-}
+pub struct ArgumentsGenerator<'a>(&'a Context);
 
-impl ArgumentsGenerator {
-    pub fn new() -> Self {
-        ArgumentsGenerator::default()
+impl<'a> ArgumentsGenerator<'a> {
+    pub fn new(context: &'a Context) -> Self {
+        ArgumentsGenerator(context)
     }
 }
 
-impl ConstraintGenerator for ArgumentsGenerator {
-    fn generate(&self) -> Result<GeneratorResult, syn::Error> {
-        let mut result = GeneratorResult::default();
-        if let Some(ref name) = self.arg_name {
-            result
-                .new_fields
-                .push(parse_quote!(pub args: Args<'info, #name>));
-            result.at_init =
-                quote!(let args = Args::<#name>::from_entrypoint(accounts, instruction_data)?;);
+impl StagedGenerator for ArgumentsGenerator<'_> {
+    fn append(&mut self, context: &mut GeneratorResult) -> Result<(), syn::Error> {
+        let Some(ref args) = self.0.args else {
+            return Ok(());
+        };
 
-            if let Some(ref arg_struct) = self.arg_struct {
-                result.global_outside = arg_struct.clone();
-            }
-        }
-        Ok(result)
-    }
-}
-
-impl ContextVisitor for ArgumentsGenerator {
-    fn visit_context(&mut self, context: &Context) -> Result<(), syn::Error> {
-        self.context_name = Some(context.item_struct.ident.clone());
-
-        self.visit_accounts(&context.accounts)?;
-
-        if let Some(args) = &context.args {
-            self.visit_arguments(args)?;
-        }
-
-        Ok(())
-    }
-
-    fn visit_arguments(&mut self, arguments: &Arguments) -> Result<(), syn::Error> {
-        match arguments {
-            Arguments::Struct(name) => self.arg_name = Some(name.clone()),
+        let context_name = &self.0.item_struct.ident;
+        let (name, args_struct) = match args {
+            Arguments::Struct(name) => (name.clone(), None),
             Arguments::Values(args) => {
-                let Some(ref context_name) = self.context_name else {
-                    return Err(syn::Error::new(
-                        Span::call_site(),
-                        "Not in a valid context.",
-                    ));
-                };
-
                 let struct_name = format_ident!("{context_name}Args");
                 let fields = args
                     .iter()
                     .map(|Argument { name, ty }: &Argument| quote!(pub #name: #ty));
 
                 let generated_struct = quote! {
-                    #[derive(Debug, PartialEq, bytemuck::Pod, bytemuck::Zeroable, Copy, Clone)]
+                    #[derive(Debug, PartialEq, bytemuck::AnyBitPattern, bytemuck::NoUninit, Copy, Clone)]
                     #[repr(C)]
                     pub struct #struct_name {
                         #(#fields),*
                     }
                 };
 
-                self.arg_name = Some(struct_name);
-                self.arg_struct = Some(generated_struct);
+                (struct_name, Some(generated_struct))
             }
+        };
+
+        context
+            .new_fields
+            .push(parse_quote!(pub args: Args<'info, #name>));
+        context.inside.extend(
+            quote!(let args = Args::<#name>::from_entrypoint(accounts, instruction_data)?;),
+        );
+
+        if let Some(args_struct) = args_struct {
+            context.outside.extend(args_struct);
         }
 
         Ok(())

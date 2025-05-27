@@ -1,7 +1,14 @@
-use bytemuck::{Pod, Zeroable};
-use typhoon::prelude::*;
+#![no_std]
+
+use {
+    bytemuck::{Pod, Zeroable},
+    typhoon::prelude::*,
+};
 
 program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+
+nostd_panic_handler!();
+no_allocator!();
 
 handlers! {
     transfer_sol_with_cpi,
@@ -43,16 +50,13 @@ pub fn transfer_sol_with_cpi(
     amount: Args<PodU64>,
     ctx: TransferContext,
     _: SystemContext,
-) -> Result<(), ProgramError> {
+) -> ProgramResult {
     ctx.payer.transfer(&ctx.recipient, (*amount).into())?;
 
     Ok(())
 }
 
-pub fn transfer_sol_with_program(
-    amount: Args<PodU64>,
-    ctx: TransferContext,
-) -> Result<(), ProgramError> {
+pub fn transfer_sol_with_program(amount: Args<PodU64>, ctx: TransferContext) -> ProgramResult {
     ctx.payer.send(&ctx.recipient, (*amount).into())?;
 
     Ok(())

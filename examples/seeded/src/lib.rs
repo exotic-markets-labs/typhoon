@@ -1,6 +1,11 @@
+#![no_std]
+
 use typhoon::prelude::*;
 
 program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+
+nostd_panic_handler!();
+no_allocator!();
 
 handlers! {
     initialize,
@@ -29,7 +34,7 @@ pub struct IncrementContext {
     pub counter: Mut<Account<Counter>>,
 }
 
-pub fn initialize(ctx: InitContext) -> Result<(), ProgramError> {
+pub fn initialize(ctx: InitContext) -> ProgramResult {
     *ctx.counter.mut_data()? = Counter {
         admin: ctx.args.admin,
         count: 0,
@@ -40,13 +45,14 @@ pub fn initialize(ctx: InitContext) -> Result<(), ProgramError> {
     Ok(())
 }
 
-pub fn increment(ctx: IncrementContext) -> Result<(), ProgramError> {
+pub fn increment(ctx: IncrementContext) -> ProgramResult {
     ctx.counter.mut_data()?.count += 1;
 
     Ok(())
 }
 
 #[account]
+#[no_space]
 pub struct Counter {
     #[key]
     pub admin: Pubkey,
@@ -56,5 +62,5 @@ pub struct Counter {
 }
 
 impl Counter {
-    const SPACE: usize = 8 + std::mem::size_of::<Counter>();
+    const SPACE: usize = 8 + core::mem::size_of::<Counter>();
 }

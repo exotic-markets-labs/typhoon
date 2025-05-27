@@ -1,6 +1,14 @@
-use typhoon::prelude::*;
+#![no_std]
+
+mod error;
+
+use {crate::error::SeedsError, typhoon::prelude::*};
 
 program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+
+impl_error_logger!(SeedsError);
+nostd_panic_handler!();
+no_allocator!();
 
 handlers! {
     initialize,
@@ -28,7 +36,7 @@ pub struct InitContext {
 pub struct IncrementContext {
     pub admin: Signer,
     #[constraint(
-        has_one = admin,
+        has_one = admin @ SeedsError::InvalidOwner,
         seeds = [
             b"counter".as_ref(),
         ],
@@ -37,7 +45,7 @@ pub struct IncrementContext {
     pub counter: Mut<Account<Counter>>,
 }
 
-pub fn initialize(ctx: InitContext) -> Result<(), ProgramError> {
+pub fn initialize(ctx: InitContext) -> ProgramResult {
     assert!(ctx.authority.is_none());
 
     *ctx.counter.mut_data()? = Counter {
@@ -54,13 +62,14 @@ pub fn initialize(ctx: InitContext) -> Result<(), ProgramError> {
     Ok(())
 }
 
-pub fn increment(ctx: IncrementContext) -> Result<(), ProgramError> {
+pub fn increment(ctx: IncrementContext) -> ProgramResult {
     ctx.counter.mut_data()?.count += 1;
 
     Ok(())
 }
 
 #[account]
+#[no_space]
 pub struct Counter {
     pub bump: u8,
     pub admin: Pubkey,
@@ -69,5 +78,5 @@ pub struct Counter {
 }
 
 impl Counter {
-    const SPACE: usize = 8 + std::mem::size_of::<Counter>();
+    const SPACE: usize = 8 + core::mem::size_of::<Counter>();
 }

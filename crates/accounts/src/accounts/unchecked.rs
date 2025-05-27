@@ -2,9 +2,9 @@ use {
     crate::{FromAccountInfo, ReadableAccount},
     pinocchio::{
         account_info::{AccountInfo, Ref},
-        program_error::ProgramError,
         pubkey::Pubkey,
     },
+    typhoon_errors::Error,
 };
 
 pub struct UncheckedAccount<'a> {
@@ -12,7 +12,7 @@ pub struct UncheckedAccount<'a> {
 }
 
 impl<'a> FromAccountInfo<'a> for UncheckedAccount<'a> {
-    fn try_from_info(info: &'a AccountInfo) -> Result<Self, ProgramError> {
+    fn try_from_info(info: &'a AccountInfo) -> Result<Self, Error> {
         Ok(UncheckedAccount { info })
     }
 }
@@ -30,7 +30,10 @@ impl AsRef<AccountInfo> for UncheckedAccount<'_> {
 }
 
 impl ReadableAccount for UncheckedAccount<'_> {
-    type DataType = [u8];
+    type Data<'a>
+        = Ref<'a, [u8]>
+    where
+        Self: 'a;
 
     fn key(&self) -> &Pubkey {
         self.info.key()
@@ -40,11 +43,11 @@ impl ReadableAccount for UncheckedAccount<'_> {
         self.info.is_owned_by(owner)
     }
 
-    fn lamports(&self) -> Result<Ref<u64>, ProgramError> {
-        self.info.try_borrow_lamports()
+    fn lamports(&self) -> Result<Ref<u64>, Error> {
+        self.info.try_borrow_lamports().map_err(Into::into)
     }
 
-    fn data(&self) -> Result<Ref<Self::DataType>, ProgramError> {
-        self.info.try_borrow_data()
+    fn data<'a>(&'a self) -> Result<Self::Data<'a>, Error> {
+        self.info.try_borrow_data().map_err(Into::into)
     }
 }

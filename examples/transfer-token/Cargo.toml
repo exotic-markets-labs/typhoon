@@ -4,6 +4,9 @@ version = "0.1.0"
 edition = "2021"
 publish = false
 
+[features]
+logging = []
+
 [lib]
 crate-type = ["cdylib", "lib"]
 
@@ -18,8 +21,8 @@ typhoon = { path = "../../crates/lib" }
 typhoon-token = { path = "../../crates/token" }
 
 [dev-dependencies]
-litesvm = "0.6.0"
-litesvm-token = "0.6.0"
+litesvm = "0.6.1"
+litesvm-token = "0.6.1"
 solana-instruction = "2.2.1"
 solana-keypair = "2.2.1"
 solana-native-token = "2.2.1"

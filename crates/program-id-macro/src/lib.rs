@@ -3,7 +3,7 @@ use {
     heck::ToUpperCamelCase,
     proc_macro::TokenStream,
     proc_macro2::Span,
-    quote::{quote, ToTokens},
+    quote::{format_ident, quote, ToTokens},
     std::env::var,
     syn::{parse::Parse, parse_macro_input, Ident, LitStr},
 };
@@ -66,8 +66,8 @@ fn generate_name() -> syn::Result<Ident> {
         "Invalid package section",
     ))?;
 
-    Ok(Ident::new(
-        &format!("{}Program", package_section.name.to_upper_camel_case()),
-        Span::call_site(),
+    Ok(format_ident!(
+        "{}Program",
+        package_section.name.to_upper_camel_case()
     ))
 }

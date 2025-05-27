@@ -1,56 +1,47 @@
 mod arguments;
+mod assign;
 mod bumps;
 mod has_one;
 mod init;
 mod rent;
+mod token;
+mod tokens_gen;
 
 use {
-    crate::{context::Context, visitor::ContextVisitor},
+    crate::StagedGenerator,
     proc_macro2::TokenStream,
-    syn::Field,
+    syn::{Field, Ident},
 };
-pub use {arguments::*, bumps::*, has_one::*, init::*, rent::*};
+pub use {arguments::*, assign::*, bumps::*, has_one::*, init::*, rent::*, token::*};
 
 #[derive(Default, Clone)]
 pub struct GeneratorResult {
-    pub global_outside: TokenStream,
-    pub at_init: TokenStream,
-    pub after_init: TokenStream,
+    pub outside: TokenStream,
+    pub inside: TokenStream,
     pub new_fields: Vec<Field>,
+    pub drop_vars: Vec<Ident>,
 }
 
-pub enum ConstraintGenerators {
-    Bumps(BumpsGenerator),
-    HasOne(HasOneGenerator),
-    Init(InitializationGenerator),
-    Rent(RentGenerator),
-    Args(ArgumentsGenerator),
+pub enum ConstraintGenerators<'a> {
+    HasOne(HasOneGenerator<'a>),
+    Rent(RentGenerator<'a>),
+    Args(ArgumentsGenerator<'a>),
+    Assign(AssignGenerator<'a>),
+    Bumps(BumpsGenerator<'a>),
+    Token(TokenAccountGenerator<'a>),
+    Init(InitGenerator<'a>),
 }
 
-impl ConstraintGenerator for ConstraintGenerators {
-    fn generate(&self) -> Result<GeneratorResult, syn::Error> {
+impl StagedGenerator for ConstraintGenerators<'_> {
+    fn append(&mut self, context: &mut GeneratorResult) -> Result<(), syn::Error> {
         match self {
-            ConstraintGenerators::Bumps(generator) => generator.generate(),
-            ConstraintGenerators::HasOne(generator) => generator.generate(),
-            ConstraintGenerators::Init(generator) => generator.generate(),
-            ConstraintGenerators::Rent(generator) => generator.generate(),
-            ConstraintGenerators::Args(generator) => generator.generate(),
+            ConstraintGenerators::HasOne(generator) => generator.append(context),
+            ConstraintGenerators::Rent(generator) => generator.append(context),
+            ConstraintGenerators::Args(generator) => generator.append(context),
+            ConstraintGenerators::Assign(generator) => generator.append(context),
+            ConstraintGenerators::Bumps(generator) => generator.append(context),
+            ConstraintGenerators::Token(generator) => generator.append(context),
+            ConstraintGenerators::Init(generator) => generator.append(context),
         }
     }
-}
-
-impl ContextVisitor for ConstraintGenerators {
-    fn visit_context(&mut self, context: &Context) -> Result<(), syn::Error> {
-        match self {
-            ConstraintGenerators::Bumps(generator) => generator.visit_context(context),
-            ConstraintGenerators::HasOne(generator) => generator.visit_context(context),
-            ConstraintGenerators::Init(generator) => generator.visit_context(context),
-            ConstraintGenerators::Rent(generator) => generator.visit_context(context),
-            ConstraintGenerators::Args(generator) => generator.visit_context(context),
-        }
-    }
-}
-
-pub trait ConstraintGenerator: ContextVisitor + Sized {
-    fn generate(&self) -> Result<GeneratorResult, syn::Error>;
 }

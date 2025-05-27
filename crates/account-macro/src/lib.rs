@@ -7,11 +7,12 @@ use {
 
 mod keys;
 
-#[proc_macro_derive(AccountState, attributes(key))]
+#[proc_macro_derive(AccountState, attributes(key, no_space))]
 pub fn derive_account(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let item = parse_macro_input!(item as Item);
-    let (name, generics, fields) = match item {
+    let (attrs, name, generics, fields) = match item {
         Item::Struct(ref item_struct) => (
+            &item_struct.attrs,
             &item_struct.ident,
             &item_struct.generics,
             &item_struct.fields,
@@ -21,6 +22,16 @@ pub fn derive_account(item: proc_macro::TokenStream) -> proc_macro::TokenStream 
                 .into_compile_error()
                 .into()
         }
+    };
+
+    let space_token = if attrs.iter().any(|a| a.path().is_ident("no_space")) {
+        None
+    } else {
+        Some(quote! {
+            impl #name {
+                pub const SPACE: usize = <#name as Discriminator>::DISCRIMINATOR.len() + core::mem::size_of::<#name>();
+            }
+        })
     };
     let (_, ty_generics, where_clause) = generics.split_for_impl();
 
@@ -40,6 +51,8 @@ pub fn derive_account(item: proc_macro::TokenStream) -> proc_macro::TokenStream 
             const DISCRIMINATOR: &'static [u8] = &[#(#discriminator),*];
         }
 
+        #space_token
+
         #seeded_trait
     }
     .into_token_stream()
@@ -54,7 +67,7 @@ pub fn account(
     let item = parse_macro_input!(item as Item);
 
     quote! {
-        #[derive(bytemuck::Pod, bytemuck::Zeroable, AccountState, Copy, Clone)]
+        #[derive(bytemuck::NoUninit, bytemuck::AnyBitPattern, AccountState, Copy, Clone)]
         #[repr(C)]
         #item
     }

@@ -1,6 +1,11 @@
+#![no_std]
+
 use typhoon::prelude::*;
 
 program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+
+nostd_panic_handler!();
+no_allocator!();
 
 #[context]
 pub struct InitContext {
@@ -8,7 +13,6 @@ pub struct InitContext {
     #[constraint(
         init,
         payer = payer,
-        space = Counter::SPACE
     )]
     pub counter: Mut<Account<Counter>>,
     pub system: Program<System>,
@@ -52,8 +56,4 @@ pub fn close(
 #[account]
 pub struct Counter {
     pub count: u64,
-}
-
-impl Counter {
-    const SPACE: usize = 8 + std::mem::size_of::<Counter>();
 }

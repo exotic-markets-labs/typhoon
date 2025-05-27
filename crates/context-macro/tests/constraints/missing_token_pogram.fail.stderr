@@ -1,0 +1,5 @@
+error: One constraint requires including the `Program<TokenProgram>` account.
+  --> tests/constraints/missing_token_pogram.fail.rs:17:1
+   |
+17 | pub struct InitContext {
+   | ^^^

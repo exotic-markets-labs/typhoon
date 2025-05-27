@@ -1,5 +1,5 @@
-error: Using `init` requires including the `Program<System>` account
-  --> tests/constraints/missing_system_program.fail.rs:22:9
+error: One constraint requires including the `Program<System>` account.
+  --> tests/constraints/missing_system_program.fail.rs:17:1
    |
-22 |     pub counter: Mut<Account<Counter>>,
-   |         ^^^^^^^
+17 | pub struct InitContext {
+   | ^^^

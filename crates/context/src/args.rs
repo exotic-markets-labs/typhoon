@@ -1,8 +1,9 @@
 use {
     crate::HandlerContext,
-    bytemuck::{try_from_bytes, Pod},
+    bytemuck::{try_from_bytes, AnyBitPattern},
+    core::ops::Deref,
     pinocchio::{account_info::AccountInfo, program_error::ProgramError},
-    std::ops::Deref,
+    typhoon_errors::Error,
 };
 
 #[derive(Debug)]
@@ -24,16 +25,16 @@ impl<T> Deref for Args<'_, T> {
 
 impl<'a, T> HandlerContext<'a> for Args<'a, T>
 where
-    T: Pod,
+    T: AnyBitPattern,
 {
     fn from_entrypoint(
         _accounts: &mut &'a [AccountInfo],
         instruction_data: &mut &'a [u8],
-    ) -> Result<Self, ProgramError> {
-        let arg: &T = try_from_bytes(&instruction_data[..std::mem::size_of::<T>()])
+    ) -> Result<Self, Error> {
+        let arg: &T = try_from_bytes(&instruction_data[..core::mem::size_of::<T>()])
             .map_err(|_| ProgramError::InvalidInstructionData)?;
 
-        let (_, remaining) = instruction_data.split_at(std::mem::size_of::<T>());
+        let (_, remaining) = instruction_data.split_at(core::mem::size_of::<T>());
 
         *instruction_data = remaining;
 

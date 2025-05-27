@@ -1,16 +1,18 @@
+#![no_std]
+
 use paste::paste;
 
 mod args;
 mod remaining_accounts;
 
 pub use args::*;
-use pinocchio::{account_info::AccountInfo, program_error::ProgramError};
+use {pinocchio::account_info::AccountInfo, typhoon_errors::Error};
 
 pub trait HandlerContext<'a>: Sized {
     fn from_entrypoint(
         accounts: &mut &'a [AccountInfo],
         instruction_data: &mut &'a [u8],
-    ) -> Result<Self, ProgramError>;
+    ) -> Result<Self, Error>;
 }
 
 pub trait Handler<'a, T> {
@@ -20,12 +22,12 @@ pub trait Handler<'a, T> {
         self,
         accounts: &mut &'a [AccountInfo],
         instruction_data: &mut &'a [u8],
-    ) -> Result<Self::Output, ProgramError>;
+    ) -> Result<Self::Output, Error>;
 }
 
 impl<'a, F, O> Handler<'a, ()> for F
 where
-    F: FnOnce() -> Result<O, ProgramError>,
+    F: FnOnce() -> Result<O, Error>,
 {
     type Output = O;
 
@@ -33,7 +35,7 @@ where
         self,
         _accounts: &mut &'a [AccountInfo],
         _instruction_data: &mut &'a [u8],
-    ) -> Result<Self::Output, ProgramError> {
+    ) -> Result<Self::Output, Error> {
         (self)()
     }
 }
@@ -42,7 +44,7 @@ macro_rules! impl_handler {
     ($( $t:ident ),+) => {
         impl<'a, $( $t, )* F, O> Handler<'a, ($( $t, )*)> for F
         where
-            F: FnOnce($( $t ),*) -> Result<O, ProgramError>,
+            F: FnOnce($( $t ),*) -> Result<O, Error>,
             $(
                 $t: HandlerContext<'a>,
             )*
@@ -53,7 +55,7 @@ macro_rules! impl_handler {
                 self,
                 accounts: &mut &'a [AccountInfo],
                 instruction_data: &mut &'a [u8],
-            ) -> Result<Self::Output, ProgramError> {
+            ) -> Result<Self::Output, Error> {
                 paste! {
                     $(
                         let [<$t:lower>] = $t::from_entrypoint(accounts, instruction_data)?;
@@ -77,7 +79,7 @@ pub fn handle<'a, T, H>(
     mut accounts: &'a [AccountInfo],
     mut instruction_data: &'a [u8],
     handler: H,
-) -> Result<H::Output, ProgramError>
+) -> Result<H::Output, Error>
 where
     H: Handler<'a, T>,
 {

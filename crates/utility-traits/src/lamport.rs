@@ -1,10 +1,11 @@
 use {
     pinocchio::program_error::ProgramError,
     typhoon_accounts::{Mut, Signer, SignerAccount, WritableAccount},
+    typhoon_errors::Error,
 };
 
 pub trait LamportsChecked: WritableAccount + SignerAccount {
-    fn send(&self, to: &impl WritableAccount, amount: u64) -> Result<(), ProgramError> {
+    fn send(&self, to: &impl WritableAccount, amount: u64) -> Result<(), Error> {
         let mut payer_lamports = self.mut_lamports()?;
         let mut recipient_lamports = to.mut_lamports()?;
 
@@ -18,7 +19,7 @@ pub trait LamportsChecked: WritableAccount + SignerAccount {
         Ok(())
     }
 
-    fn send_all(&self, to: &impl WritableAccount) -> Result<(), ProgramError> {
+    fn send_all(&self, to: &impl WritableAccount) -> Result<(), Error> {
         let amount = *self.lamports()?;
         let mut payer_lamports = self.mut_lamports()?;
         let mut recipient_lamports = to.mut_lamports()?;

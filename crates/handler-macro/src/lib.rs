@@ -28,27 +28,33 @@ impl ToTokens for Handlers {
         let instructions = self.instructions.iter().enumerate().map(|(i, val)| {
             let i = i as u8;
             quote! {
-                #i => handle(accounts, data, #val)?,
+                #i => handle(accounts, data, #val),
             }
         });
 
         let expanded = quote! {
-            entrypoint!(process_instruction);
+            program_entrypoint!(process_instruction);
 
             pub fn process_instruction(
                 program_id: &Pubkey,
                 accounts: &[AccountInfo],
                 instruction_data: &[u8],
-            ) -> ProgramResult {
+            ) -> Result<(), ProgramError> {
                 if program_id != &crate::ID {
                     return Err(ProgramError::IncorrectProgramId);
                 }
 
                 let (discriminator, data) = instruction_data.split_first().ok_or(ProgramError::InvalidInstructionData)?;
-                match discriminator {
+                let result = match discriminator {
                     #(#instructions)*
-                    _ => return Err(ProgramError::InvalidInstructionData),
-                }
+                    _ => Err(ProgramError::InvalidInstructionData.into()),
+                };
+
+                #[cfg(feature = "logging")]
+                result.inspect_err(log_error)?;
+
+                #[cfg(not(feature = "logging"))]
+                result?;
 
                 Ok(())
             }

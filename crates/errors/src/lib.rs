@@ -1,84 +1,91 @@
-use {
-    num_traits::{FromPrimitive, ToPrimitive},
-    pinocchio::{msg, program_error::ProgramError},
-    thiserror::Error,
-};
+#![no_std]
 
-/// Maybe rework with thiserror 2.0
-#[derive(Debug, Error)]
-pub enum Error {
-    #[error("Program is not executable")]
-    InvalidProgramExecutable,
+mod error_code;
+mod extension;
 
-    #[error("Account is initialized yet")]
-    AccountNotInitialized,
+use pinocchio::program_error::{ProgramError, ToStr};
+pub use {error_code::*, extension::*};
 
-    #[error("The given account is not mutable")]
-    AccountNotMutable,
-
-    #[error("Account is not a signer")]
-    AccountNotSigner,
-
-    #[error("The current owner of this account is not the expected one")]
-    AccountOwnedByWrongProgram,
-
-    #[error("Failed to serialize or deserialize account data")]
-    BorshIoError,
-
-    #[error("Discriminator did not match what was expected")]
-    AccountDiscriminatorMismatch,
-
-    #[error("has_one constraint violated")]
-    HasOneConstraint,
-
-    #[error("Cannot initialize a program account with the payer account")]
-    TryingToInitPayerAsProgramAccount,
+pub struct Error {
+    error: ProgramError,
+    account_name: Option<&'static str>,
 }
 
-impl FromPrimitive for Error {
-    fn from_i64(n: i64) -> Option<Self> {
-        match n {
-            3000 => Some(Error::InvalidProgramExecutable),
-            3001 => Some(Error::AccountNotInitialized),
-            3002 => Some(Error::AccountNotMutable),
-            3003 => Some(Error::AccountNotSigner),
-            3004 => Some(Error::AccountOwnedByWrongProgram),
-            3005 => Some(Error::BorshIoError),
-            3006 => Some(Error::AccountDiscriminatorMismatch),
-            3007 => Some(Error::HasOneConstraint),
-            3008 => Some(Error::TryingToInitPayerAsProgramAccount),
-            _ => None,
+impl Error {
+    pub fn new(error: impl Into<ProgramError>) -> Self {
+        Error {
+            error: error.into(),
+            account_name: None,
         }
     }
 
-    fn from_u64(n: u64) -> Option<Self> {
-        Self::from_i64(n as i64)
+    pub fn with_account(mut self, name: &'static str) -> Self {
+        self.account_name = Some(name);
+        self
+    }
+
+    pub fn account_name(&self) -> Option<&str> {
+        self.account_name
     }
 }
 
-impl ToPrimitive for Error {
-    fn to_i64(&self) -> Option<i64> {
-        match self {
-            Error::InvalidProgramExecutable => Some(3000),
-            Error::AccountNotInitialized => Some(3001),
-            Error::AccountNotMutable => Some(3002),
-            Error::AccountNotSigner => Some(3003),
-            Error::AccountOwnedByWrongProgram => Some(3004),
-            Error::BorshIoError => Some(3005),
-            Error::AccountDiscriminatorMismatch => Some(3006),
-            Error::HasOneConstraint => Some(3007),
-            Error::TryingToInitPayerAsProgramAccount => Some(3008),
+impl ToStr for Error {
+    fn to_str<E>(&self) -> &'static str
+    where
+        E: 'static + ToStr + TryFrom<u32>,
+    {
+        if let ProgramError::Custom(code) = self.error {
+            if (100..200).contains(&code) {
+                return self.error.to_str::<ErrorCode>();
+            }
+        }
+        self.error.to_str::<E>()
+    }
+}
+
+impl From<ProgramError> for Error {
+    fn from(error: ProgramError) -> Self {
+        Error {
+            error,
+            account_name: None,
         }
     }
+}
 
-    fn to_u64(&self) -> Option<u64> {
-        self.to_i64().map(|n| n as u64)
+impl From<ErrorCode> for Error {
+    fn from(value: ErrorCode) -> Self {
+        Error {
+            error: value.into(),
+            account_name: None,
+        }
     }
 }
 
 impl From<Error> for ProgramError {
     fn from(value: Error) -> Self {
-        msg!(&format!("[ERROR] {}", value));
-        ProgramError::Custom(value.to_u32().unwrap())
+        value.error
     }
+}
+
+#[macro_export]
+macro_rules! impl_error_logger {
+    ($error:ident) => {
+        #[cfg(feature = "logging")]
+        #[cold]
+        fn log_error(error: &Error) {
+            pinocchio::log::sol_log(error.to_str::<$error>());
+            if let Some(account_name) = error.account_name() {
+                let mut buffer = [bytes::UNINIT_BYTE; 50];
+                let total_len = core::cmp::min(account_name.len() + 16, 50);
+                bytes::write_bytes(&mut buffer[..16], b"Account origin: ");
+                bytes::write_bytes(&mut buffer[16..total_len], account_name.as_bytes());
+                pinocchio::log::sol_log(unsafe {
+                    core::str::from_utf8_unchecked(core::slice::from_raw_parts(
+                        buffer.as_ptr() as _,
+                        total_len,
+                    ))
+                });
+            }
+        }
+    };
 }

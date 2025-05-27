@@ -1,180 +1,97 @@
 use {
-    super::{ConstraintGenerator, GeneratorResult},
+    super::GeneratorResult,
     crate::{
-        accounts::Account,
-        constraints::{ConstraintBump, ConstraintSeeded, ConstraintSeeds},
+        constraints::{ConstraintBump, ConstraintInitIfNeeded},
         context::Context,
-        extractor::InnerTyExtractor,
         visitor::ContextVisitor,
+        StagedGenerator,
     },
     quote::{format_ident, quote},
-    syn::{parse_quote, punctuated::Punctuated, visit::Visit, Expr, Ident, PathSegment, Token},
+    syn::{parse_quote, Ident},
 };
 
 #[derive(Default)]
-pub struct BumpsGenerator {
-    context_name: Option<String>,
-    account: Option<(Ident, PathSegment)>,
-    bump: Option<Expr>,
-    is_seeded: bool,
-    seeds: Option<Punctuated<Expr, Token![,]>>,
-    result: GeneratorResult,
-    struct_fields: Vec<Ident>,
+struct Checks {
+    is_pda: bool,
+    has_bump: bool,
+    has_init_if_needed: bool,
 }
 
-impl BumpsGenerator {
+impl Checks {
     pub fn new() -> Self {
-        BumpsGenerator::default()
-    }
-
-    pub fn is_pda(&self) -> bool {
-        self.is_seeded || self.seeds.is_some()
-    }
-
-    fn extend_checks(&mut self) -> Result<(), syn::Error> {
-        let (name, ty) = self.account.as_ref().unwrap();
-        let pda_key = format_ident!("{}_key", name);
-        let pda_bump = format_ident!("{}_bump", name);
-
-        if let Some(bump) = &self.bump {
-            let (seeds_token, bump_token) = if self.is_seeded {
-                (
-                    quote!(#name.data()?.seeds_with_bump(&[#pda_bump])),
-                    quote!(let #pda_bump = { #bump };),
-                )
-            } else {
-                let seeds = self.seeds.as_ref().ok_or(syn::Error::new(
-                    name.span(),
-                    "Seeds constraint is not specified.",
-                ))?;
-                (
-                    quote!([#seeds, &[#pda_bump]]),
-                    quote!(let #pda_bump = { #bump };),
-                )
-            };
-
-            self.result.after_init.extend(quote! {
-                #bump_token
-                let #pda_key = create_program_address(&#seeds_token, &crate::ID)?;
-                if #name.key() != &#pda_key {
-                    return Err(ProgramError::InvalidSeeds);
-                }
-            });
-        } else {
-            let keys = self.seeds.as_ref().ok_or(syn::Error::new(
-                name.span(),
-                "Seeds constraint is not specified.",
-            ))?;
-
-            let seeds = if self.is_seeded {
-                let mut inner_ty_extractor = InnerTyExtractor::new();
-                inner_ty_extractor.visit_path_segment(ty);
-                let inner_ty_str = inner_ty_extractor
-                    .ty
-                    .ok_or(syn::Error::new(name.span(), "Cannot find the inner type."))?;
-                let inner_ty = format_ident!("{inner_ty_str}");
-
-                quote!(#inner_ty::derive(#keys))
-            } else {
-                quote!([#keys])
-            };
-
-            self.result.at_init.extend(quote! {
-                let (#pda_key, #pda_bump) = find_program_address(&#seeds, &crate::ID);
-                if #name.key() != &#pda_key {
-                    return Err(ProgramError::InvalidSeeds);
-                }
-            });
-        }
-
-        Ok(())
+        Checks::default()
     }
 }
 
-impl ConstraintGenerator for BumpsGenerator {
-    fn generate(&self) -> Result<GeneratorResult, syn::Error> {
-        let mut result = self.result.clone();
-
-        if !self.struct_fields.is_empty() {
-            let struct_name = format_ident!("{}Bumps", self.context_name.as_ref().unwrap());
-            let struct_fields = &self.struct_fields;
-            let bumps_struct = quote! {
-                #[derive(Debug, PartialEq)]
-                pub struct #struct_name {
-                    #(pub #struct_fields: u8,)*
-                }
-            };
-
-            result.global_outside = bumps_struct;
-            let assign_fields = self.struct_fields.iter().map(|n| {
-                let bump_ident = format_ident!("{}_bump", n);
-                quote!(#n: #bump_ident)
-            });
-            result.at_init.extend(quote! {
-                let bumps = #struct_name {
-                    #(#assign_fields),*
-                };
-            });
-
-            result.new_fields.push(parse_quote! {
-                pub bumps: #struct_name
-            });
-        }
-
-        Ok(result)
-    }
-}
-
-impl ContextVisitor for BumpsGenerator {
-    fn visit_context(&mut self, context: &Context) -> Result<(), syn::Error> {
-        self.context_name = Some(context.item_struct.ident.to_string());
-
-        self.visit_accounts(&context.accounts)?;
-
-        if let Some(args) = &context.args {
-            self.visit_arguments(args)?;
-        }
-
-        Ok(())
-    }
-
-    fn visit_account(&mut self, account: &Account) -> Result<(), syn::Error> {
-        self.account = Some((account.name.clone(), account.ty.clone()));
-        self.bump = None;
-        self.is_seeded = false;
-        self.seeds = None;
-
-        self.visit_constraints(&account.constraints)?;
-
-        if self.is_pda() {
-            self.extend_checks()?;
-        }
-
+impl ContextVisitor for Checks {
+    fn visit_init_if_needed(
+        &mut self,
+        _constraint: &ConstraintInitIfNeeded,
+    ) -> Result<(), syn::Error> {
+        self.has_init_if_needed = true;
         Ok(())
     }
 
     fn visit_bump(&mut self, constraint: &ConstraintBump) -> Result<(), syn::Error> {
-        self.bump = constraint.0.clone();
+        self.is_pda = true;
+        self.has_bump = constraint.0.is_some();
+        Ok(())
+    }
+}
 
-        if self.bump.is_none() {
-            self.struct_fields
-                .push(self.account.as_ref().unwrap().0.clone());
+pub struct BumpsGenerator<'a>(&'a Context);
+
+impl<'a> BumpsGenerator<'a> {
+    pub fn new(context: &'a Context) -> Self {
+        Self(context)
+    }
+}
+
+impl BumpsGenerator<'_> {
+    fn append_field(&mut self, result: &mut GeneratorResult, fields: Vec<Ident>) {
+        let context_name = &self.0.item_struct.ident;
+        let struct_name = format_ident!("{}Bumps", context_name);
+        let struct_fields = &fields;
+        let bumps_struct = quote! {
+            #[derive(Debug, PartialEq)]
+            pub struct #struct_name {
+                #(pub #struct_fields: u8,)*
+            }
+        };
+
+        result.outside.extend(bumps_struct);
+        let assign_fields = fields.iter().map(|n| {
+            let bump_ident = format_ident!("{}_bump", n);
+            quote!(#n: #bump_ident)
+        });
+        result.inside.extend(quote! {
+            let bumps = #struct_name {
+                #(#assign_fields),*
+            };
+        });
+
+        result.new_fields.push(parse_quote! {
+            pub bumps: #struct_name
+        });
+    }
+}
+
+impl StagedGenerator for BumpsGenerator<'_> {
+    fn append(&mut self, result: &mut GeneratorResult) -> Result<(), syn::Error> {
+        let mut fields = Vec::new();
+
+        for account in &self.0.accounts {
+            let mut checks = Checks::new();
+            checks.visit_account(account)?;
+
+            if checks.is_pda && (!checks.has_bump || checks.has_init_if_needed) {
+                fields.push(account.name.clone());
+            }
         }
 
-        Ok(())
-    }
-
-    fn visit_seeded(&mut self, constraint: &ConstraintSeeded) -> Result<(), syn::Error> {
-        self.is_seeded = true;
-        self.seeds = constraint.0.clone();
-        //TODO add check seeds constraint
-
-        Ok(())
-    }
-
-    fn visit_seeds(&mut self, constraint: &ConstraintSeeds) -> Result<(), syn::Error> {
-        self.seeds = Some(constraint.seeds.clone());
-        //TODO add check seeded constraint
+        if !fields.is_empty() {
+            self.append_field(result, fields);
+        }
 
         Ok(())
     }

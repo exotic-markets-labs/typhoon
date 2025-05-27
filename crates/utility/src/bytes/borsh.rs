@@ -1,37 +1,26 @@
-use core::mem::MaybeUninit;
-
-pub const UNINIT_BYTE: MaybeUninit<u8> = MaybeUninit::<u8>::uninit();
-
-#[inline(always)]
-pub fn write_bytes(destination: &mut [MaybeUninit<u8>], source: &[u8]) {
-    for (d, s) in destination.iter_mut().zip(source.iter()) {
-        d.write(*s);
-    }
-}
-
 pub struct MaybeUninitWriter<'a> {
-    buffer: &'a mut [std::mem::MaybeUninit<u8>],
+    buffer: &'a mut [core::mem::MaybeUninit<u8>],
     position: usize,
 }
 
 impl<'a> MaybeUninitWriter<'a> {
-    pub fn new(buffer: &'a mut [std::mem::MaybeUninit<u8>], position: usize) -> Self {
+    pub fn new(buffer: &'a mut [core::mem::MaybeUninit<u8>], position: usize) -> Self {
         Self { buffer, position }
     }
 
     pub fn initialized(&self) -> &[u8] {
-        unsafe { std::slice::from_raw_parts(self.buffer.as_ptr() as *const u8, self.position) }
+        unsafe { core::slice::from_raw_parts(self.buffer.as_ptr() as *const u8, self.position) }
     }
 }
 
-impl std::io::Write for MaybeUninitWriter<'_> {
-    fn write(&mut self, data: &[u8]) -> std::io::Result<usize> {
+impl borsh::io::Write for MaybeUninitWriter<'_> {
+    fn write(&mut self, data: &[u8]) -> borsh::io::Result<usize> {
         let available = self.buffer.len().saturating_sub(self.position);
         let to_write = data.len().min(available);
 
         if to_write == 0 {
-            return Err(std::io::Error::new(
-                std::io::ErrorKind::WriteZero,
+            return Err(borsh::io::Error::new(
+                borsh::io::ErrorKind::WriteZero,
                 "Buffer full",
             ));
         }
@@ -50,7 +39,7 @@ impl std::io::Write for MaybeUninitWriter<'_> {
         Ok(to_write)
     }
 
-    fn flush(&mut self) -> std::io::Result<()> {
+    fn flush(&mut self) -> borsh::io::Result<()> {
         Ok(())
     }
 }
