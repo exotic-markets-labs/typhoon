@@ -1,6 +1,6 @@
 use {
     codama::{CodamaResult, KorokVisitor},
-    std::collections::HashSet,
+    std::collections::HashMap,
     syn::{
         parse::Parser, punctuated::Punctuated, Arm, Expr, ExprMatch, Ident, Item, ItemFn,
         ItemMacro, Stmt,
@@ -8,11 +8,11 @@ use {
 };
 
 pub struct CacheInstructionIdents<'a> {
-    cache: &'a mut HashSet<String>,
+    cache: &'a mut HashMap<String, usize>,
 }
 
 impl<'a> CacheInstructionIdents<'a> {
-    pub fn new(cache: &'a mut HashSet<String>) -> Self {
+    pub fn new(cache: &'a mut HashMap<String, usize>) -> Self {
         CacheInstructionIdents { cache }
     }
 }
@@ -31,14 +31,16 @@ impl KorokVisitor for CacheInstructionIdents<'_> {
         };
 
         if let Some(ins) = maybe_ins {
-            self.cache.extend(ins);
+            for (dis, fn_name) in ins {
+                self.cache.insert(fn_name, dis);
+            }
         }
 
         Ok(())
     }
 }
 
-fn extract_from_macro(item_macro: &ItemMacro) -> Option<Vec<String>> {
+fn extract_from_macro(item_macro: &ItemMacro) -> Option<Vec<(usize, String)>> {
     if !item_macro.mac.path.is_ident("handlers") {
         return None;
     }
@@ -47,10 +49,15 @@ fn extract_from_macro(item_macro: &ItemMacro) -> Option<Vec<String>> {
         .parse2(item_macro.mac.tokens.clone())
         .ok()?;
 
-    Some(ins.iter().map(ToString::to_string).collect())
+    Some(
+        ins.iter()
+            .enumerate()
+            .map(|(i, el)| (i, el.to_string()))
+            .collect(),
+    )
 }
 
-fn extract_from_fn(item_fn: &ItemFn) -> Option<Vec<String>> {
+fn extract_from_fn(item_fn: &ItemFn) -> Option<Vec<(usize, String)>> {
     // Only process functions named "process_instruction"
     if item_fn.sig.ident != "process_instruction" {
         return None;
@@ -63,7 +70,8 @@ fn extract_from_fn(item_fn: &ItemFn) -> Option<Vec<String>> {
     let instructions = match_expr
         .arms
         .iter()
-        .filter_map(extract_instruction_from_arm)
+        .enumerate()
+        .filter_map(|(i, item)| extract_instruction_from_arm(item).map(|el| (i, el)))
         .collect();
 
     Some(instructions)

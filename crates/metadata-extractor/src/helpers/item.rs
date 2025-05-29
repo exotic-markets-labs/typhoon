@@ -1,11 +1,12 @@
 use {
     super::AttributesHelper,
     codama::{ItemKorok, KorokTrait},
+    syn::Item,
 };
 
 pub trait ItemHelper {
     fn has_attribute(&self, last: &str) -> bool;
-    fn has_name_in_cache(&self, cache: &[String]) -> bool;
+    fn name(&self) -> Option<String>;
 }
 
 impl ItemHelper for ItemKorok<'_> {
@@ -15,10 +16,15 @@ impl ItemHelper for ItemKorok<'_> {
             .unwrap_or_default()
     }
 
-    fn has_name_in_cache(&self, cache: &[String]) -> bool {
+    fn name(&self) -> Option<String> {
         match self {
-            ItemKorok::Struct(struct_korok) => cache.iter().any(|el| struct_korok.ast.ident == el),
-            _ => false,
+            ItemKorok::Struct(struct_korok) => Some(struct_korok.ast.ident.to_string()),
+            ItemKorok::Unsupported(unsupported_korok) => match unsupported_korok.ast {
+                Item::Fn(item_fn) => Some(item_fn.sig.ident.to_string()),
+                _ => None,
+            },
+            ItemKorok::Enum(enum_korok) => Some(enum_korok.ast.ident.to_string()),
+            _ => None,
         }
     }
 }

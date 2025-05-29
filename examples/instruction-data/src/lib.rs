@@ -10,7 +10,7 @@ program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 nostd_panic_handler!();
 no_allocator!();
 
-#[repr(C, packed)]
+#[repr(C)]
 #[derive(Debug, PartialEq, Pod, Zeroable, Copy, Clone)]
 pub struct InitArgs {
     pub value: PodU64,

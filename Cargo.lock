@@ -758,6 +758,7 @@ dependencies = [
  "five8_const",
  "quote",
  "syn",
+ "typhoon-discriminator",
 ]
 
 [[package]]

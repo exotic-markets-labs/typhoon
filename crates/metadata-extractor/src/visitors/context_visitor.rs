@@ -1,37 +1,56 @@
 use {
-    crate::doc::Docs,
-    syn::{Field, GenericArgument, PathArguments, PathSegment, Type},
+    codama::{CamelCaseString, Docs, InstructionAccountNode, IsAccountSigner, KorokVisitor, Node},
+    codama_koroks::FieldKorok,
+    syn::{GenericArgument, PathArguments, PathSegment, Type},
 };
 
 #[derive(Debug, Default)]
-pub struct AccountFlags {
+struct AccountFlags {
     is_signer: bool,
     is_mutable: bool,
     is_optional: bool,
 }
 
-#[derive(Debug)]
-pub struct InstructionAccount {
-    pub name: String,
-    pub docs: Docs,
-    pub flags: AccountFlags,
+pub struct ContextVisitor;
+
+impl Default for ContextVisitor {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
-impl From<&Field> for InstructionAccount {
-    fn from(value: &Field) -> Self {
+impl ContextVisitor {
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl KorokVisitor for ContextVisitor {
+    fn visit_field(&mut self, korok: &mut FieldKorok) -> codama::CodamaResult<()> {
+        let Some(name) = &korok.ast.ident else {
+            return Ok(());
+        };
+
         let mut flags = AccountFlags::default();
-        extract_account_flags(&value.ty, &mut flags);
+        extract_account_flags(&korok.ast.ty, &mut flags);
 
-        let docs = Docs::from(value.attrs.as_slice());
+        let docs = crate::doc::Docs::from(korok.ast.attrs.as_slice());
 
-        // TODO field with no name
-        let name = value
-            .ident
-            .as_ref()
-            .map(|i| i.to_string())
-            .unwrap_or_default();
+        let node = InstructionAccountNode {
+            name: CamelCaseString::new(name.to_string()),
+            is_optional: flags.is_optional,
+            is_signer: if flags.is_optional && flags.is_signer {
+                IsAccountSigner::Either
+            } else {
+                flags.is_signer.into()
+            },
+            is_writable: flags.is_mutable,
+            default_value: None,
+            docs: Docs::from(docs.into_vec()),
+        };
+        korok.node = Some(Node::InstructionAccount(node));
 
-        InstructionAccount { name, docs, flags }
+        Ok(())
     }
 }
 
