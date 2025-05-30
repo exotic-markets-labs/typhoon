@@ -1,12 +1,14 @@
 use {
     codama::{
-        CamelCaseString, ConstantDiscriminatorNode, ConstantValueNode, DiscriminatorNode,
-        InstructionAccountNode, InstructionNode, KorokVisitor, Node, NumberFormat::U8,
-        NumberTypeNode, NumberValueNode,
+        CamelCaseString, CodamaError, ConstantDiscriminatorNode, ConstantValueNode,
+        DefinedTypeLinkNode, DiscriminatorNode, Docs, InstructionAccountNode,
+        InstructionArgumentNode, InstructionNode, KorokVisitor, Node, NumberFormat::U8,
+        NumberTypeNode, NumberValueNode, TypeNode,
     },
     codama_koroks::{StructKorok, UnsupportedItemKorok},
+    codama_syn_helpers::extensions::PathExtension,
     std::collections::HashMap,
-    syn::{FnArg, Item, Type},
+    syn::{ExprLit, FnArg, GenericArgument, Item, Lit, Pat, Type},
 };
 
 pub struct InstructionVisitor<'a> {
@@ -52,12 +54,52 @@ impl KorokVisitor for InstructionVisitor<'_> {
         };
 
         let mut accounts: Vec<InstructionAccountNode> = Vec::new();
+        let mut arguments: Vec<InstructionArgumentNode> = Vec::new();
 
         for arg in &item_fn.sig.inputs {
             let FnArg::Typed(pat_ty) = arg else { continue };
             let Type::Path(ref ty_path) = *pat_ty.ty else {
                 continue;
             };
+
+            match &ty_path.path.segments.last().unwrap().arguments {
+                syn::PathArguments::None => (),
+                syn::PathArguments::AngleBracketed(bracket_args) => {
+                    let Some(GenericArgument::Type(arg_ty)) = bracket_args.args.first() else {
+                        return Err(CodamaError::Compilation(syn::Error::new_spanned(
+                            ty_path,
+                            "Invalid argument type",
+                        )));
+                    };
+
+                    let Type::Path(arg_path) = arg_ty else {
+                        return Err(CodamaError::Compilation(syn::Error::new_spanned(
+                            ty_path,
+                            "The argument is not a path type",
+                        )));
+                    };
+
+                    let struct_name = arg_path.path.last_str();
+                    let name = if let Pat::Lit(ExprLit {
+                        lit: Lit::Str(ref name),
+                        ..
+                    }) = *pat_ty.pat
+                    {
+                        CamelCaseString::new(name.value())
+                    } else {
+                        CamelCaseString::new(&struct_name)
+                    };
+
+                    arguments.push(InstructionArgumentNode {
+                        name,
+                        docs: Docs::new(),
+                        r#type: TypeNode::Link(DefinedTypeLinkNode::new(struct_name)),
+                        default_value: None,
+                        default_value_strategy: None,
+                    });
+                }
+                syn::PathArguments::Parenthesized(_) => (),
+            }
 
             let Some(name) = ty_path.path.get_ident() else {
                 continue;
@@ -80,9 +122,10 @@ impl KorokVisitor for InstructionVisitor<'_> {
                 0,
             ))],
             accounts,
-            arguments: vec![],
+            arguments,
             ..Default::default()
         };
+        //TODO remaining accounts
         korok.node = Some(Node::Instruction(node));
 
         Ok(())

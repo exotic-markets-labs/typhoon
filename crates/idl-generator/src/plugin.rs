@@ -2,8 +2,8 @@ use {
     crate::{
         helpers::ItemHelper,
         visitors::{
-            CacheByImplsVisitor, CacheInstructionIdents, ContextVisitor, InstructionVisitor,
-            SetProgramIdVisitor,
+            CacheByImplsVisitor, CacheInstructionIdents, ContextVisitor, DoubleVisitor,
+            InstructionVisitor, SetDefinedTypesVisitor, SetProgramIdVisitor,
         },
     },
     codama::{
@@ -68,6 +68,7 @@ impl KorokPlugin for TyphoonPlugin {
                     .with(ContextVisitor::new())
                     .with(InstructionVisitor::new(&cache_instructions)),
             ))
+            .with(DoubleVisitor::new(SetDefinedTypesVisitor::new()))
             .with(SetProgramIdVisitor::new())
             .with(SetProgramMetadataVisitor::new())
             .with(CombineModulesVisitor::new());

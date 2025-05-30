@@ -58,3 +58,30 @@ impl KorokVisitor for SetProgramIdVisitor {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use {
+        super::*,
+        codama::{CrateStore, KorokVisitable},
+        quote::quote,
+    };
+
+    #[test]
+    fn it_gets_program_ids_from_the_declare_id_macro() {
+        let store = CrateStore::hydrate(quote! {
+            program_id!("MyProgramAddress1111111111111111111111111");
+        })
+        .unwrap();
+        let mut korok = CrateKorok::parse(&store).unwrap();
+        korok.accept(&mut SetProgramIdVisitor::new()).unwrap();
+
+        let Some(Node::Program(program)) = korok.node else {
+            panic!("Expected program node");
+        };
+        assert_eq!(
+            program.public_key,
+            "MyProgramAddress1111111111111111111111111"
+        );
+    }
+}
