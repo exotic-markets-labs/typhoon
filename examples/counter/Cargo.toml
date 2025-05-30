@@ -20,6 +20,9 @@ unexpected_cfgs = { level = "warn", check-cfg = [
 bytemuck = { version = "1.21.0", features = ["derive"] }
 typhoon = { path = "../../crates/lib" }
 
+[build-dependencies]
+typhoon-idl-generator = { path = "../../crates/idl-generator" }
+
 [dev-dependencies]
 litesvm = "0.6.1"
 solana-instruction = "2.2.1"
