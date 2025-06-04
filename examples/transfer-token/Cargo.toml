@@ -31,3 +31,4 @@ solana-signer = "2.2.1"
 solana-system-interface = "1.0.0"
 solana-transaction = "2.2.1"
 spl-associated-token-account-client = "2.0.0"
+typhoon-instruction-builder = { path = "../../crates/instruction-builder" }

@@ -60,21 +60,25 @@ impl ClientGenerator {
                 quote!(pub #name: Pubkey,)
             };
 
-            let meta = if *is_mutable {
-                quote!(solana_instruction::AccountMeta::new(self.#name, #is_signer))
-            }else {
-                quote!(solana_instruction::AccountMeta::new_readonly(self.#name, #is_signer))
-            };
             let push = if *is_optional {
+                let meta = if *is_mutable {
+                    quote!(accounts.push(solana_instruction::AccountMeta::new(#name, #is_signer));)
+                }else {
+                    quote!(accounts.push(solana_instruction::AccountMeta::new_readonly(#name, #is_signer));)
+                };
                 quote! {
                     if let Some(#name) = self.#name {
-                        accounts.push(#meta);
+                        #meta
                     }else {
                         accounts.push(solana_instruction::AccountMeta::new_readonly(solana_pubkey::Pubkey::default(), false));
                     }
                 }
             }else {
-                quote!(accounts.push(#meta);)
+                if *is_mutable {
+                    quote!(accounts.push(solana_instruction::AccountMeta::new(self.#name, #is_signer));)
+                }else {
+                    quote!(accounts.push(solana_instruction::AccountMeta::new_readonly(self.#name, #is_signer));)
+                }
             };
 
             (field, push)

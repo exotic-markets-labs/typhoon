@@ -73,7 +73,8 @@ impl Instructions {
 impl Parse for Instructions {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let krate: Ident = input.parse()?;
-        let crate_name = krate.to_string().to_kebab_case();
+        let crate_name = krate.to_string();
+        let crate_kebab_name = crate_name.to_kebab_case();
 
         let metadata = MetadataCommand::new()
             .exec()
@@ -81,7 +82,7 @@ impl Parse for Instructions {
         let source_file = metadata
             .packages
             .iter()
-            .find(|p| crate_name == *p.name)
+            .find(|p| crate_name == *p.name || crate_kebab_name == *p.name)
             .and_then(|p| p.targets.first())
             .map(|t| t.src_path.to_string())
             .ok_or(syn::Error::new_spanned(

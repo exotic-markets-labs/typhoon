@@ -198,12 +198,12 @@ pub fn is_signer(attributes: &[Attribute]) -> bool {
         .0
         .iter()
         .any(|c| matches!(c, Constraint::Init(_) | Constraint::InitIfNeeded(_)));
-    let has_bump = constraints
+    let is_pda = constraints
         .0
         .iter()
-        .any(|c| matches!(c, Constraint::Bump(_)));
+        .any(|c| matches!(c, Constraint::Bump(_) | Constraint::AssociatedToken(_)));
 
-    has_init && !has_bump
+    has_init && !is_pda
 }
 
 #[cfg(test)]

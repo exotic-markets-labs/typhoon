@@ -1,12 +1,13 @@
 use {
     litesvm::LiteSVM,
-    solana_instruction::{AccountMeta, Instruction},
     solana_keypair::Keypair,
     solana_native_token::LAMPORTS_PER_SOL,
-    solana_pubkey::pubkey,
+    solana_pubkey::{pubkey, Pubkey},
     solana_signer::Signer,
     solana_transaction::Transaction,
     std::path::PathBuf,
+    transfer_sol::PodU64,
+    typhoon_instruction_builder::generate_instructions_client,
 };
 
 fn read_program() -> Vec<u8> {
@@ -15,6 +16,13 @@ fn read_program() -> Vec<u8> {
 
     std::fs::read(so_path).unwrap()
 }
+
+const ID: Pubkey = pubkey!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+
+generate_instructions_client!(
+    transfer_sol,
+    [transfer_sol_with_cpi, transfer_sol_with_program]
+);
 
 #[test]
 fn integration_test() {
@@ -27,10 +35,9 @@ fn integration_test() {
 
     svm.airdrop(&admin_pk, 10 * LAMPORTS_PER_SOL).unwrap();
 
-    let program_id = pubkey!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
     let program_bytes = read_program();
 
-    svm.add_program(program_id, &program_bytes);
+    svm.add_program(ID, &program_bytes);
 
     let admin_balance = svm.get_balance(&admin_pk).unwrap_or_default();
     let recipient_balance = svm.get_balance(&recipient_pk).unwrap_or_default();
@@ -40,19 +47,13 @@ fn integration_test() {
     // Transfer with CPI
 
     let amount = LAMPORTS_PER_SOL;
-    let ix = Instruction {
-        accounts: vec![
-            AccountMeta::new(admin_pk, true),
-            AccountMeta::new(recipient_pk, false),
-            AccountMeta::new_readonly(solana_system_interface::program::ID, false),
-        ],
-        program_id,
-        data: [0]
-            .iter()
-            .chain(amount.to_le_bytes().iter())
-            .cloned()
-            .collect(),
-    };
+    let ix = TransferSolWithCpiInstruction {
+        arg_0: amount.into(),
+        payer: admin_pk,
+        recipient: recipient_pk,
+        system: solana_system_interface::program::ID,
+    }
+    .into_instruction();
 
     let hash = svm.latest_blockhash();
     let tx = Transaction::new_signed_with_payer(&[ix], Some(&admin_pk), &[&admin_kp], hash);
@@ -75,23 +76,16 @@ fn integration_test() {
         &program_acc_pk,
         LAMPORTS_PER_SOL,
         0,
-        &program_id,
+        &ID,
     );
 
     let amount = LAMPORTS_PER_SOL;
-    let ix = Instruction {
-        accounts: vec![
-            AccountMeta::new(program_acc_pk, true),
-            AccountMeta::new(admin_pk, false),
-        ],
-        program_id,
-        data: [1]
-            .iter()
-            .chain(amount.to_le_bytes().iter())
-            .cloned()
-            .collect(),
-    };
-
+    let ix = TransferSolWithProgramInstruction {
+        arg_0: amount.into(),
+        payer: program_acc_pk,
+        recipient: admin_pk,
+    }
+    .into_instruction();
     let hash = svm.latest_blockhash();
     let tx = Transaction::new_signed_with_payer(
         &[pre_ix, ix],

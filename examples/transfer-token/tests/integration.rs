@@ -1,20 +1,19 @@
 use {
-    bytemuck::bytes_of,
     litesvm::LiteSVM,
     litesvm_token::{
         get_spl_account,
         spl_token::state::{Account, Mint},
         TOKEN_ID,
     },
-    solana_instruction::{AccountMeta, Instruction},
     solana_keypair::Keypair,
     solana_native_token::LAMPORTS_PER_SOL,
-    solana_pubkey::Pubkey,
+    solana_pubkey::{pubkey, Pubkey},
     solana_signer::Signer,
     solana_transaction::Transaction,
     spl_associated_token_account_client::address::get_associated_token_address,
     std::path::PathBuf,
     transfer_token::MintFromEscrowArgs,
+    typhoon_instruction_builder::generate_instructions_client,
 };
 
 fn read_program() -> Vec<u8> {
@@ -24,14 +23,17 @@ fn read_program() -> Vec<u8> {
     std::fs::read(so_path).unwrap()
 }
 
+const ID: Pubkey = pubkey!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+
+generate_instructions_client!(transfer_token);
+
 #[test]
 fn integration_test() {
     let mut svm = LiteSVM::new();
 
-    let program_id = Pubkey::from_str_const("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
     let program_bytes = read_program();
 
-    svm.add_program(program_id, &program_bytes);
+    svm.add_program(ID, &program_bytes);
 
     let payer_kp = Keypair::new();
     let payer_pk = payer_kp.pubkey();
@@ -40,34 +42,28 @@ fn integration_test() {
     let mint_kp = Keypair::new();
     let mint_pk = mint_kp.pubkey();
     let account_pk = get_associated_token_address(&recipient_pk, &mint_pk);
-    let escrow_pk = Pubkey::find_program_address(&[&"escrow".as_ref()], &program_id).0;
+    let escrow_pk = Pubkey::find_program_address(&[&"escrow".as_ref()], &ID).0;
 
     svm.airdrop(&payer_pk, 10 * LAMPORTS_PER_SOL).unwrap();
 
     // Create the mint
     let minted_amount = 100000;
     svm.send_transaction(Transaction::new_signed_with_payer(
-        &[Instruction {
-            program_id,
-            accounts: vec![
-                AccountMeta::new(payer_pk, true),
-                AccountMeta::new_readonly(recipient_pk, false),
-                AccountMeta::new(mint_pk, true),
-                AccountMeta::new(escrow_pk.into(), false),
-                AccountMeta::new(account_pk.into(), false),
-                AccountMeta::new_readonly(TOKEN_ID, false),
-                AccountMeta::new_readonly(spl_associated_token_account_client::program::ID, false),
-                AccountMeta::new_readonly(solana_system_interface::program::ID, false),
-            ],
-            data: vec![0]
-                .iter()
-                .chain(bytes_of(&MintFromEscrowArgs {
-                    decimals: 6,
-                    amount: minted_amount,
-                }))
-                .cloned()
-                .collect(),
-        }],
+        &[MintFromEscrowInstruction {
+            arg_0: MintFromEscrowArgs {
+                decimals: 6,
+                amount: minted_amount,
+            },
+            payer: payer_pk,
+            owner: recipient_pk,
+            mint: mint_pk,
+            escrow: escrow_pk,
+            token_account: account_pk,
+            token_program: TOKEN_ID,
+            ata_program: spl_associated_token_account_client::program::ID,
+            system_program: solana_system_interface::program::ID,
+        }
+        .into_instruction()],
         Some(&payer_pk),
         &[&payer_kp, &mint_kp],
         svm.latest_blockhash(),
