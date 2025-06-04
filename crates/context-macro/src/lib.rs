@@ -11,7 +11,6 @@ use {
 
 mod accounts;
 mod arguments;
-mod constraints;
 mod context;
 mod cross_checks;
 mod extractor;
@@ -19,7 +18,6 @@ mod generators;
 mod injector;
 mod remover;
 mod sorter;
-mod utils;
 mod visitor;
 
 #[proc_macro_attribute]

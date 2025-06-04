@@ -1,7 +1,4 @@
-use {
-    crate::{constraints::Constraint, context::Context},
-    syn::spanned::Spanned,
-};
+use {crate::context::Context, syn::spanned::Spanned, typhoon_syn::constraints::Constraint};
 
 fn check_program_prerequisite(context: &Context, program: &str) -> Result<(), syn::Error> {
     let has_system_program = context

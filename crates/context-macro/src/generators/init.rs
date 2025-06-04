@@ -1,14 +1,9 @@
 use {
     super::tokens_gen::{BumpTokenGenerator, InitTokenGenerator, StateTokenGenerator},
-    crate::{
-        accounts::Account,
-        constraints::{ConstraintBump, ConstraintInit, ConstraintInitIfNeeded},
-        context::Context,
-        visitor::ContextVisitor,
-        StagedGenerator,
-    },
+    crate::{accounts::Account, context::Context, visitor::ContextVisitor, StagedGenerator},
     proc_macro2::TokenStream,
     quote::{format_ident, quote},
+    typhoon_syn::constraints::{ConstraintBump, ConstraintInit, ConstraintInitIfNeeded},
 };
 
 #[derive(Default)]

@@ -18,11 +18,7 @@ codama-stores.workspace = true
 codama-syn-helpers.workspace = true
 five8_const.workspace = true
 typhoon-discriminator.workspace = true
-syn = { workspace = true, features = [
-    "full",
-    "visit",
-    "extra-traits",
-] } #TODO remove extra-traits
+syn = { workspace = true, features = ["full", "visit"] }
 
 [dev-dependencies]
 quote.workspace = true

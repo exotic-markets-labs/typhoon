@@ -1,14 +1,9 @@
 use {
     super::GeneratorResult,
-    crate::{
-        accounts::Account,
-        constraints::{ConstraintInit, ConstraintInitIfNeeded},
-        context::Context,
-        visitor::ContextVisitor,
-        StagedGenerator,
-    },
+    crate::{accounts::Account, context::Context, visitor::ContextVisitor, StagedGenerator},
     proc_macro2::TokenStream,
     quote::quote,
+    typhoon_syn::constraints::{ConstraintInit, ConstraintInitIfNeeded},
 };
 
 struct AccountGenerator<'a> {

@@ -15,6 +15,7 @@ syn = { workspace = true, features = ["visit", "visit-mut", "full"] }
 quote.workspace = true
 prettyplease.workspace = true
 proc-macro2.workspace = true
+typhoon-syn.workspace = true
 
 [dev-dependencies]
 bytemuck = { workspace = true, features = ["derive"] }

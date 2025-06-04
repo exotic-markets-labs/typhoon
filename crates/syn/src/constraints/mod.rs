@@ -43,10 +43,10 @@ pub enum Constraint {
 #[derive(Clone, Default)]
 pub struct Constraints(pub Vec<Constraint>);
 
-impl TryFrom<&Vec<syn::Attribute>> for Constraints {
+impl TryFrom<&[syn::Attribute]> for Constraints {
     type Error = syn::Error;
 
-    fn try_from(value: &Vec<syn::Attribute>) -> Result<Self, Self::Error> {
+    fn try_from(value: &[syn::Attribute]) -> Result<Self, Self::Error> {
         let constraints = value
             .iter()
             .filter(|attr| attr.path().is_ident(CONSTRAINT_IDENT_STR))
@@ -113,7 +113,7 @@ mod tests {
             )]
         };
 
-        let constraints = Constraints::try_from(&attributes).unwrap();
+        let constraints = Constraints::try_from(attributes.as_slice()).unwrap();
 
         assert_eq!(constraints.0.len(), 9);
     }

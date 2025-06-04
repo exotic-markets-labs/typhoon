@@ -1,15 +1,12 @@
+use solana_pubkey::Pubkey;
+use typhoon_metadata_extractor::generate_instructions_client;
 use {
-    counter::Counter,
-    litesvm::LiteSVM,
-    solana_instruction::{AccountMeta, Instruction},
-    solana_keypair::Keypair,
-    solana_native_token::LAMPORTS_PER_SOL,
-    solana_pubkey::pubkey,
-    solana_signer::Signer,
-    solana_transaction::Transaction,
-    std::path::PathBuf,
-    typhoon::lib::RefFromBytes,
+    counter::Counter, litesvm::LiteSVM, solana_keypair::Keypair,
+    solana_native_token::LAMPORTS_PER_SOL, solana_pubkey::pubkey, solana_signer::Signer,
+    solana_transaction::Transaction, std::path::PathBuf, typhoon::lib::RefFromBytes,
 };
+
+const ID: Pubkey = pubkey!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
 fn read_program() -> Vec<u8> {
     let mut so_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
@@ -17,6 +14,8 @@ fn read_program() -> Vec<u8> {
 
     std::fs::read(so_path).unwrap()
 }
+
+generate_instructions_client!(counter);
 
 #[test]
 fn integration_test() {
@@ -34,15 +33,12 @@ fn integration_test() {
     // Create the counter
     let counter_kp = Keypair::new();
     let counter_pk = counter_kp.pubkey();
-    let ix = Instruction {
-        program_id,
-        accounts: vec![
-            AccountMeta::new_readonly(admin_pk, true),
-            AccountMeta::new(counter_pk, true),
-            AccountMeta::new_readonly(solana_system_interface::program::ID, false),
-        ],
-        data: vec![0],
-    };
+    let ix = InitializeInstruction {
+        payer: admin_pk,
+        counter: counter_pk,
+        system: solana_system_interface::program::ID,
+    }
+    .into_instruction();
     let hash = svm.latest_blockhash();
     let tx =
         Transaction::new_signed_with_payer(&[ix], Some(&admin_pk), &[&admin_kp, &counter_kp], hash);
@@ -53,15 +49,10 @@ fn integration_test() {
     assert!(counter_account.count == 0);
 
     // Increment the counter
-    let ix = Instruction {
-        program_id,
-        accounts: vec![AccountMeta {
-            pubkey: counter_pk,
-            is_signer: false,
-            is_writable: true,
-        }],
-        data: vec![1],
-    };
+    let ix = IncrementInstruction {
+        counter: counter_pk,
+    }
+    .into_instruction();
     let hash = svm.latest_blockhash();
     let tx = Transaction::new_signed_with_payer(&[ix], Some(&admin_pk), &[&admin_kp], hash);
     svm.send_transaction(tx).unwrap();
@@ -70,14 +61,11 @@ fn integration_test() {
     let counter_account: &Counter = Counter::read(raw_account.data.as_slice()).unwrap();
     assert!(counter_account.count == 1);
 
-    let ix = Instruction {
-        program_id,
-        accounts: vec![
-            AccountMeta::new(counter_pk, false),
-            AccountMeta::new(admin_pk, false),
-        ],
-        data: vec![2],
-    };
+    let ix = CloseInstruction {
+        counter: counter_pk,
+        destination: admin_pk,
+    }
+    .into_instruction();
     let hash = svm.latest_blockhash();
     let tx = Transaction::new_signed_with_payer(&[ix], Some(&admin_pk), &[&admin_kp], hash);
     svm.send_transaction(tx).unwrap();

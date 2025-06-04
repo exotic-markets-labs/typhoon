@@ -1,13 +1,9 @@
 use {
     super::GeneratorResult,
-    crate::{
-        constraints::{ConstraintInit, ConstraintInitIfNeeded, ConstraintToken},
-        context::Context,
-        visitor::ContextVisitor,
-        StagedGenerator,
-    },
+    crate::{context::Context, visitor::ContextVisitor, StagedGenerator},
     quote::{format_ident, quote},
     syn::{Expr, Ident},
+    typhoon_syn::constraints::{ConstraintInit, ConstraintInitIfNeeded, ConstraintToken},
 };
 
 #[derive(Default)]

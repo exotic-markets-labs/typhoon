@@ -1,4 +1,4 @@
-use crate::{accounts::Account, constraints::*};
+use {crate::accounts::Account, typhoon_syn::constraints::*};
 
 pub trait ContextVisitor {
     fn visit_account(&mut self, account: &Account) -> Result<(), syn::Error> {

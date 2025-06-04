@@ -1,16 +1,12 @@
 use {
-    crate::{
-        constraints::{
-            ConstraintBump, ConstraintHasOne, ConstraintInit, ConstraintInitIfNeeded,
-            ConstraintToken,
-        },
-        context::Context,
-        visitor::ContextVisitor,
-    },
+    crate::{context::Context, visitor::ContextVisitor},
     proc_macro2::TokenStream,
     quote::{format_ident, quote},
     std::collections::HashSet,
     syn::Ident,
+    typhoon_syn::constraints::{
+        ConstraintBump, ConstraintHasOne, ConstraintInit, ConstraintInitIfNeeded, ConstraintToken,
+    },
 };
 
 struct Checks {

@@ -1,15 +1,12 @@
 use {
-    crate::{
-        accounts::Account,
-        constraints::{
-            ConstraintAssociatedToken, ConstraintMint, ConstraintPayer, ConstraintSeeded,
-            ConstraintSeeds, ConstraintSpace, ConstraintToken,
-        },
-        visitor::ContextVisitor,
-    },
+    crate::{accounts::Account, visitor::ContextVisitor},
     proc_macro2::TokenStream,
     quote::{format_ident, quote},
     syn::{parse_quote, punctuated::Punctuated, Expr, Ident, Token},
+    typhoon_syn::constraints::{
+        ConstraintAssociatedToken, ConstraintMint, ConstraintPayer, ConstraintSeeded,
+        ConstraintSeeds, ConstraintSpace, ConstraintToken,
+    },
 };
 
 enum InitTokenGeneratorTy {

@@ -1,7 +1,8 @@
 use {
     super::GeneratorResult,
-    crate::{constraints::Constraint, context::Context, StagedGenerator},
+    crate::{context::Context, StagedGenerator},
     quote::quote,
+    typhoon_syn::constraints::Constraint,
 };
 
 pub struct RentGenerator<'a>(&'a Context);

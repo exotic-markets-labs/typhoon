@@ -1,10 +1,9 @@
 use {
     super::GeneratorResult,
-    crate::{
-        constraints::ConstraintHasOne, context::Context, visitor::ContextVisitor, StagedGenerator,
-    },
+    crate::{context::Context, visitor::ContextVisitor, StagedGenerator},
     quote::{format_ident, quote},
     syn::{parse_quote, Expr, Ident},
+    typhoon_syn::constraints::ConstraintHasOne,
 };
 
 pub struct HasOneGenerator<'a> {

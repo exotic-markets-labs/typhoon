@@ -1,14 +1,10 @@
 use {
-    crate::{
-        accounts::Account,
-        constraints::{
-            ConstraintAssociatedToken, ConstraintBump, ConstraintHasOne, ConstraintPayer,
-            ConstraintToken,
-        },
-        context::Context,
-        visitor::ContextVisitor,
-    },
+    crate::{accounts::Account, context::Context, visitor::ContextVisitor},
     std::collections::HashMap,
+    typhoon_syn::constraints::{
+        ConstraintAssociatedToken, ConstraintBump, ConstraintHasOne, ConstraintPayer,
+        ConstraintToken,
+    },
 };
 
 struct DependencyLinker {
