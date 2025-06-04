@@ -1,8 +1,8 @@
 mod client;
-mod cpi;
+// mod cpi;
 
+pub use client::*;
 use {crate::instruction::Instruction, proc_macro2::TokenStream};
-pub use {client::*, cpi::*};
 
 pub trait Generator {
     fn generate_token(ix: &[(usize, Instruction)]) -> TokenStream;

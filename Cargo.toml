@@ -38,7 +38,7 @@ typhoon-discriminator-macro = { version = "0.1.0-alpha.9", path = "crates/discri
 typhoon-errors = { version = "0.1.0-alpha.9", path = "crates/errors" }
 typhoon-handler-macro = { version = "0.1.0-alpha.9", path = "crates/handler-macro" }
 typhoon-idl-generator = { version = "0.1.0-alpha.9", path = "crates/idl-generator" }
-typhoon-metadata-extractor = { version = "0.1.0-alpha.9", path = "crates/metadata-extractor" }
+typhoon-instruction-builder = { version = "0.1.0-alpha.9", path = "crates/instruction-builder" }
 typhoon-program-id-macro = { version = "0.1.0-alpha.9", path = "crates/program-id-macro" }
 typhoon-token = { version = "0.1.0-alpha.9", path = "crates/token" }
 typhoon-utility = { version = "0.1.0-alpha.9", path = "crates/utility" }

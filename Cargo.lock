@@ -1076,7 +1076,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "typhoon-metadata-extractor"
+name = "typhoon-instruction-builder"
 version = "0.1.0-alpha.9"
 dependencies = [
  "cargo_metadata",

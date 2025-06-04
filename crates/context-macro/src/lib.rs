@@ -10,7 +10,6 @@ use {
 };
 
 mod accounts;
-mod arguments;
 mod context;
 mod cross_checks;
 mod extractor;

@@ -1,12 +1,13 @@
 use {
     crate::{
-        generator::{ClientGenerator, CpiGenerator, Generator},
+        generator::{ClientGenerator, Generator},
         instruction::Instruction,
         resolver::Resolver,
     },
     cargo_metadata::MetadataCommand,
+    heck::ToKebabCase,
     proc_macro2::{Span, TokenStream},
-    quote::{quote, ToTokens},
+    quote::ToTokens,
     std::path::Path,
     syn::{
         parse::{Parse, Parser},
@@ -21,21 +22,6 @@ mod generator;
 mod instruction;
 mod mod_path;
 mod resolver;
-
-#[proc_macro]
-pub fn generate_instructions(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let instructions = parse_macro_input!(input as Instructions);
-
-    let cpi = instructions.generate::<CpiGenerator>();
-    let client = instructions.generate::<ClientGenerator>();
-
-    quote! {
-        #cpi
-        #client
-    }
-    .into_token_stream()
-    .into()
-}
 
 #[proc_macro]
 pub fn generate_instructions_client(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
@@ -86,7 +72,8 @@ impl Instructions {
 
 impl Parse for Instructions {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        let crate_name: Ident = input.parse()?;
+        let krate: Ident = input.parse()?;
+        let crate_name = krate.to_string().to_kebab_case();
 
         let metadata = MetadataCommand::new()
             .exec()
@@ -94,7 +81,7 @@ impl Parse for Instructions {
         let source_file = metadata
             .packages
             .iter()
-            .find(|p| crate_name == p.name)
+            .find(|p| crate_name == *p.name)
             .and_then(|p| p.targets.first())
             .map(|t| t.src_path.to_string())
             .ok_or(syn::Error::new_spanned(

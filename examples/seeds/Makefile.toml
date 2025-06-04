@@ -1,3 +1,5 @@
+extend = [{ path = "../cargo-make/ci.toml" }]
+
 [tasks.test]
 command = "cargo"
 args = ["test-sbf", "--features", "logging"]

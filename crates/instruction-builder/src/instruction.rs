@@ -1,10 +1,15 @@
 use {
     proc_macro2::Span,
+    quote::format_ident,
+    std::collections::HashMap,
     syn::{
         visit::{visit_path_segment, Visit},
         Attribute, FnArg, GenericArgument, Ident, Item, PathArguments, PathSegment, Type,
     },
-    typhoon_syn::constraints::{Constraint, Constraints},
+    typhoon_syn::{
+        arguments::Arguments,
+        constraints::{Constraint, Constraints},
+    },
 };
 
 const ACCOUNT_IDENTS: [&str; 6] = [
@@ -46,12 +51,24 @@ impl Visit<'_> for Field {
 
 pub struct Instruction {
     pub name: Ident,
-    pub args: Vec<Ident>,
+    pub args: Vec<(Ident, Arguments)>,
     pub accounts: Vec<(Ident, (bool, bool, bool))>,
 }
 
 impl Instruction {
-    fn parse_arg(&mut self, seg: &PathSegment) -> syn::Result<()> {
+    fn rename_duplicate(&mut self) {
+        let mut accounts: HashMap<String, u8> = HashMap::new();
+        for (name, _) in self.accounts.iter_mut() {
+            let name_str = name.to_string();
+            let count = accounts.entry(name_str.clone()).or_insert(0);
+            if *count > 0 {
+                *name = format_ident!("{name_str}_{count}");
+            }
+            *count += 1;
+        }
+    }
+
+    fn parse_arg(&mut self, ix_name: &Ident, seg: &PathSegment) -> syn::Result<()> {
         let PathArguments::AngleBracketed(args) = &seg.arguments else {
             return Err(syn::Error::new_spanned(seg, "Invalid argument."));
         };
@@ -71,8 +88,10 @@ impl Instruction {
             .last()
             .ok_or_else(|| syn::Error::new_spanned(seg, "Argument is not a path type"))?;
 
-        self.args
-            .push(Ident::new(&path_ty.ident.to_string(), Span::call_site()));
+        self.args.push((
+            ix_name.to_owned(),
+            Arguments::Struct(Ident::new(&path_ty.ident.to_string(), Span::call_site())),
+        ));
         Ok(())
     }
 
@@ -87,6 +106,15 @@ impl Instruction {
                 seg,
                 "Cannot find the context struct.",
             ))?;
+        if let Some(args) = context
+            .attrs
+            .iter()
+            .find(|attr| attr.meta.path().is_ident("args"))
+            .map(Arguments::try_from)
+            .transpose()?
+        {
+            self.args.push((context.ident.clone(), args));
+        }
 
         for field in &context.fields {
             let mut ix_field = Field::default();
@@ -99,7 +127,7 @@ impl Instruction {
                     field
                         .ident
                         .as_ref()
-                        .ok_or(syn::Error::new_spanned(&field, "Invalid name"))
+                        .ok_or(syn::Error::new_spanned(field, "Invalid name"))
                         .cloned()?,
                     (
                         ix_field.is_optional,
@@ -108,7 +136,11 @@ impl Instruction {
                     ),
                 ));
             } else {
-                self.args.push(Ident::new(&ix_field.ty, Span::call_site()));
+                //TODO don't add bumps
+                self.args.push((
+                    context.ident.clone(),
+                    Arguments::Struct(Ident::new(&ix_field.ty, Span::call_site())),
+                ));
             }
         }
         Ok(())
@@ -146,11 +178,12 @@ impl Instruction {
             };
 
             if seg.ident == "Args" {
-                ix.parse_arg(seg)?;
+                ix.parse_arg(&ix_item.sig.ident, seg)?;
             } else {
                 ix.parse_context(items, seg)?;
             }
         }
+        ix.rename_duplicate();
 
         Ok(ix)
     }

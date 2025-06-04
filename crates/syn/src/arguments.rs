@@ -42,10 +42,10 @@ impl Parse for Arguments {
     }
 }
 
-impl TryFrom<&mut Attribute> for Arguments {
+impl TryFrom<&Attribute> for Arguments {
     type Error = syn::Error;
 
-    fn try_from(value: &mut Attribute) -> Result<Self, Self::Error> {
+    fn try_from(value: &Attribute) -> Result<Self, Self::Error> {
         let tokens = value.meta.require_list()?.tokens.clone();
         parse2::<Arguments>(tokens)
     }

@@ -1,7 +1,12 @@
 use {
-    litesvm::LiteSVM, solana_instruction::Instruction, solana_keypair::Keypair,
-    solana_native_token::LAMPORTS_PER_SOL, solana_pubkey::pubkey, solana_signer::Signer,
-    solana_transaction::Transaction, std::path::PathBuf,
+    litesvm::LiteSVM,
+    solana_keypair::Keypair,
+    solana_native_token::LAMPORTS_PER_SOL,
+    solana_pubkey::{pubkey, Pubkey},
+    solana_signer::Signer,
+    solana_transaction::Transaction,
+    std::path::PathBuf,
+    typhoon_instruction_builder::generate_instructions_client,
 };
 
 fn read_program() -> Vec<u8> {
@@ -11,6 +16,10 @@ fn read_program() -> Vec<u8> {
     std::fs::read(so_path).unwrap()
 }
 
+const ID: Pubkey = pubkey!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+
+generate_instructions_client!(hello_world);
+
 #[test]
 fn integration_test() {
     let mut svm = LiteSVM::new();
@@ -19,16 +28,11 @@ fn integration_test() {
 
     svm.airdrop(&admin_pk, 10 * LAMPORTS_PER_SOL).unwrap();
 
-    let program_id = pubkey!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
     let program_bytes = read_program();
 
-    svm.add_program(program_id, &program_bytes);
+    svm.add_program(ID, &program_bytes);
 
-    let ix = Instruction {
-        accounts: vec![],
-        program_id,
-        data: vec![0],
-    };
+    let ix = HelloWorldInstruction {}.into_instruction();
     let hash = svm.latest_blockhash();
     let tx = Transaction::new_signed_with_payer(&[ix], Some(&admin_pk), &[&admin_kp], hash);
 

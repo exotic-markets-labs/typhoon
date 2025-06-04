@@ -1,14 +1,14 @@
 use {
-    instruction_data::{Buffer, InitArgs, SetValueContextArgs},
+    instruction_data::{Buffer, InitArgs, PodU64},
     litesvm::LiteSVM,
-    solana_instruction::{AccountMeta, Instruction},
     solana_keypair::Keypair,
     solana_native_token::LAMPORTS_PER_SOL,
-    solana_pubkey::pubkey,
+    solana_pubkey::{pubkey, Pubkey},
     solana_signer::Signer,
     solana_transaction::Transaction,
     std::path::PathBuf,
     typhoon::lib::RefFromBytes,
+    typhoon_instruction_builder::generate_instructions_client,
 };
 
 fn read_program() -> Vec<u8> {
@@ -18,6 +18,10 @@ fn read_program() -> Vec<u8> {
     std::fs::read(so_path).unwrap()
 }
 
+const ID: Pubkey = pubkey!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+
+generate_instructions_client!(instruction_data);
+
 #[test]
 fn integration_test() {
     let mut svm = LiteSVM::new();
@@ -26,10 +30,9 @@ fn integration_test() {
 
     svm.airdrop(&admin_pk, 10 * LAMPORTS_PER_SOL).unwrap();
 
-    let program_id = pubkey!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
     let program_bytes = read_program();
 
-    svm.add_program(program_id, &program_bytes);
+    svm.add_program(ID, &program_bytes);
 
     let buffer_a_kp = Keypair::new();
     let buffer_a_pk = buffer_a_kp.pubkey();
@@ -38,19 +41,13 @@ fn integration_test() {
 
     let init_args = InitArgs { value: 42.into() };
     let tx = Transaction::new_signed_with_payer(
-        &[Instruction {
-            program_id,
-            accounts: vec![
-                AccountMeta::new_readonly(admin_pk, true),
-                AccountMeta::new(buffer_a_pk, true),
-                AccountMeta::new_readonly(solana_system_interface::program::ID, false),
-            ],
-            data: [0]
-                .iter()
-                .chain(bytemuck::bytes_of(&init_args))
-                .cloned()
-                .collect(),
-        }],
+        &[InitializeInstruction {
+            arg_0: init_args,
+            payer: admin_pk,
+            buffer: buffer_a_pk,
+            system: solana_system_interface::program::ID,
+        }
+        .into_instruction()],
         Some(&admin_pk),
         &[&admin_kp, &buffer_a_kp],
         svm.latest_blockhash(),
@@ -61,19 +58,13 @@ fn integration_test() {
     assert_eq!(buffer_account.value1, u64::from(init_args.value));
 
     let tx = Transaction::new_signed_with_payer(
-        &[Instruction {
-            program_id,
-            accounts: vec![
-                AccountMeta::new_readonly(admin_pk, true),
-                AccountMeta::new(buffer_b_pk, true),
-                AccountMeta::new_readonly(solana_system_interface::program::ID, false),
-            ],
-            data: [0]
-                .iter()
-                .chain(bytemuck::bytes_of(&init_args))
-                .cloned()
-                .collect(),
-        }],
+        &[InitializeInstruction {
+            arg_0: init_args,
+            payer: admin_pk,
+            buffer: buffer_b_pk,
+            system: solana_system_interface::program::ID,
+        }
+        .into_instruction()],
         Some(&admin_pk),
         &[&admin_kp, &buffer_b_kp],
         svm.latest_blockhash(),
@@ -89,16 +80,12 @@ fn integration_test() {
     };
     let more_args = 42_u64;
     let tx = Transaction::new_signed_with_payer(
-        &[Instruction {
-            program_id,
-            accounts: vec![AccountMeta::new(buffer_a_pk, false)],
-            data: [1]
-                .iter()
-                .chain(bytemuck::bytes_of(&ix_a_args))
-                .chain(bytemuck::bytes_of(&more_args))
-                .cloned()
-                .collect(),
-        }],
+        &[SetValueInstruction {
+            arg_0: ix_a_args,
+            arg_1: more_args.into(),
+            buffer: buffer_a_pk,
+        }
+        .into_instruction()],
         Some(&admin_pk),
         &[&admin_kp],
         svm.latest_blockhash(),
@@ -115,16 +102,12 @@ fn integration_test() {
     };
     let more_args = 69_u64;
     let tx = Transaction::new_signed_with_payer(
-        &[Instruction {
-            program_id,
-            accounts: vec![AccountMeta::new(buffer_b_pk, false)],
-            data: [1]
-                .iter()
-                .chain(bytemuck::bytes_of(&ix_b_args))
-                .chain(bytemuck::bytes_of(&more_args))
-                .cloned()
-                .collect(),
-        }],
+        &[SetValueInstruction {
+            arg_0: ix_b_args,
+            arg_1: more_args.into(),
+            buffer: buffer_b_pk,
+        }
+        .into_instruction()],
         Some(&admin_pk),
         &[&admin_kp],
         svm.latest_blockhash(),
@@ -144,19 +127,13 @@ fn integration_test() {
         other_value: 55.into(),
     };
     let tx = Transaction::new_signed_with_payer(
-        &[Instruction {
-            program_id,
-            accounts: vec![
-                AccountMeta::new(buffer_a_pk, false),
-                AccountMeta::new(buffer_b_pk, false),
-            ],
-            data: [2]
-                .iter()
-                .chain(bytemuck::bytes_of(&ix_a_args))
-                .chain(bytemuck::bytes_of(&ix_b_args))
-                .cloned()
-                .collect(),
-        }],
+        &[SetAndAddValuesInstruction {
+            arg_0: ix_a_args,
+            arg_1: ix_b_args,
+            buffer: buffer_a_pk,
+            buffer_1: buffer_b_pk,
+        }
+        .into_instruction()],
         Some(&admin_pk),
         &[&admin_kp],
         svm.latest_blockhash(),

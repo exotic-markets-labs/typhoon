@@ -3,20 +3,48 @@ use {
     heck::ToUpperCamelCase,
     proc_macro2::TokenStream,
     quote::{format_ident, quote},
+    std::collections::HashMap,
     syn::Ident,
+    typhoon_syn::arguments::{Argument, Arguments},
 };
 
-pub struct ClientGenerator;
+pub struct ClientGenerator(HashMap<String, TokenStream>);
 
 impl ClientGenerator {
-    fn generate_args(args: &[Ident]) -> (Vec<TokenStream>, Vec<TokenStream>) {
+    fn generate_args(
+        &mut self,
+        args: &[(Ident, Arguments)],
+    ) -> (Vec<TokenStream>, Vec<TokenStream>) {
         args.iter()
             .enumerate()
-            .map(|(i, ty)| {
+            .map(|(i, (context_name, ty))| {
+                let ty_name= match ty {
+                    Arguments::Struct(ident) => ident.clone(),
+                    Arguments::Values(args) => {
+                        let struct_name = format_ident!("{context_name}Args");
+                        let name_str = struct_name.to_string();
+                        self.0.entry(name_str).or_insert_with(|| {
+                            let fields = args
+                            .iter()
+                            .map(|Argument { name, ty }: &Argument| quote!(pub #name: #ty));
+                            let item = quote! {
+                                #[derive(Debug, PartialEq, bytemuck::AnyBitPattern, bytemuck::NoUninit, Copy, Clone)]
+                                #[repr(C)]
+                                pub struct #struct_name {
+                                    #(#fields),*
+                                }
+                            };
+                            item
+
+                        });
+
+                        format_ident!("{context_name}Args")
+                    }
+                };
                 let var_name = format_ident!("arg_{i}");
                 (
-                    quote!(pub var_name: #ty,),
-                    quote!(data.extend_from_slice(self.#var_name);),
+                    quote!(pub #var_name: #ty_name,),
+                    quote!(data.extend_from_slice(bytemuck::bytes_of(&self.#var_name));),
                 )
             })
             .collect()
@@ -57,8 +85,9 @@ impl ClientGenerator {
 impl Generator for ClientGenerator {
     fn generate_token(ix: &[(usize, Instruction)]) -> TokenStream {
         let mut token = TokenStream::new();
+        let mut generator = ClientGenerator(HashMap::new());
         for (discriminator, instruction) in ix {
-            let (arg_fields, arg_extend) = ClientGenerator::generate_args(&instruction.args);
+            let (arg_fields, arg_extend) = generator.generate_args(&instruction.args);
             let account_len = instruction.accounts.len();
             let (account_fields, account_push) =
                 ClientGenerator::generate_accounts(&instruction.accounts);
@@ -90,6 +119,7 @@ impl Generator for ClientGenerator {
                 }
             });
         }
+        token.extend(generator.0.into_values());
         token
     }
 }

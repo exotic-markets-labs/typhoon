@@ -1,9 +1,7 @@
 use {
-    crate::{
-        accounts::Account, arguments::Arguments, injector::LifetimeInjector,
-        remover::AttributeRemover,
-    },
+    crate::{accounts::Account, injector::LifetimeInjector, remover::AttributeRemover},
     syn::{parse::Parse, spanned::Spanned, visit_mut::VisitMut, Item, ItemStruct},
+    typhoon_syn::arguments::Arguments,
 };
 
 pub struct Context {
@@ -21,7 +19,7 @@ impl Parse for Context {
             Item::Struct(mut item_struct) => {
                 let args = item_struct
                     .attrs
-                    .iter_mut()
+                    .iter()
                     .find(|attr| attr.meta.path().is_ident("args"))
                     .map(Arguments::try_from)
                     .transpose()?;

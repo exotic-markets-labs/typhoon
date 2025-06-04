@@ -1,5 +1,5 @@
 [package]
-name = "typhoon-metadata-extractor"
+name = "typhoon-instruction-builder"
 description = "TODO"
 version.workspace = true
 edition.workspace = true

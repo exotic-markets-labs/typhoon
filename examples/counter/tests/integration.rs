@@ -1,9 +1,14 @@
-use solana_pubkey::Pubkey;
-use typhoon_metadata_extractor::generate_instructions_client;
 use {
-    counter::Counter, litesvm::LiteSVM, solana_keypair::Keypair,
-    solana_native_token::LAMPORTS_PER_SOL, solana_pubkey::pubkey, solana_signer::Signer,
-    solana_transaction::Transaction, std::path::PathBuf, typhoon::lib::RefFromBytes,
+    counter::Counter,
+    litesvm::LiteSVM,
+    solana_keypair::Keypair,
+    solana_native_token::LAMPORTS_PER_SOL,
+    solana_pubkey::{pubkey, Pubkey},
+    solana_signer::Signer,
+    solana_transaction::Transaction,
+    std::path::PathBuf,
+    typhoon::lib::RefFromBytes,
+    typhoon_instruction_builder::generate_instructions_client,
 };
 
 const ID: Pubkey = pubkey!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
@@ -25,10 +30,9 @@ fn integration_test() {
 
     svm.airdrop(&admin_pk, 10 * LAMPORTS_PER_SOL).unwrap();
 
-    let program_id = pubkey!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
     let program_bytes = read_program();
 
-    svm.add_program(program_id, &program_bytes);
+    svm.add_program(ID, &program_bytes);
 
     // Create the counter
     let counter_kp = Keypair::new();

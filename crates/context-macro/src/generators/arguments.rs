@@ -1,12 +1,9 @@
 use {
     super::GeneratorResult,
-    crate::{
-        arguments::{Argument, Arguments},
-        context::Context,
-        StagedGenerator,
-    },
+    crate::{context::Context, StagedGenerator},
     quote::{format_ident, quote},
     syn::parse_quote,
+    typhoon_syn::arguments::{Argument, Arguments},
 };
 
 pub struct ArgumentsGenerator<'a>(&'a Context);
