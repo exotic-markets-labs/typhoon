@@ -1,8 +1,11 @@
 use {
-    crate::{generator::Generator, instruction::Instruction},
+    crate::{
+        generator::Generator,
+        instruction::{Instruction, InstructionArg},
+    },
     heck::ToUpperCamelCase,
     proc_macro2::TokenStream,
-    quote::{format_ident, quote},
+    quote::{format_ident, quote, ToTokens},
     std::collections::HashMap,
     syn::Ident,
     typhoon_syn::arguments::{Argument, Arguments},
@@ -11,39 +14,37 @@ use {
 pub struct ClientGenerator(HashMap<String, TokenStream>);
 
 impl ClientGenerator {
-    fn generate_args(
-        &mut self,
-        args: &[(Ident, Arguments)],
-    ) -> (Vec<TokenStream>, Vec<TokenStream>) {
+    fn generate_args(&mut self, args: &[InstructionArg]) -> (Vec<TokenStream>, Vec<TokenStream>) {
         args.iter()
             .enumerate()
-            .map(|(i, (context_name, ty))| {
-                let ty_name= match ty {
-                    Arguments::Struct(ident) => ident.clone(),
-                    Arguments::Values(args) => {
-                        let struct_name = format_ident!("{context_name}Args");
-                        let name_str = struct_name.to_string();
-                        self.0.entry(name_str).or_insert_with(|| {
-                            let fields = args
-                            .iter()
-                            .map(|Argument { name, ty }: &Argument| quote!(pub #name: #ty));
-                            let item = quote! {
-                                #[derive(Debug, PartialEq, bytemuck::AnyBitPattern, bytemuck::NoUninit, Copy, Clone)]
-                                #[repr(C)]
-                                pub struct #struct_name {
-                                    #(#fields),*
-                                }
-                            };
-                            item
-
-                        });
-
-                        format_ident!("{context_name}Args")
-                    }
+            .map(|(i, arg)| {
+                let ty= match arg {
+                    InstructionArg::Type(ty) => quote!(#ty),
+                    InstructionArg::Context((context_name, args)) => match args {
+                        Arguments::Struct(ident) => ident.to_token_stream(),
+                        Arguments::Values(args) => {
+                            let struct_name = format_ident!("{context_name}Args");
+                            let name_str = struct_name.to_string();
+                            self.0.entry(name_str).or_insert_with(|| {
+                                let fields = args
+                                .iter()
+                                .map(|Argument { name, ty }: &Argument| quote!(pub #name: #ty));
+                                let item = quote! {
+                                    #[derive(Debug, PartialEq, bytemuck::AnyBitPattern, bytemuck::NoUninit, Copy, Clone)]
+                                    #[repr(C)]
+                                    pub struct #struct_name {
+                                        #(#fields),*
+                                    }
+                                };
+                                item
+                            });
+                            format_ident!("{context_name}Args").to_token_stream()
+                        }
+                    },
                 };
                 let var_name = format_ident!("arg_{i}");
                 (
-                    quote!(pub #var_name: #ty_name,),
+                    quote!(pub #var_name: #ty,),
                     quote!(data.extend_from_slice(bytemuck::bytes_of(&self.#var_name));),
                 )
             })
@@ -73,12 +74,10 @@ impl ClientGenerator {
                         accounts.push(solana_instruction::AccountMeta::new_readonly(solana_pubkey::Pubkey::default(), false));
                     }
                 }
+            }else if *is_mutable {
+                quote!(accounts.push(solana_instruction::AccountMeta::new(self.#name, #is_signer));)
             }else {
-                if *is_mutable {
-                    quote!(accounts.push(solana_instruction::AccountMeta::new(self.#name, #is_signer));)
-                }else {
-                    quote!(accounts.push(solana_instruction::AccountMeta::new_readonly(self.#name, #is_signer));)
-                }
+                quote!(accounts.push(solana_instruction::AccountMeta::new_readonly(self.#name, #is_signer));)
             };
 
             (field, push)

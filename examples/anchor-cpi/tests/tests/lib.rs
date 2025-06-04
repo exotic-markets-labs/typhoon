@@ -3,10 +3,11 @@ use {
     solana_instruction::{AccountMeta, Instruction},
     solana_keypair::Keypair,
     solana_native_token::LAMPORTS_PER_SOL,
-    solana_pubkey::pubkey,
+    solana_pubkey::{pubkey, Pubkey},
     solana_signer::Signer,
     solana_transaction::Transaction,
     std::path::PathBuf,
+    typhoon_instruction_builder::generate_instructions_client,
     utils::{sighash, SIGHASH_GLOBAL_NAMESPACE},
 };
 
@@ -18,6 +19,10 @@ fn read_program(name: &str) -> Vec<u8> {
 
     std::fs::read(so_path).unwrap()
 }
+
+const ID: Pubkey = pubkey!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+
+generate_instructions_client!(hand);
 
 #[test]
 fn anchor_cpi_test() {

@@ -49,9 +49,14 @@ impl Visit<'_> for Field {
     }
 }
 
+pub enum InstructionArg {
+    Type(Type),
+    Context((Ident, Arguments)),
+}
+
 pub struct Instruction {
     pub name: Ident,
-    pub args: Vec<(Ident, Arguments)>,
+    pub args: Vec<InstructionArg>,
     pub accounts: Vec<(Ident, (bool, bool, bool))>,
 }
 
@@ -68,7 +73,7 @@ impl Instruction {
         }
     }
 
-    fn parse_arg(&mut self, ix_name: &Ident, seg: &PathSegment) -> syn::Result<()> {
+    fn parse_arg(&mut self, seg: &PathSegment) -> syn::Result<()> {
         let PathArguments::AngleBracketed(args) = &seg.arguments else {
             return Err(syn::Error::new_spanned(seg, "Invalid argument."));
         };
@@ -77,21 +82,12 @@ impl Instruction {
             .args
             .iter()
             .find_map(|arg| match arg {
-                GenericArgument::Type(Type::Path(ty)) => Some(ty),
+                GenericArgument::Type(ty) => Some(ty),
                 _ => None,
             })
             .ok_or_else(|| syn::Error::new_spanned(seg, "Invalid argument type."))?;
 
-        let path_ty = arg_ty
-            .path
-            .segments
-            .last()
-            .ok_or_else(|| syn::Error::new_spanned(seg, "Argument is not a path type"))?;
-
-        self.args.push((
-            ix_name.to_owned(),
-            Arguments::Struct(Ident::new(&path_ty.ident.to_string(), Span::call_site())),
-        ));
+        self.args.push(InstructionArg::Type(arg_ty.clone()));
         Ok(())
     }
 
@@ -113,7 +109,8 @@ impl Instruction {
             .map(Arguments::try_from)
             .transpose()?
         {
-            self.args.push((context.ident.clone(), args));
+            self.args
+                .push(InstructionArg::Context((context.ident.clone(), args)));
         }
 
         for field in &context.fields {
@@ -137,10 +134,10 @@ impl Instruction {
                 ));
             } else {
                 //TODO don't add bumps
-                self.args.push((
+                self.args.push(InstructionArg::Context((
                     context.ident.clone(),
                     Arguments::Struct(Ident::new(&ix_field.ty, Span::call_site())),
-                ));
+                )));
             }
         }
         Ok(())
@@ -178,7 +175,7 @@ impl Instruction {
             };
 
             if seg.ident == "Args" {
-                ix.parse_arg(&ix_item.sig.ident, seg)?;
+                ix.parse_arg(seg)?;
             } else {
                 ix.parse_context(items, seg)?;
             }
