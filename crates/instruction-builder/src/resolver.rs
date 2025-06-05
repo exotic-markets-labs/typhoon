@@ -54,11 +54,9 @@ impl Visit<'_> for Resolver<'_> {
             let candidates = self.mod_context.relative_to(self.path, self.root);
             let first_candidate = candidates.iter().find(|p| p.exists());
 
-            let Some(file) = first_candidate.and_then(|p| read_and_parse_file(p).ok()) else {
-                return;
+            if let Some(file) = first_candidate.and_then(|p| read_and_parse_file(p).ok()) {
+                self.visit_file(&file);
             };
-
-            self.visit_file(&file);
         }
 
         self.mod_context.pop();
