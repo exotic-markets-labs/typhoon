@@ -20,7 +20,7 @@ done
 
 # Get list of all crates
 CRATES=(
-    "metadata-extractor"
+    "syn"
     "errors"
     "accounts"
     "utility"
@@ -31,6 +31,7 @@ CRATES=(
     "cpi-generator"
     "idl-generator"
     "account-macro"
+    "instruction-builder"
     "discriminator-macro"
     "cpi-generator-macro"
     "handler-macro"
