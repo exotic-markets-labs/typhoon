@@ -4,18 +4,18 @@ exclude = ["examples"]
 resolver = "2"
 
 [workspace.package]
-version = "0.1.0-alpha.9"
+version = "0.1.0-alpha.10"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 authors = ["Aursen"]
 repository = "https://github.com/rust-lang/rust-analyzer"
 
 [workspace.dependencies]
-anchor-lang-idl-spec = "0.1.0"
+anchor-lang-idl-spec = "0.1"
 borsh = { version = "1.5", default-features = false }
-bytemuck = "1.21.0"
-cargo-manifest = "0.19.1"
-five8_const = "0.1.4"
+bytemuck = "1.23"
+cargo-manifest = "0.19"
+five8_const = "0.1"
 cargo_metadata = "0.20"
 codama = "0.3"
 codama-attributes = "0.3"
@@ -26,25 +26,25 @@ codama-korok-visitors = "0.3"
 codama-stores = "0.3"
 codama-syn-helpers = "0.3"
 trybuild = "1.0"
-typhoon = { version = "0.1.0-alpha.9", path = "crates/lib" }
-typhoon-accounts = { version = "0.1.0-alpha.9", path = "crates/accounts" }
-typhoon-account-macro = { version = "0.1.0-alpha.9", path = "crates/account-macro" }
-typhoon-context = { version = "0.1.0-alpha.9", path = "crates/context" }
-typhoon-context-macro = { version = "0.1.0-alpha.9", path = "crates/context-macro" }
-typhoon-cpi-generator = { version = "0.1.0-alpha.9", path = "crates/cpi-generator" }
-typhoon-cpi-generator-macro = { version = "0.1.0-alpha.9", path = "crates/cpi-generator-macro" }
-typhoon-discriminator = { version = "0.1.0-alpha.9", path = "crates/discriminator" }
-typhoon-discriminator-macro = { version = "0.1.0-alpha.9", path = "crates/discriminator-macro" }
-typhoon-errors = { version = "0.1.0-alpha.9", path = "crates/errors" }
-typhoon-handler-macro = { version = "0.1.0-alpha.9", path = "crates/handler-macro" }
-typhoon-idl-generator = { version = "0.1.0-alpha.9", path = "crates/idl-generator" }
-typhoon-instruction-builder = { version = "0.1.0-alpha.9", path = "crates/instruction-builder" }
-typhoon-program-id-macro = { version = "0.1.0-alpha.9", path = "crates/program-id-macro" }
-typhoon-token = { version = "0.1.0-alpha.9", path = "crates/token" }
-typhoon-utility = { version = "0.1.0-alpha.9", path = "crates/utility" }
-typhoon-utility-traits = { version = "0.1.0-alpha.9", path = "crates/utility-traits" }
-typhoon-syn = { version = "0.1.0-alpha.9", path = "crates/syn" }
-heck = "0.5.0"
+typhoon = { version = "0.1.0-alpha.10", path = "crates/lib" }
+typhoon-accounts = { version = "0.1.0-alpha.10", path = "crates/accounts" }
+typhoon-account-macro = { version = "0.1.0-alpha.10", path = "crates/account-macro" }
+typhoon-context = { version = "0.1.0-alpha.10", path = "crates/context" }
+typhoon-context-macro = { version = "0.1.0-alpha.10", path = "crates/context-macro" }
+typhoon-cpi-generator = { version = "0.1.0-alpha.10", path = "crates/cpi-generator" }
+typhoon-cpi-generator-macro = { version = "0.1.0-alpha.10", path = "crates/cpi-generator-macro" }
+typhoon-discriminator = { version = "0.1.0-alpha.10", path = "crates/discriminator" }
+typhoon-discriminator-macro = { version = "0.1.0-alpha.10", path = "crates/discriminator-macro" }
+typhoon-errors = { version = "0.1.0-alpha.10", path = "crates/errors" }
+typhoon-handler-macro = { version = "0.1.0-alpha.10", path = "crates/handler-macro" }
+typhoon-idl-generator = { version = "0.1.0-alpha.10", path = "crates/idl-generator" }
+typhoon-instruction-builder = { version = "0.1.0-alpha.10", path = "crates/instruction-builder" }
+typhoon-program-id-macro = { version = "0.1.0-alpha.10", path = "crates/program-id-macro" }
+typhoon-token = { version = "0.1.0-alpha.10", path = "crates/token" }
+typhoon-utility = { version = "0.1.0-alpha.10", path = "crates/utility" }
+typhoon-utility-traits = { version = "0.1.0-alpha.10", path = "crates/utility-traits" }
+typhoon-syn = { version = "0.1.0-alpha.10", path = "crates/syn" }
+heck = "0.5"
 paste = "1.0"
 pinocchio = "0.8.4"
 pinocchio-associated-token-account = "0.1.1"
@@ -56,5 +56,5 @@ prettyplease = "0.2"
 proc-macro2 = "1.0"
 quote = "1.0"
 serde_json = "1.0"
-sha2 = "0.10.8"
+sha2 = "0.10"
 syn = "2.0"
