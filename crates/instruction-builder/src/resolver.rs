@@ -39,6 +39,7 @@ impl Visit<'_> for Resolver<'_> {
             if is_public {
                 self.items.push(item.clone());
             }
+            self.visit_item(item);
         }
     }
 

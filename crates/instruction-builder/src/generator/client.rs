@@ -56,28 +56,28 @@ impl ClientGenerator {
     ) -> (Vec<TokenStream>, Vec<TokenStream>) {
         accounts.iter().map(|(name, (is_optional, is_mutable,is_signer))| {
             let field = if *is_optional {
-                quote!(pub #name: Option<Pubkey>,)
+                quote!(pub #name: Option<::solana_pubkey::Pubkey>,)
             }else {
-                quote!(pub #name: Pubkey,)
+                quote!(pub #name: ::solana_pubkey::Pubkey,)
             };
 
             let push = if *is_optional {
                 let meta = if *is_mutable {
-                    quote!(accounts.push(solana_instruction::AccountMeta::new(#name, #is_signer));)
+                    quote!(accounts.push(::solana_instruction::AccountMeta::new(#name, #is_signer));)
                 }else {
-                    quote!(accounts.push(solana_instruction::AccountMeta::new_readonly(#name, #is_signer));)
+                    quote!(accounts.push(::solana_instruction::AccountMeta::new_readonly(#name, #is_signer));)
                 };
                 quote! {
                     if let Some(#name) = self.#name {
                         #meta
                     }else {
-                        accounts.push(solana_instruction::AccountMeta::new_readonly(solana_pubkey::Pubkey::default(), false));
+                        accounts.push(::solana_instruction::AccountMeta::new_readonly(::solana_pubkey::Pubkey::default(), false));
                     }
                 }
             }else if *is_mutable {
-                quote!(accounts.push(solana_instruction::AccountMeta::new(self.#name, #is_signer));)
+                quote!(accounts.push(::solana_instruction::AccountMeta::new(self.#name, #is_signer));)
             }else {
-                quote!(accounts.push(solana_instruction::AccountMeta::new_readonly(self.#name, #is_signer));)
+                quote!(accounts.push(::solana_instruction::AccountMeta::new_readonly(self.#name, #is_signer));)
             };
 
             (field, push)
@@ -106,14 +106,14 @@ impl Generator for ClientGenerator {
                 }
 
                 impl #name {
-                    pub fn into_instruction(self) -> solana_instruction::Instruction {
-                        let mut data = vec![#dis];
+                    pub fn into_instruction(self) -> ::solana_instruction::Instruction {
+                        let mut data = std::vec![#dis];
                         #(#arg_extend)*
 
-                        let mut accounts = Vec::with_capacity(#account_len);
+                        let mut accounts = std::vec::Vec::with_capacity(#account_len);
                         #(#account_push)*
 
-                        solana_instruction::Instruction {
+                        ::solana_instruction::Instruction {
                             program_id: crate::ID.into(),
                             accounts,
                             data
