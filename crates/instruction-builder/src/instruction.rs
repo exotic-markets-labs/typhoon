@@ -174,7 +174,7 @@ impl Instruction {
                 continue;
             };
 
-            if seg.ident == "Args" {
+            if seg.ident == "Arg" {
                 ix.parse_arg(seg)?;
             } else {
                 ix.parse_context(items, seg)?;

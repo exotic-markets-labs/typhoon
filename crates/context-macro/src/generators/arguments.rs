@@ -43,10 +43,10 @@ impl StagedGenerator for ArgumentsGenerator<'_> {
 
         context
             .new_fields
-            .push(parse_quote!(pub args: Args<'info, #name>));
-        context.inside.extend(
-            quote!(let args = Args::<#name>::from_entrypoint(accounts, instruction_data)?;),
-        );
+            .push(parse_quote!(pub args: Arg<'info, #name>));
+        context
+            .inside
+            .extend(quote!(let args = Arg::<#name>::from_entrypoint(accounts, instruction_data)?;));
 
         if let Some(args_struct) = args_struct {
             context.outside.extend(args_struct);

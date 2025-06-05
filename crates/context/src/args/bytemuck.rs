@@ -7,15 +7,15 @@ use {
 };
 
 #[derive(Debug)]
-pub struct Args<'a, T>(&'a T);
+pub struct Arg<'a, T>(&'a T);
 
-impl<'a, T> Args<'a, T> {
+impl<'a, T> Arg<'a, T> {
     pub fn new(arg: &'a T) -> Self {
-        Args(arg)
+        Arg(arg)
     }
 }
 
-impl<T> Deref for Args<'_, T> {
+impl<T> Deref for Arg<'_, T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
@@ -23,7 +23,7 @@ impl<T> Deref for Args<'_, T> {
     }
 }
 
-impl<'a, T> HandlerContext<'a> for Args<'a, T>
+impl<'a, T> HandlerContext<'a> for Arg<'a, T>
 where
     T: AnyBitPattern,
 {
@@ -31,13 +31,12 @@ where
         _accounts: &mut &'a [AccountInfo],
         instruction_data: &mut &'a [u8],
     ) -> Result<Self, Error> {
-        let arg: &T = try_from_bytes(&instruction_data[..core::mem::size_of::<T>()])
-            .map_err(|_| ProgramError::InvalidInstructionData)?;
+        let (arg_data, remaining) = instruction_data.split_at(core::mem::size_of::<T>());
 
-        let (_, remaining) = instruction_data.split_at(core::mem::size_of::<T>());
+        let arg: &T = try_from_bytes(arg_data).map_err(|_| ProgramError::InvalidInstructionData)?;
 
         *instruction_data = remaining;
 
-        Ok(Args::new(arg))
+        Ok(Arg::new(arg))
     }
 }

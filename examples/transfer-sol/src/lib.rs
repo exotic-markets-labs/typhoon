@@ -47,7 +47,7 @@ pub struct SystemContext {
 }
 
 pub fn transfer_sol_with_cpi(
-    amount: Args<PodU64>,
+    amount: Arg<PodU64>,
     ctx: TransferContext,
     _: SystemContext,
 ) -> ProgramResult {
@@ -56,7 +56,7 @@ pub fn transfer_sol_with_cpi(
     Ok(())
 }
 
-pub fn transfer_sol_with_program(amount: Args<PodU64>, ctx: TransferContext) -> ProgramResult {
+pub fn transfer_sol_with_program(amount: Arg<PodU64>, ctx: TransferContext) -> ProgramResult {
     ctx.payer.send(&ctx.recipient, (*amount).into())?;
 
     Ok(())

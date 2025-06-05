@@ -982,6 +982,7 @@ dependencies = [
 name = "typhoon-context"
 version = "0.1.0-alpha.10"
 dependencies = [
+ "borsh",
  "bytemuck",
  "paste",
  "pinocchio",

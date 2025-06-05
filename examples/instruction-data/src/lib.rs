@@ -67,7 +67,7 @@ pub fn initialize(ctx: InitContext) -> ProgramResult {
     Ok(())
 }
 
-pub fn set_value(ctx: SetValueContext, more_args: Args<PodU64>) -> ProgramResult {
+pub fn set_value(ctx: SetValueContext, more_args: Arg<PodU64>) -> ProgramResult {
     let mut data = ctx.buffer.mut_data()?;
     data.value1 = ctx.args.value.into();
     data.value2 = (*more_args).into();
