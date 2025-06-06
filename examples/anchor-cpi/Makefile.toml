@@ -1,1 +1,10 @@
 extend = [{ path = "../cargo-make/ci.toml" }]
+
+[tasks.build-programs]
+command = "cargo"
+args = ["build-sbf"]
+
+[tasks.test]
+dependencies = ["build-programs"]
+command = "cargo"
+args = ["test"]

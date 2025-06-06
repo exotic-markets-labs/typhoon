@@ -11,10 +11,12 @@ handlers! {
     pull_lever,
 }
 
-pub fn pull_lever(ctx: PullLever, name: Arg<[u8; 50]>) -> ProgramResult {
+pub fn pull_lever(ctx: PullLever, name: Arg<[u8; 16]>) -> ProgramResult {
+    let last_char = name.iter().position(|&x| x == 0).unwrap_or(name.len());
     crate::lever_cpi::SwitchPower {
         power: ctx.power.as_ref(),
-        name: core::str::from_utf8(&*name).map_err(|_| ProgramError::InvalidInstructionData)?,
+        name: core::str::from_utf8(&name[..last_char])
+            .map_err(|_| ProgramError::InvalidInstructionData)?,
     }
     .invoke()
 }

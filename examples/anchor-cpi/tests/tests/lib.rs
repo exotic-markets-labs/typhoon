@@ -61,12 +61,14 @@ fn anchor_cpi_test() {
     svm.send_transaction(tx).unwrap();
 
     // Pull the lever
+    let mut arg = [0; 16];
+    arg[..5].copy_from_slice(b"Chris");
     let ix = Instruction {
         accounts: vec![
             AccountMeta::new(power_kp.pubkey(), false),
             AccountMeta::new_readonly(lever_id, false),
         ],
-        data: [0].iter().chain(b"Chris").cloned().collect(),
+        data: [0].iter().chain(&arg).cloned().collect(),
         program_id: hand_id,
     };
 
@@ -82,12 +84,14 @@ fn anchor_cpi_test() {
         .contains(&"Program log: The power is now on.".to_string()));
 
     // Pull it again
+    let mut arg = [0; 16];
+    arg[..6].copy_from_slice(b"Ashley");
     let ix = Instruction {
         accounts: vec![
             AccountMeta::new(power_kp.pubkey(), false),
             AccountMeta::new_readonly(lever_id, false),
         ],
-        data: [0].iter().chain(b"Ashley").cloned().collect(),
+        data: [0].iter().chain(&arg).cloned().collect(),
         program_id: hand_id,
     };
 
