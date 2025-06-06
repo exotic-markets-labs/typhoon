@@ -62,7 +62,7 @@ where
         self.0.is_owned_by(owner)
     }
 
-    fn lamports(&self) -> Result<Ref<u64>, Error> {
+    fn lamports(&self) -> Result<Ref<'_, u64>, Error> {
         self.0.lamports()
     }
 
@@ -92,7 +92,7 @@ macro_rules! impl_writable {
                     .map_err(Into::into)
             }
 
-            fn mut_lamports(&self) -> Result<RefMut<u64>, Error> {
+            fn mut_lamports(&self) -> Result<RefMut<'_, u64>, Error> {
                 self.0
                     .as_ref()
                     .try_borrow_mut_lamports()
@@ -129,7 +129,7 @@ impl<T> WritableAccount for Mut<Program<'_, T>> {
             .map_err(Into::into)
     }
 
-    fn mut_lamports(&self) -> Result<RefMut<u64>, Error> {
+    fn mut_lamports(&self) -> Result<RefMut<'_, u64>, Error> {
         self.0
             .as_ref()
             .try_borrow_mut_lamports()
@@ -160,7 +160,7 @@ impl<T: Discriminator + RefFromBytes> WritableAccount for Mut<Account<'_, T>> {
             .map_err(Into::into)
     }
 
-    fn mut_lamports(&self) -> Result<RefMut<u64>, Error> {
+    fn mut_lamports(&self) -> Result<RefMut<'_, u64>, Error> {
         self.0
             .as_ref()
             .try_borrow_mut_lamports()

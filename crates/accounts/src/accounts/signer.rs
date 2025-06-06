@@ -49,7 +49,7 @@ impl ReadableAccount for Signer<'_> {
         self.info.is_owned_by(owner)
     }
 
-    fn lamports(&self) -> Result<Ref<u64>, Error> {
+    fn lamports(&self) -> Result<Ref<'_, u64>, Error> {
         self.info.try_borrow_lamports().map_err(Into::into)
     }
 

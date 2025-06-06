@@ -3,7 +3,7 @@ use {
     crate::{Discriminator, FromAccountInfo, Owner, ReadableAccount, WritableAccount},
     core::cell::RefCell,
     pinocchio::{
-        account_info::{AccountInfo, Ref},
+        account_info::{AccountInfo, Ref, RefMut},
         program_error::ProgramError,
         pubkey::Pubkey,
     },
@@ -87,7 +87,7 @@ where
         self.info.is_owned_by(owner)
     }
 
-    fn lamports(&self) -> Result<Ref<u64>, Error> {
+    fn lamports(&self) -> Result<Ref<'_, u64>, Error> {
         self.info.try_borrow_lamports().map_err(Into::into)
     }
 
@@ -118,7 +118,7 @@ where
             .map_err(Into::into)
     }
 
-    fn mut_lamports(&self) -> Result<pinocchio::account_info::RefMut<u64>, Error> {
+    fn mut_lamports(&self) -> Result<RefMut<'_, u64>, Error> {
         self.0
             .as_ref()
             .try_borrow_mut_lamports()
