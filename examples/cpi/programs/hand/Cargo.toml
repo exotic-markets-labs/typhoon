@@ -1,0 +1,18 @@
+[package]
+name = "hand"
+version = "0.1.0"
+edition.workspace = true
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+[features]
+logging = []
+
+[lints]
+workspace = true
+
+[dependencies]
+typhoon.workspace = true
+hand-interface = { workspace = true, features = ["cpi"] }
+lever-interface = { workspace = true, features = ["cpi"] }

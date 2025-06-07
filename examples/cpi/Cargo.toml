@@ -1,0 +1,27 @@
+[workspace]
+members = ["programs/*", "interfaces/*", "tests/*"]
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+
+[workspace.lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = [
+    'cfg(target_os, values("solana"))',
+] }
+
+
+[workspace.dependencies]
+bytemuck = "1.23"
+hand-interface = { path = "interfaces/hand" }
+lever-interface = { path = "interfaces/lever" }
+litesvm = "0.6.1"
+typhoon = { path = "../../crates/lib" }
+typhoon-instruction-builder = { path = "../../crates/instruction-builder" }
+solana-pubkey = "2.2.1"
+solana-instruction = "2.2.1"
+solana-keypair = "2.2.1"
+solana-native-token = "2.2.1"
+solana-signer = "2.2.1"
+solana-system-interface = "1.0.0"
+solana-transaction = "2.2.1"

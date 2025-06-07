@@ -1,0 +1,21 @@
+[package]
+name = "lever-interface"
+version = "0.1.0"
+edition.workspace = true
+
+[features]
+cpi = []
+client = [
+    "std",
+    "dep:typhoon-instruction-builder",
+    "dep:solana-pubkey",
+    "dep:solana-instruction",
+]
+std = []
+
+[dependencies]
+bytemuck = { workspace = true, features = ["derive"] }
+typhoon.workspace = true
+typhoon-instruction-builder = { workspace = true, optional = true }
+solana-pubkey = { workspace = true, optional = true }
+solana-instruction = { workspace = true, optional = true }
