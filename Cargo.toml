@@ -16,7 +16,7 @@ borsh = { version = "1.5", default-features = false }
 bytemuck = "1.23"
 cargo-manifest = "0.19"
 five8_const = "0.1"
-cargo_metadata = "0.20"
+cargo_metadata = "0.19.2"
 codama = "0.4"
 codama-attributes = "0.4"
 codama-nodes = "0.4"

@@ -3,15 +3,18 @@
 #[cfg(feature = "std")]
 extern crate std;
 
-use typhoon::prelude::*;
 #[cfg(feature = "cpi")]
 use typhoon_instruction_builder::generate_cpi_client;
 #[cfg(feature = "client")]
 use typhoon_instruction_builder::generate_instructions_client;
+use {
+    bytemuck::{AnyBitPattern, NoUninit},
+    typhoon::prelude::*,
+};
 
 program_id!("E64FVeubGC4NPNF2UBJYX4AkrVowf74fRJD9q6YhwstN");
-
-#[account]
+#[derive(NoUninit, AnyBitPattern, AccountState, Copy, Clone)]
+#[repr(C)]
 pub struct PowerStatus {
     pub is_on: u8,
 }
