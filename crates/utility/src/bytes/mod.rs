@@ -1,9 +1,7 @@
-#[cfg(feature = "borsh")]
-mod borsh;
+mod writer;
 
-#[cfg(feature = "borsh")]
-pub use borsh::*;
 use core::mem::MaybeUninit;
+pub use writer::*;
 
 pub const UNINIT_BYTE: MaybeUninit<u8> = MaybeUninit::<u8>::uninit();
 

@@ -4,7 +4,7 @@ version = "0.1.0"
 edition.workspace = true
 
 [features]
-cpi = []
+cpi = ["dep:typhoon-instruction-builder"]
 client = [
     "std",
     "dep:typhoon-instruction-builder",

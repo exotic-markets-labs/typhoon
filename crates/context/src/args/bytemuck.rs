@@ -2,7 +2,7 @@ use {
     crate::HandlerContext,
     bytemuck::{try_from_bytes, AnyBitPattern},
     core::ops::Deref,
-    pinocchio::{account_info::AccountInfo, program_error::ProgramError},
+    pinocchio::{account_info::AccountInfo, program_error::ProgramError, pubkey::Pubkey},
     typhoon_errors::Error,
 };
 
@@ -28,6 +28,7 @@ where
     T: AnyBitPattern,
 {
     fn from_entrypoint(
+        _program_id: &Pubkey,
         _accounts: &mut &'a [AccountInfo],
         instruction_data: &mut &'a [u8],
     ) -> Result<Self, Error> {

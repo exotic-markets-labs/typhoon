@@ -13,5 +13,6 @@ logging = []
 workspace = true
 
 [dependencies]
+bytemuck.workspace = true
 typhoon.workspace = true
 lever-interface.workspace = true

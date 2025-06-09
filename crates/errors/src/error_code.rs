@@ -11,6 +11,7 @@ pub enum ErrorCode {
     HasOneConstraint,
     TryingToInitPayerAsProgramAccount,
     TokenConstraintViolated,
+    BufferFull,
 }
 
 impl TryFrom<u32> for ErrorCode {
@@ -27,6 +28,7 @@ impl TryFrom<u32> for ErrorCode {
             106 => Ok(ErrorCode::HasOneConstraint),
             107 => Ok(ErrorCode::TryingToInitPayerAsProgramAccount),
             108 => Ok(ErrorCode::TokenConstraintViolated),
+            109 => Ok(ErrorCode::BufferFull),
             _ => Err(ProgramError::InvalidArgument),
         }
     }
@@ -59,6 +61,7 @@ impl ToStr for ErrorCode {
                 "Error: Cannot initialize a program account with the payer account"
             }
             ErrorCode::TokenConstraintViolated => "Error: Token constraint was violated",
+            ErrorCode::BufferFull => "Error: Buffer is full",
         }
     }
 }

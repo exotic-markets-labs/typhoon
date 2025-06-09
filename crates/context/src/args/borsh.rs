@@ -2,7 +2,7 @@ use {
     crate::HandlerContext,
     borsh::BorshDeserialize,
     core::ops::Deref,
-    pinocchio::{account_info::AccountInfo, program_error::ProgramError},
+    pinocchio::{account_info::AccountInfo, program_error::ProgramError, pubkey::Pubkey},
     typhoon_errors::Error,
 };
 
@@ -27,6 +27,7 @@ where
     T: BorshDeserialize,
 {
     fn from_entrypoint(
+        _program_id: &Pubkey,
         _accounts: &mut &[AccountInfo],
         instruction_data: &mut &[u8],
     ) -> Result<Self, Error> {
@@ -50,9 +51,12 @@ mod tests {
         let mut accounts: &[AccountInfo] = &[];
 
         let mut instruction_data_slice = instruction_data.as_slice();
-        let result: BorshArg<u64> =
-            BorshArg::from_entrypoint(&mut accounts, &mut instruction_data_slice)
-                .unwrap_or(BorshArg(0));
+        let result: BorshArg<u64> = BorshArg::from_entrypoint(
+            &Pubkey::default(),
+            &mut accounts,
+            &mut instruction_data_slice,
+        )
+        .unwrap_or(BorshArg(0));
         assert_eq!(*result, 42);
         assert_eq!(instruction_data_slice.len(), 0);
     }

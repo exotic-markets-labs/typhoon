@@ -99,6 +99,7 @@ impl ToTokens for TokenGenerator {
         let impl_context = quote! {
             impl #impl_generics HandlerContext<#new_lifetime> for #name #ty_generics #where_clause {
                 fn from_entrypoint(
+                    program_id: &Pubkey,
                     accounts: &mut &'info [AccountInfo],
                     instruction_data: &mut &'info [u8],
                 ) -> ProgramResult<Self> {

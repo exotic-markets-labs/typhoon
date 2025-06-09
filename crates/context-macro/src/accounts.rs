@@ -13,6 +13,7 @@ pub struct Account {
     pub name: Ident,
     pub constraints: Constraints,
     pub ty: PathSegment,
+    pub is_optional: bool,
     pub inner_ty: String,
 }
 
@@ -40,11 +41,31 @@ impl TryFrom<&mut Field> for Account {
             .clone()
             .unwrap_or(Ident::new("random", Span::call_site())); //TODO unit type
 
+        let (ty, is_optional) = if segment.ident == "Option" {
+            let inner_segment = get_inner(segment).ok_or_else(|| {
+                syn::Error::new(segment.span(), "Invalid Option type for the account.")
+            })?;
+            (inner_segment, true)
+        } else {
+            (segment, false)
+        };
+
         Ok(Account {
             name,
             constraints,
-            ty: segment.clone(),
+            ty: ty.clone(),
+            is_optional,
             inner_ty,
         })
+    }
+}
+
+fn get_inner(seg: &PathSegment) -> Option<&PathSegment> {
+    match &seg.arguments {
+        syn::PathArguments::AngleBracketed(args) => match args.args.first()? {
+            syn::GenericArgument::Type(Type::Path(p)) => Some(p.path.segments.last()?),
+            _ => None,
+        },
+        _ => None,
     }
 }

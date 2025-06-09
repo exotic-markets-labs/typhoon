@@ -7,4 +7,4 @@ args = ["build-sbf"]
 [tasks.test]
 dependencies = ["build-programs"]
 command = "cargo"
-args = ["test"]
+args = ["test", "-p", "integration"]

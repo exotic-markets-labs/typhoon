@@ -1,6 +1,6 @@
 use {
     crate::{
-        generator::{ClientGenerator, Generator},
+        generator::{ClientGenerator, CpiGenerator, Generator},
         instruction::Instruction,
         resolver::Resolver,
     },
@@ -29,6 +29,16 @@ pub fn generate_instructions_client(input: proc_macro::TokenStream) -> proc_macr
 
     instructions
         .generate::<ClientGenerator>()
+        .into_token_stream()
+        .into()
+}
+
+#[proc_macro]
+pub fn generate_cpi_client(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let instructions = parse_macro_input!(input as Instructions);
+
+    instructions
+        .generate::<CpiGenerator>()
         .into_token_stream()
         .into()
 }

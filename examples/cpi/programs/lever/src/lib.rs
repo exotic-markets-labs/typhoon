@@ -1,7 +1,6 @@
 #![no_std]
 
-use lever_interface::PowerStatus;
-use typhoon::prelude::*;
+use {lever_interface::PowerStatus, typhoon::prelude::*};
 
 nostd_panic_handler!();
 no_allocator!();
@@ -22,9 +21,7 @@ pub fn initialize(_ctx: InitializeLever) -> ProgramResult {
 
 pub fn switch_power(ctx: SetPowerStatus) -> ProgramResult {
     let mut power = ctx.power.mut_data()?;
-    power.is_on = !power.is_on;
-
-    // msg!("{} is pulling the power switch!", &name);
+    power.change_status();
 
     match power.is_on() {
         true => msg!("The power is now on."),
@@ -61,6 +58,7 @@ pub struct SetPowerStatus {
 }
 
 #[context]
+#[args(random: u64)]
 pub struct CheckStatus {
     pub power: Option<Account<PowerStatus>>,
 }

@@ -4,6 +4,7 @@ CARGO_MAKE_WORKSPACE_EMULATION = true
 CARGO_MAKE_CRATE_WORKSPACE_MEMBERS = [
     "anchor-cpi",
     "counter",
+    "cpi",
     "hello-world",
     "instruction-data",
     "seeded",

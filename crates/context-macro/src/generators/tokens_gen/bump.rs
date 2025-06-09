@@ -64,7 +64,7 @@ impl<'a> BumpTokenGenerator<'a> {
             .program_id
             .as_ref()
             .map(|p| quote!(#p))
-            .unwrap_or(quote!(crate::ID));
+            .unwrap_or(quote!(program_id));
 
         let (pda, pda_no_bump) = if let Some(bump) = &self.bump {
             let var_name = format_ident!("{name}_state");

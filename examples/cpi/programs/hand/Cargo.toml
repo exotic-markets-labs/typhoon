@@ -13,6 +13,7 @@ logging = []
 workspace = true
 
 [dependencies]
-typhoon.workspace = true
-hand-interface = { workspace = true, features = ["cpi"] }
+bytemuck.workspace = true
+hand-interface.workspace = true
 lever-interface = { workspace = true, features = ["cpi"] }
+typhoon.workspace = true

@@ -28,7 +28,7 @@ impl ToTokens for Handlers {
         let instructions = self.instructions.iter().enumerate().map(|(i, val)| {
             let i = i as u8;
             quote! {
-                #i => handle(accounts, data, #val),
+                #i => handle(program_id, accounts, data, #val),
             }
         });
 
