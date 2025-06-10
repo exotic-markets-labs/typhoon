@@ -1,6 +1,9 @@
 #![no_std]
 
-use typhoon::prelude::*;
+use {
+    bytemuck::{AnyBitPattern, NoUninit},
+    typhoon::prelude::*,
+};
 
 program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
@@ -53,7 +56,8 @@ pub fn close(
     Ok(())
 }
 
-#[account]
+#[derive(NoUninit, AnyBitPattern, AccountState, Copy, Clone)]
+#[repr(C)]
 pub struct Counter {
     pub count: u64,
 }

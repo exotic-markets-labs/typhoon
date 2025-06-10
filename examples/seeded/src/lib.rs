@@ -1,6 +1,9 @@
 #![no_std]
 
-use typhoon::prelude::*;
+use {
+    bytemuck::{AnyBitPattern, NoUninit},
+    typhoon::prelude::*,
+};
 
 program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
@@ -51,7 +54,8 @@ pub fn increment(ctx: IncrementContext) -> ProgramResult {
     Ok(())
 }
 
-#[account]
+#[derive(NoUninit, AnyBitPattern, AccountState, Copy, Clone)]
+#[repr(C)]
 #[no_space]
 pub struct Counter {
     #[key]

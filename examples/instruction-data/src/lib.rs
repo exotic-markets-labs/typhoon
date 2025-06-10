@@ -1,7 +1,7 @@
 #![no_std]
 
 use {
-    bytemuck::{Pod, Zeroable},
+    bytemuck::{AnyBitPattern, NoUninit},
     typhoon::prelude::*,
 };
 
@@ -11,12 +11,12 @@ nostd_panic_handler!();
 no_allocator!();
 
 #[repr(C)]
-#[derive(Debug, PartialEq, Pod, Zeroable, Copy, Clone)]
+#[derive(Debug, PartialEq, AnyBitPattern, NoUninit, Copy, Clone)]
 pub struct InitArgs {
     pub value: PodU64,
 }
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, Pod, Zeroable)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, AnyBitPattern, NoUninit)]
 #[repr(transparent)]
 pub struct PodU64(pub [u8; 8]);
 
@@ -85,7 +85,8 @@ pub fn set_and_add_values(ctx_a: SetValueContext, ctx_b: SetValueContext) -> Pro
     Ok(())
 }
 
-#[account]
+#[derive(NoUninit, AnyBitPattern, AccountState, Copy, Clone)]
+#[repr(C)]
 pub struct Buffer {
     pub value1: u64,
     pub value2: u64,

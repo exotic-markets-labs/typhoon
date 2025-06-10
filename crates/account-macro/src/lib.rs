@@ -58,19 +58,3 @@ pub fn derive_account(item: proc_macro::TokenStream) -> proc_macro::TokenStream 
     .into_token_stream()
     .into()
 }
-
-#[proc_macro_attribute]
-pub fn account(
-    _attr: proc_macro::TokenStream,
-    item: proc_macro::TokenStream,
-) -> proc_macro::TokenStream {
-    let item = parse_macro_input!(item as Item);
-
-    quote! {
-        #[derive(bytemuck::NoUninit, bytemuck::AnyBitPattern, AccountState, Copy, Clone)]
-        #[repr(C)]
-        #item
-    }
-    .into_token_stream()
-    .into()
-}
