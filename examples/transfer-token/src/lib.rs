@@ -1,7 +1,7 @@
 #![no_std]
 
 use {
-    bytemuck::{Pod, Zeroable},
+    bytemuck::{AnyBitPattern, NoUninit},
     typhoon::prelude::*,
     typhoon_token::{
         spl_instructions::MintTo, AtaTokenProgram, Mint, SplCreate, TokenAccount, TokenProgram,
@@ -17,11 +17,12 @@ handlers! {
     mint_from_escrow,
 }
 
-#[account]
+#[derive(AccountState, NoUninit, AnyBitPattern, Debug, Clone, Copy)]
+#[repr(C)]
 pub struct Escrow {}
 
 #[repr(C, packed)]
-#[derive(Clone, Copy, Debug, Default, PartialEq, Pod, Zeroable)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, AnyBitPattern, NoUninit)]
 pub struct MintFromEscrowArgs {
     pub amount: u64,
     pub decimals: u8,

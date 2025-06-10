@@ -1,4 +1,5 @@
 use {
+    bytemuck::{AnyBitPattern, NoUninit},
     pinocchio::{instruction, pubkey::Pubkey, seeds},
     typhoon_account_macro::*,
     typhoon_accounts::{Discriminator, Owner},
@@ -9,12 +10,14 @@ pub const ID: Pubkey = [
     71, 67, 12, 189, 129, 84, 51, 92, 74, 131, 39,
 ];
 
-#[account]
+#[derive(NoUninit, AnyBitPattern, AccountState, Copy, Clone)]
+#[repr(C)]
 pub struct TestState {
     pub foo: u64,
 }
 
-#[account]
+#[derive(NoUninit, AnyBitPattern, AccountState, Copy, Clone)]
+#[repr(C)]
 pub struct TestAnotherState {
     #[key]
     pub foo: Pubkey,

@@ -1,5 +1,5 @@
 error: expected square brackets
-  --> tests/constraints/invalid_seeds_syntax.fail.rs:21:17
+  --> tests/constraints/invalid_seeds_syntax.fail.rs:23:17
    |
-21 |         seeds = &[&args.admin],
+23 |         seeds = &[&args.admin],
    |                 ^

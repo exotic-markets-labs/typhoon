@@ -1,4 +1,5 @@
 use {
+    bytemuck::{AnyBitPattern, NoUninit},
     pinocchio_pubkey::{declare_id, pinocchio::pubkey::Pubkey},
     typhoon_account_macro::*,
     typhoon_accounts::*,
@@ -8,7 +9,8 @@ use {
 
 program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
-#[account]
+#[derive(NoUninit, AnyBitPattern, AccountState, Copy, Clone)]
+#[repr(C)]
 pub struct Counter {
     pub count: u64,
 }

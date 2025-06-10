@@ -3,6 +3,7 @@ mod instruction {
 }
 
 use {
+    bytemuck::{AnyBitPattern, NoUninit},
     pinocchio_pubkey::{
         declare_id,
         pinocchio::{
@@ -26,12 +27,14 @@ pub type ProgramResult<T = ()> = Result<T, Error>;
 
 program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
-#[account]
+#[derive(NoUninit, AnyBitPattern, AccountState, Copy, Clone)]
+#[repr(C)]
 pub struct Counter {
     pub count: u64,
 }
 
-#[account]
+#[derive(NoUninit, AnyBitPattern, AccountState, Copy, Clone)]
+#[repr(C)]
 pub struct CounterData {
     #[key]
     pub payer: Pubkey,

@@ -2,7 +2,11 @@
 
 mod error;
 
-use {crate::error::SeedsError, typhoon::prelude::*};
+use {
+    crate::error::SeedsError,
+    bytemuck::{AnyBitPattern, NoUninit},
+    typhoon::prelude::*,
+};
 
 program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
@@ -68,13 +72,14 @@ pub fn increment(ctx: IncrementContext) -> ProgramResult {
     Ok(())
 }
 
-#[account]
+#[derive(AccountState, NoUninit, AnyBitPattern, Debug, Clone, Copy)]
 #[no_space]
+#[repr(C)]
 pub struct Counter {
-    pub bump: u8,
-    pub admin: Pubkey,
-    _padding: [u8; 7],
     pub count: u64,
+    pub admin: Pubkey,
+    pub bump: u8,
+    _padding: [u8; 7],
 }
 
 impl Counter {
