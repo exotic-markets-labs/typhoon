@@ -1,13 +1,13 @@
 #![no_std]
 
-use paste::paste;
+use {bytemuck::NoUninit, paste::paste};
 
 mod args;
 mod remaining_accounts;
 
 pub use args::*;
 use {
-    pinocchio::{account_info::AccountInfo, pubkey::Pubkey},
+    pinocchio::{account_info::AccountInfo, cpi::set_return_data, pubkey::Pubkey},
     typhoon_errors::Error,
 };
 
@@ -20,7 +20,7 @@ pub trait HandlerContext<'a>: Sized {
 }
 
 pub trait Handler<'a, T> {
-    type Output;
+    type Output: NoUninit;
 
     fn call(
         self,
@@ -33,6 +33,7 @@ pub trait Handler<'a, T> {
 impl<'a, F, O> Handler<'a, ()> for F
 where
     F: FnOnce() -> Result<O, Error>,
+    O: NoUninit,
 {
     type Output = O;
 
@@ -51,6 +52,7 @@ macro_rules! impl_handler {
         impl<'a, $( $t, )* F, O> Handler<'a, ($( $t, )*)> for F
         where
             F: FnOnce($( $t ),*) -> Result<O, Error>,
+            O: NoUninit,
             $(
                 $t: HandlerContext<'a>,
             )*
@@ -87,9 +89,18 @@ pub fn handle<'a, T, H>(
     mut accounts: &'a [AccountInfo],
     mut instruction_data: &'a [u8],
     handler: H,
-) -> Result<H::Output, Error>
+) -> Result<(), Error>
 where
     H: Handler<'a, T>,
 {
-    handler.call(program_id, &mut accounts, &mut instruction_data)
+    match handler.call(program_id, &mut accounts, &mut instruction_data) {
+        Ok(res) => {
+            if core::mem::size_of::<H::Output>() > 0 {
+                set_return_data(bytemuck::bytes_of(&res));
+            }
+
+            Ok(())
+        }
+        Err(err) => Err(err),
+    }
 }

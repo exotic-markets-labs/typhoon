@@ -840,6 +840,7 @@ dependencies = [
 name = "typhoon-token"
 version = "0.1.0-alpha.10"
 dependencies = [
+ "five8_const",
  "pinocchio",
  "pinocchio-associated-token-account",
  "pinocchio-token",
