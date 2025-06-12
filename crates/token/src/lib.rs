@@ -50,8 +50,14 @@ impl RefFromBytes for Mint {
         Some(unsafe { transmute::<&SplMint, &Mint>(SplMint::from_bytes(data)) })
     }
 
-    fn read_mut(_data: &mut [u8]) -> Option<&mut Self> {
-        unimplemented!()
+    /// Convert a mutable byte slice into a mutable `Mint` reference in zero-copy fashion.
+    /// Follows the same constraints as the immutable variant: the caller must guarantee
+    /// the slice is at least `Mint::LEN` bytes and correctly aligned.
+    fn read_mut(data: &mut [u8]) -> Option<&mut Self> {
+        if data.len() < SplMint::LEN {
+            return None;
+        }
+        Some(unsafe { &mut *(data.as_mut_ptr() as *mut Mint) })
     }
 }
 
@@ -89,8 +95,13 @@ impl RefFromBytes for TokenAccount {
         })
     }
 
-    fn read_mut(_data: &mut [u8]) -> Option<&mut Self> {
-        unimplemented!()
+    /// Mutable zero-copy view over a SPL `TokenAccount` byte buffer.
+    /// Mirrors the immutable `read` implementation but returns `&mut`.
+    fn read_mut(data: &mut [u8]) -> Option<&mut Self> {
+        if data.len() < SplTokenAccount::LEN {
+            return None;
+        }
+        Some(unsafe { &mut *(data.as_mut_ptr() as *mut TokenAccount) })
     }
 }
 
