@@ -1,5 +1,5 @@
 use {
-    crate::{Discriminator, FromAccountInfo, Owner, ReadableAccount, RefFromBytes},
+    crate::{Discriminator, FromAccountInfo, Owners, ReadableAccount, RefFromBytes},
     core::marker::PhantomData,
     pinocchio::{
         account_info::{AccountInfo, Ref},
@@ -9,7 +9,7 @@ use {
     typhoon_errors::{Error, ErrorCode},
 };
 
-pub struct Account<'a, T>
+pub struct InterfaceAccount<'a, T>
 where
     T: Discriminator + RefFromBytes,
 {
@@ -17,16 +17,17 @@ where
     _phantom: PhantomData<T>,
 }
 
-impl<'a, T> FromAccountInfo<'a> for Account<'a, T>
+impl<'a, T> FromAccountInfo<'a> for InterfaceAccount<'a, T>
 where
-    T: Owner + Discriminator + RefFromBytes,
+    T: Discriminator + RefFromBytes + Owners,
 {
     fn try_from_info(info: &'a AccountInfo) -> Result<Self, Error> {
         if info.is_owned_by(&pinocchio_system::ID) && *info.try_borrow_lamports()? == 0 {
             return Err(ProgramError::UninitializedAccount.into());
         }
 
-        if !info.is_owned_by(&T::OWNER) {
+        // Safe because we don't store the owner key
+        if !T::OWNERS.contains(unsafe { info.owner() }) {
             return Err(ErrorCode::AccountOwnedByWrongProgram.into());
         }
 
@@ -40,23 +41,23 @@ where
             return Err(ErrorCode::AccountDiscriminatorMismatch.into());
         }
 
-        Ok(Account {
+        Ok(InterfaceAccount {
             info,
             _phantom: PhantomData,
         })
     }
 }
 
-impl<'a, T> From<Account<'a, T>> for &'a AccountInfo
+impl<'a, T> From<InterfaceAccount<'a, T>> for &'a AccountInfo
 where
     T: Discriminator + RefFromBytes,
 {
-    fn from(value: Account<'a, T>) -> Self {
+    fn from(value: InterfaceAccount<'a, T>) -> Self {
         value.info
     }
 }
 
-impl<T> AsRef<AccountInfo> for Account<'_, T>
+impl<T> AsRef<AccountInfo> for InterfaceAccount<'_, T>
 where
     T: Discriminator + RefFromBytes,
 {
@@ -65,7 +66,7 @@ where
     }
 }
 
-impl<T> ReadableAccount for Account<'_, T>
+impl<T> ReadableAccount for InterfaceAccount<'_, T>
 where
     T: RefFromBytes + Discriminator,
 {

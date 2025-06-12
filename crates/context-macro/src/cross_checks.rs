@@ -1,10 +1,9 @@
 use {crate::context::Context, syn::spanned::Spanned, typhoon_syn::constraints::Constraint};
 
 fn check_program_prerequisite(context: &Context, program: &str) -> Result<(), syn::Error> {
-    let has_system_program = context
-        .accounts
-        .iter()
-        .any(|acc| acc.ty.ident == "Program" && acc.inner_ty == program);
+    let has_system_program = context.accounts.iter().any(|acc| {
+        (acc.ty.ident == "Program" || acc.ty.ident == "Interface") && acc.inner_ty == program
+    });
 
     if !has_system_program {
         return Err(syn::Error::new(

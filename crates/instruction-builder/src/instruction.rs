@@ -12,9 +12,11 @@ use {
     },
 };
 
-const ACCOUNT_IDENTS: [&str; 6] = [
+const ACCOUNT_IDENTS: &'static [&'static str] = &[
     "Account",
     "BorshAccount",
+    "InterfaceAccount",
+    "Interface",
     "Program",
     "Signer",
     "SystemAccount",

@@ -1,5 +1,5 @@
 use {
-    crate::{FromAccountInfo, ProgramId, ReadableAccount},
+    crate::{FromAccountInfo, ProgramIds, ReadableAccount},
     core::marker::PhantomData,
     pinocchio::{
         account_info::{AccountInfo, Ref},
@@ -9,21 +9,17 @@ use {
     typhoon_errors::{Error, ErrorCode},
 };
 
-///
-/// Checks:
-/// * `account_info.key == expected_program`
-/// * `account_info.executable == true`
-pub struct Program<'a, T> {
+pub struct Interface<'a, T> {
     info: &'a AccountInfo,
     _phantom: PhantomData<T>,
 }
 
-impl<'a, T> FromAccountInfo<'a> for Program<'a, T>
+impl<'a, T> FromAccountInfo<'a> for Interface<'a, T>
 where
-    T: ProgramId,
+    T: ProgramIds,
 {
     fn try_from_info(info: &'a AccountInfo) -> Result<Self, Error> {
-        if info.key() != &T::ID {
+        if !T::IDS.contains(info.key()) {
             return Err(ProgramError::IncorrectProgramId.into());
         }
 
@@ -31,26 +27,26 @@ where
             return Err(ErrorCode::AccountOwnedByWrongProgram.into());
         }
 
-        Ok(Program {
+        Ok(Interface {
             info,
             _phantom: PhantomData,
         })
     }
 }
 
-impl<'a, T> From<Program<'a, T>> for &'a AccountInfo {
-    fn from(value: Program<'a, T>) -> Self {
+impl<'a, T> From<Interface<'a, T>> for &'a AccountInfo {
+    fn from(value: Interface<'a, T>) -> Self {
         value.info
     }
 }
 
-impl<T> AsRef<AccountInfo> for Program<'_, T> {
+impl<T> AsRef<AccountInfo> for Interface<'_, T> {
     fn as_ref(&self) -> &AccountInfo {
         self.info
     }
 }
 
-impl<T> ReadableAccount for Program<'_, T> {
+impl<T> ReadableAccount for Interface<'_, T> {
     type Data<'a>
         = Ref<'a, [u8]>
     where

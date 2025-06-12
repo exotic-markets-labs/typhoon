@@ -2,13 +2,14 @@
 
 use {
     core::{mem::transmute, ops::Deref},
+    five8_const::decode_32_const,
     pinocchio::pubkey::{find_program_address, Pubkey},
     pinocchio_associated_token_account::ID as ATA_PROGRAM_ID,
     pinocchio_token::{
         state::{Mint as SplMint, TokenAccount as SplTokenAccount},
         ID as TOKEN_PROGRAM_ID,
     },
-    typhoon_accounts::{Discriminator, Owner, ProgramId, RefFromBytes},
+    typhoon_accounts::{Discriminator, Owner, Owners, ProgramId, ProgramIds, RefFromBytes},
 };
 
 mod traits;
@@ -17,6 +18,9 @@ pub use {
     pinocchio_associated_token_account::instructions as ata_instructions,
     pinocchio_token::instructions as spl_instructions, traits::*,
 };
+
+const TOKEN_2022_PROGRAM_ID: Pubkey =
+    decode_32_const("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb");
 
 pub struct AtaTokenProgram;
 
@@ -28,6 +32,10 @@ pub struct TokenProgram;
 
 impl ProgramId for TokenProgram {
     const ID: Pubkey = TOKEN_PROGRAM_ID;
+}
+
+impl ProgramIds for TokenProgram {
+    const IDS: &'static [Pubkey] = &[TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID];
 }
 
 #[repr(transparent)]
@@ -53,6 +61,10 @@ impl Discriminator for Mint {
 
 impl Owner for Mint {
     const OWNER: Pubkey = TOKEN_PROGRAM_ID;
+}
+
+impl Owners for Mint {
+    const OWNERS: &'static [Pubkey] = &[TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID];
 }
 
 impl Deref for Mint {
@@ -88,6 +100,10 @@ impl Discriminator for TokenAccount {
 
 impl Owner for TokenAccount {
     const OWNER: Pubkey = TOKEN_PROGRAM_ID;
+}
+
+impl Owners for TokenAccount {
+    const OWNERS: &'static [Pubkey] = &[TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID];
 }
 
 impl Deref for TokenAccount {

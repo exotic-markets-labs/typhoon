@@ -117,7 +117,7 @@ impl<'a> InitTokenGenerator<'a> {
                 } else {
                     quote!(None)
                 };
-                quote!(SplCreate::create_mint(#name, &rent, &#payer, &#authority, #decimals, #f_auth_token, #signers)?)
+                quote!(SplCreateMint::create_mint(#name, &rent, &#payer, &#authority, #decimals, #f_auth_token, #signers)?)
             }
             InitTokenGeneratorTy::TokenAccount {
                 authority,
@@ -138,9 +138,9 @@ impl<'a> InitTokenGenerator<'a> {
                 };
 
                 if *is_ata {
-                    quote!(SplCreate::create_associated_token_account(#name, &#payer, &#mint, &#authority, &system_program, &token_program)?)
+                    quote!(SplCreateToken::create_associated_token_account(#name, &#payer, &#mint, &#authority, &system_program, &token_program)?)
                 } else {
-                    quote!(SplCreate::create_token_account(#name, &rent, &#payer, &#mint, &#authority, #signers)?)
+                    quote!(SplCreateToken::create_token_account(#name, &rent, &#payer, &#mint, &#authority, #signers)?)
                 }
             }
             InitTokenGeneratorTy::Other { space } => {

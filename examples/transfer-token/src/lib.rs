@@ -4,7 +4,8 @@ use {
     bytemuck::{AnyBitPattern, NoUninit},
     typhoon::prelude::*,
     typhoon_token::{
-        spl_instructions::MintTo, AtaTokenProgram, Mint, SplCreate, TokenAccount, TokenProgram,
+        spl_instructions::MintTo, AtaTokenProgram, Mint, SplCreateMint, SplCreateToken,
+        TokenAccount, TokenProgram,
     },
 };
 
@@ -40,7 +41,7 @@ pub struct MintFromEscrowContext {
         mint::authority = escrow.key(),
         mint::freeze_authority = owner.key()
     )]
-    pub mint: Mut<Account<Mint>>,
+    pub mint: Mut<InterfaceAccount<Mint>>,
     #[constraint(
         init,
         payer = payer,
@@ -55,8 +56,8 @@ pub struct MintFromEscrowContext {
         associated_token::mint = mint,
         associated_token::authority = owner
     )]
-    pub token_account: Mut<Account<TokenAccount>>,
-    pub token_program: Program<TokenProgram>,
+    pub token_account: Mut<InterfaceAccount<TokenAccount>>,
+    pub token_program: Interface<TokenProgram>,
     pub ata_program: Program<AtaTokenProgram>,
     pub system_program: Program<System>,
 }
