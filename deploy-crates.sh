@@ -37,6 +37,7 @@ CRATES=(
     "handler-macro"
     "program-id-macro"
     "context-macro"
+    "errors-macro"
     "lib"
 )
 

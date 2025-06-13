@@ -21,6 +21,7 @@ pinocchio-pubkey.workspace = true
 typhoon-accounts.workspace = true
 typhoon-account-macro.workspace = true
 typhoon-errors.workspace = true
+typhoon-errors-macro.workspace = true
 typhoon-context.workspace = true
 typhoon-context-macro.workspace = true
 typhoon-cpi-generator-macro.workspace = true

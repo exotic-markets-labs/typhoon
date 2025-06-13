@@ -668,6 +668,7 @@ dependencies = [
  "typhoon-context-macro",
  "typhoon-cpi-generator-macro",
  "typhoon-errors",
+ "typhoon-errors-macro",
  "typhoon-handler-macro",
  "typhoon-program-id-macro",
  "typhoon-utility",
@@ -775,6 +776,17 @@ name = "typhoon-errors"
 version = "0.1.0-alpha.10"
 dependencies = [
  "pinocchio",
+]
+
+[[package]]
+name = "typhoon-errors-macro"
+version = "0.1.0-alpha.10"
+dependencies = [
+ "pinocchio",
+ "proc-macro2",
+ "quote",
+ "syn",
+ "typhoon-errors",
 ]
 
 [[package]]
