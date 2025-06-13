@@ -21,14 +21,14 @@ impl<'a, T> FromAccountInfo<'a> for Account<'a, T>
 where
     T: Owner + Discriminator + RefFromBytes,
 {
+    #[inline(always)]
     fn try_from_info(info: &'a AccountInfo) -> Result<Self, Error> {
         if info.is_owned_by(&pinocchio_system::ID) && *info.try_borrow_lamports()? == 0 {
             return Err(ProgramError::UninitializedAccount.into());
         }
 
-        if !info.is_owned_by(&T::OWNER) {
-            return Err(ErrorCode::AccountOwnedByWrongProgram.into());
-        }
+        // owner check with compile-time constant
+        Self::validate_owner(info)?;
 
         let account_data = info.try_borrow_data()?;
 
@@ -44,6 +44,22 @@ where
             info,
             _phantom: PhantomData,
         })
+    }
+}
+
+impl<'a, T> Account<'a, T>
+where
+    T: Owner + Discriminator + RefFromBytes,
+{
+    /// owner validation using compile-time constants
+    /// This function is inlined and the compiler can optimize the check since T::OWNER is known at compile time
+    #[inline(always)]
+    fn validate_owner(info: &AccountInfo) -> Result<(), Error> {
+        // The compiler can optimize this check since T::OWNER is a compile-time constant
+        if !info.is_owned_by(&T::OWNER) {
+            return Err(ErrorCode::AccountOwnedByWrongProgram.into());
+        }
+        Ok(())
     }
 }
 
@@ -74,10 +90,12 @@ where
     where
         Self: 'a;
 
+    #[inline(always)]
     fn key(&self) -> &Pubkey {
         self.info.key()
     }
 
+    #[inline(always)]
     fn is_owned_by(&self, owner: &Pubkey) -> bool {
         self.info.is_owned_by(owner)
     }

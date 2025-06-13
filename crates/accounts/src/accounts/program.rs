@@ -22,10 +22,10 @@ impl<'a, T> FromAccountInfo<'a> for Program<'a, T>
 where
     T: ProgramId,
 {
+    #[inline(always)]
     fn try_from_info(info: &'a AccountInfo) -> Result<Self, Error> {
-        if info.key() != &T::ID {
-            return Err(ProgramError::IncorrectProgramId.into());
-        }
+        // program ID check with compile-time constant
+        Self::validate_program_id(info)?;
 
         if !info.executable() {
             return Err(ErrorCode::AccountOwnedByWrongProgram.into());
@@ -35,6 +35,22 @@ where
             info,
             _phantom: PhantomData,
         })
+    }
+}
+
+impl<'a, T> Program<'a, T>
+where
+    T: ProgramId,
+{
+    /// program ID validation using compile-time constants
+    /// This function is inlined and the compiler can optimize the check since T::ID is known at compile time
+    #[inline(always)]
+    fn validate_program_id(info: &AccountInfo) -> Result<(), Error> {
+        // The compiler can optimize this check since T::ID is a compile-time constant
+        if info.key() != &T::ID {
+            return Err(ProgramError::IncorrectProgramId.into());
+        }
+        Ok(())
     }
 }
 
@@ -56,10 +72,12 @@ impl<T> ReadableAccount for Program<'_, T> {
     where
         Self: 'a;
 
+    #[inline(always)]
     fn key(&self) -> &Pubkey {
         self.info.key()
     }
 
+    #[inline(always)]
     fn is_owned_by(&self, owner: &Pubkey) -> bool {
         self.info.is_owned_by(owner)
     }
