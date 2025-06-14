@@ -58,7 +58,6 @@ pub trait ProgramId {
     const ID: Pubkey;
 }
 
-// TODO: check performance to replace single program id
 pub trait ProgramIds {
     const IDS: &'static [Pubkey];
 }
@@ -67,7 +66,6 @@ pub trait Owner {
     const OWNER: Pubkey;
 }
 
-// TODO: check performance to replace single owner
 pub trait Owners {
     const OWNERS: &'static [Pubkey];
 }
