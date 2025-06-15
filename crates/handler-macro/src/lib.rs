@@ -35,6 +35,7 @@ impl ToTokens for Handlers {
         let expanded = quote! {
             program_entrypoint!(process_instruction);
 
+            #[inline(always)]
             pub fn process_instruction(
                 program_id: &Pubkey,
                 accounts: &[AccountInfo],
