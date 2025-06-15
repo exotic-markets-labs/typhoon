@@ -102,11 +102,6 @@ jobs:
             - CU Consumed: Compute Units used by each instruction
             - Binary Size: Size of the compiled program binary
 
-            Color Legend:
-            - 🟩 Green: Best performance or within 50% of best
-            - 🟨 Yellow: Up to 2x the minimum value
-            - 🟥 Red: More than 2x the minimum value
-
             </details>
 
             Benchmarks run on commit ${context.sha.substring(0, 7)}`;
