@@ -16,18 +16,15 @@ handlers! {
     create_account
 }
 
-#[inline(always)]
 fn ping() -> ProgramResult {
     Ok(())
 }
 
-#[inline(always)]
 fn log() -> ProgramResult {
     msg!("Instruction: Log");
     Ok(())
 }
 
-#[inline(always)]
 fn create_account(ctx: CreateAccountContext) -> ProgramResult {
     ctx.account.mut_data()?.byte = 1;
 
