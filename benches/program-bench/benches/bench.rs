@@ -82,7 +82,7 @@ pub fn generate_markdown([pinocchio, anchor, typhoon]: [BenchResult; 3]) -> Stri
 
     let format_cell = |val: u64, min: u64| -> String {
         if val == min {
-            format!("🟩 **{}**", val)
+            format!("🟩 **{val}**")
         } else if val <= min + (min / 2) {
             format!("🟩 {} (+{})", val, val - min)
         } else if val <= min * 2 {

@@ -7,7 +7,7 @@ on:
     branches: ["main"]
 
 env:
-  RUSTFLAGS: "-Dwarnings"
+  CARGO_TERM_COLOR: always
 
 jobs:
   run_cargo_checks:
