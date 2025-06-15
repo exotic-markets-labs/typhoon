@@ -1,0 +1,20 @@
+[package]
+name = "typhoon"
+version = "0.1.0"
+edition.workspace = true
+publish.workspace = true
+
+[features]
+logging = []
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = [
+    'cfg(target_os, values("solana"))',
+] }
+
+[dependencies]
+bytemuck = { version = "1.23", features = ["derive"] }
+typhoon = { path = "../../../../../crates/lib" }

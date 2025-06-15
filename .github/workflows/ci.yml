@@ -23,6 +23,124 @@ jobs:
         run: cargo +nightly fmt --all -- --check
       - name: Run Cargo clippy
         run: cargo clippy --all-targets --all-features
+
+  run_benchmarks:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            benches/program-bench/ -> target
+      - name: Rust install
+        uses: dtolnay/rust-toolchain@stable
+      - name: Install Solana CLI
+        run: |
+          sh -c "$(curl -sSfL https://release.anza.xyz/v2.2.14/install)"
+          echo "/home/runner/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+      - name: Build benchmark programs
+        run: |
+          cd benches/program-bench/benches/programs
+          cargo build-sbf
+      - name: Run benchmarks
+        run: |
+          cd benches/program-bench
+          cargo bench --bench bench
+      - name: Commit updated benchmark results
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+          # Check if there are changes to BENCHMARK.md
+          if git diff --quiet benches/BENCHMARK.md; then
+            echo "No changes to benchmark results"
+          else
+            echo "Benchmark results have changed, committing updates"
+            git add benches/BENCHMARK.md
+            git commit -m "chore: update benchmark results [skip ci]"
+            git push origin main
+          fi
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: benches/BENCHMARK.md
+          retention-days: 30
+      - name: Comment PR with benchmark results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            // Read the benchmark results
+            const benchmarkPath = path.join(process.cwd(), 'benches', 'BENCHMARK.md');
+            const benchmarkContent = fs.readFileSync(benchmarkPath, 'utf8');
+
+            // Create comment body with proper escaping
+            const commentBody = `## 📊 Benchmark Results
+
+            ${benchmarkContent}
+
+            <details>
+            <summary>ℹ️ Benchmark Details</summary>
+
+            This benchmark compares the performance of three Solana program frameworks:
+            - pinocchio: Minimal framework with direct syscall usage
+            - anchor: Popular framework with many features  
+            - typhoon: This framework
+
+            Metrics:
+            - CU Consumed: Compute Units used by each instruction
+            - Binary Size: Size of the compiled program binary
+
+            Color Legend:
+            - 🟩 Green: Best performance or within 50% of best
+            - 🟨 Yellow: Up to 2x the minimum value
+            - 🟥 Red: More than 2x the minimum value
+
+            </details>
+
+            Benchmarks run on commit ${context.sha.substring(0, 7)}`;
+
+            // Find existing benchmark comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existingComment = comments.find(comment => 
+              comment.user.login === 'github-actions[bot]' && 
+              comment.body.includes('📊 Benchmark Results')
+            );
+
+            if (existingComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: commentBody,
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: commentBody,
+              });
+            }
+
   run_examples_tests:
     runs-on: ubuntu-latest
     defaults:

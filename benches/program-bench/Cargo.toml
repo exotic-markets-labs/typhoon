@@ -1,0 +1,27 @@
+[package]
+name = "program-bench"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+publish = false
+
+[[bench]]
+name = "bench"
+harness = false
+
+[dependencies]
+litesvm = "0.6.1"
+serde = "1.0"
+solana-hash = "2.2.1"
+solana-instruction = "2.2.1"
+solana-keypair = "2.2.1"
+solana-native-token = "2.2.1"
+solana-pubkey = "2.2.1"
+solana-signer = "2.2.1"
+solana-system-interface = "1.0.0"
+solana-transaction = "2.2.1"
+
+[dev-dependencies]
+serde_json = "1.0"

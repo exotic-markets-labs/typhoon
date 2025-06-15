@@ -1,0 +1,18 @@
+[package]
+name = "pinocchio"
+version = "0.1.0"
+edition.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = [
+    'cfg(target_os, values("solana"))',
+] }
+
+[dependencies]
+pinocchio = "0.8"
+pinocchio-pubkey = "0.2.4"
+pinocchio-system = "0.2.3"
