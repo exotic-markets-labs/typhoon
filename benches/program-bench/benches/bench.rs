@@ -8,6 +8,8 @@ use {
     std::path::PathBuf,
 };
 
+const IX_NAMES: &[&str] = &["ping", "log", "create_account"];
+
 pub fn runner(name: &str) -> BenchResult {
     let mut so_path = PathBuf::from(concat!(
         env!("CARGO_MANIFEST_DIR"),
@@ -29,7 +31,7 @@ pub fn runner(name: &str) -> BenchResult {
         &[bencher.payer()],
         bencher.hash(),
     );
-    bencher.execute_tx("ping", tx);
+    bencher.execute_tx(IX_NAMES[0], tx);
 
     let tx = Transaction::new_signed_with_payer(
         &[Instruction {
@@ -41,7 +43,7 @@ pub fn runner(name: &str) -> BenchResult {
         &[bencher.payer()],
         bencher.hash(),
     );
-    bencher.execute_tx("log", tx);
+    bencher.execute_tx(IX_NAMES[1], tx);
 
     let new_account = Keypair::new();
     let account_metas = vec![
@@ -60,7 +62,7 @@ pub fn runner(name: &str) -> BenchResult {
         &[bencher.payer(), &new_account],
         bencher.hash(),
     );
-    bencher.execute_tx("create_account", tx);
+    bencher.execute_tx(IX_NAMES[2], tx);
 
     bencher.into_metrics()
 }
@@ -101,10 +103,10 @@ pub fn generate_markdown([pinocchio, anchor, typhoon]: [BenchResult; 3]) -> Stri
     output.push_str("| Benchmark     | `pinocchio`     | `anchor`          | `typhoon`    |\n");
     output.push_str("| ------------- | --------------- | ----------------- | ------------ |\n");
 
-    for key in pinocchio.metrics.keys() {
-        let p_val = pinocchio.metrics.get(key).unwrap_or(&0);
-        let a_val = anchor.metrics.get(key).unwrap_or(&0);
-        let t_val = typhoon.metrics.get(key).unwrap_or(&0);
+    for key in IX_NAMES {
+        let p_val = pinocchio.metrics.get(*key).unwrap_or(&0);
+        let a_val = anchor.metrics.get(*key).unwrap_or(&0);
+        let t_val = typhoon.metrics.get(*key).unwrap_or(&0);
 
         let min_val = *p_val.min(a_val.min(t_val));
         output.push_str(&format!(
