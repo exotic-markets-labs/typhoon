@@ -25,7 +25,7 @@ pub trait ReadableAccount: AsRef<AccountInfo> {
 
     fn key(&self) -> &Pubkey;
     fn is_owned_by(&self, owner: &Pubkey) -> bool;
-    fn lamports(&self) -> Result<Ref<u64>, Error>;
+    fn lamports(&self) -> Result<Ref<'_, u64>, Error>;
     fn data<'a>(&'a self) -> Result<Self::Data<'a>, Error>;
 }
 
@@ -36,7 +36,7 @@ pub trait WritableAccount: ReadableAccount + Sealed {
 
     fn assign(&self, new_owner: &Pubkey);
     fn realloc(&self, new_len: usize, zero_init: bool) -> Result<(), Error>;
-    fn mut_lamports(&self) -> Result<RefMut<u64>, Error>;
+    fn mut_lamports(&self) -> Result<RefMut<'_, u64>, Error>;
     fn mut_data<'a>(&'a self) -> Result<Self::DataMut<'a>, Error>;
 }
 
