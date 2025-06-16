@@ -41,10 +41,6 @@ impl ToTokens for Handlers {
                 accounts: &[AccountInfo],
                 instruction_data: &[u8],
             ) -> Result<(), ProgramError> {
-                if program_id != &crate::ID {
-                    return Err(ProgramError::IncorrectProgramId);
-                }
-
                 let (discriminator, data) = instruction_data.split_first().ok_or(ProgramError::InvalidInstructionData)?;
                 let result = match discriminator {
                     #(#instructions)*
