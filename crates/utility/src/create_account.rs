@@ -5,6 +5,7 @@ use {
     typhoon_errors::{Error, ErrorCode},
 };
 
+#[inline(always)]
 pub fn create_or_assign(
     account: &impl WritableAccount,
     rent: &Rent,

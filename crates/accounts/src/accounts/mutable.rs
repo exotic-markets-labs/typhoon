@@ -4,6 +4,7 @@ use {
         Discriminator, FromAccountInfo, ReadableAccount, RefFromBytes, Signer, SignerAccount,
         WritableAccount,
     },
+    core::marker::PhantomData,
     pinocchio::{
         account_info::{AccountInfo, Ref, RefMut},
         program_error::ProgramError,
@@ -174,3 +175,15 @@ impl<T: Discriminator + RefFromBytes> WritableAccount for Mut<Account<'_, T>> {
 }
 
 impl SignerAccount for Mut<Signer<'_>> {}
+
+impl<'a, T> Mut<Account<'a, T>>
+where
+    T: RefFromBytes + Discriminator,
+{
+    pub fn from_raw_info(info: &'a AccountInfo) -> Self {
+        Mut(Account {
+            info,
+            _phantom: PhantomData,
+        })
+    }
+}

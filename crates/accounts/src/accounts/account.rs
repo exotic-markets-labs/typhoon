@@ -13,8 +13,8 @@ pub struct Account<'a, T>
 where
     T: Discriminator + RefFromBytes,
 {
-    info: &'a AccountInfo,
-    _phantom: PhantomData<T>,
+    pub(crate) info: &'a AccountInfo,
+    pub(crate) _phantom: PhantomData<T>,
 }
 
 impl<'a, T> FromAccountInfo<'a> for Account<'a, T>

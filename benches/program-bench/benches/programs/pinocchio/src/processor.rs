@@ -1,6 +1,12 @@
 use {
-    pinocchio::{account_info::AccountInfo, msg, ProgramResult},
-    pinocchio_system::instructions::CreateAccount,
+    pinocchio::{
+        account_info::AccountInfo,
+        msg,
+        program_error::ProgramError,
+        sysvars::{rent::Rent, Sysvar},
+        ProgramResult,
+    },
+    pinocchio_system::instructions::{Allocate, Assign, CreateAccount, Transfer},
 };
 
 #[inline(always)]
@@ -16,16 +22,49 @@ pub fn process_log() -> ProgramResult {
 
 #[inline(always)]
 pub fn process_create_account(accounts: &[AccountInfo]) -> ProgramResult {
-    let account = &accounts[1];
-    CreateAccount {
-        from: &accounts[0],
-        to: account,
-        lamports: 500_000_000,
-        space: 9,
-        owner: &crate::ID,
+    let [payer, to, _rem @ ..] = accounts else {
+        return Err(ProgramError::NotEnoughAccountKeys);
+    };
+
+    let rent = Rent::get()?;
+    let current_lamports = to.lamports();
+    if current_lamports == 0 {
+        CreateAccount {
+            from: payer,
+            lamports: rent.minimum_balance(9),
+            owner: &crate::ID,
+            space: 9,
+            to,
+        }
+        .invoke()?;
+    } else {
+        let required_lamports = rent
+            .minimum_balance(9)
+            .max(1)
+            .saturating_sub(current_lamports);
+
+        if required_lamports > 0 {
+            Transfer {
+                from: payer,
+                to,
+                lamports: required_lamports,
+            }
+            .invoke()?;
+        }
+
+        Allocate {
+            account: to,
+            space: 9,
+        }
+        .invoke()?;
+
+        Assign {
+            account: to,
+            owner: &crate::ID,
+        }
+        .invoke()?;
     }
-    .invoke()?;
-    let mut data = account.try_borrow_mut_data()?;
+    let mut data = to.try_borrow_mut_data()?;
     data[8] = 1;
 
     Ok(())

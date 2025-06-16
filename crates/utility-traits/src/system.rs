@@ -4,8 +4,8 @@ use {
     },
     pinocchio_system::instructions::{Allocate, Assign, Transfer},
     typhoon_accounts::{
-        Account, Discriminator, FromAccountInfo, Mut, Owner, RefFromBytes, Signer as SignerAccount,
-        SystemAccount, UncheckedAccount, WritableAccount,
+        Account, Discriminator, Mut, Owner, RefFromBytes, Signer as SignerAccount, SystemAccount,
+        UncheckedAccount, WritableAccount,
     },
     typhoon_errors::Error,
     typhoon_utility::create_or_assign,
@@ -33,6 +33,7 @@ where
         .map_err(Into::into)
     }
 
+    #[inline(always)]
     fn create_account<T: Discriminator + RefFromBytes + Owner>(
         self,
         rent: &Rent,
@@ -49,7 +50,7 @@ where
             data[..T::DISCRIMINATOR.len()].copy_from_slice(T::DISCRIMINATOR);
         }
 
-        Mut::try_from_info(self.into())
+        Ok(Mut::from_raw_info(self.into()))
     }
 
     fn transfer(&self, to: &impl WritableAccount, amount: u64) -> Result<(), Error> {
