@@ -15,6 +15,7 @@ pub trait SystemCpi<'a>: WritableAccount + Into<&'a AccountInfo>
 where
     Self: Sized,
 {
+    #[inline(always)]
     fn allocate(&self, new_space: u64) -> Result<(), Error> {
         Allocate {
             account: self.as_ref(),
@@ -24,6 +25,7 @@ where
         .map_err(Into::into)
     }
 
+    #[inline(always)]
     fn assign(&self, owner: &Pubkey) -> Result<(), Error> {
         Assign {
             account: self.as_ref(),
@@ -53,6 +55,7 @@ where
         Ok(Mut::from_raw_info(self.into()))
     }
 
+    #[inline(always)]
     fn transfer(&self, to: &impl WritableAccount, amount: u64) -> Result<(), Error> {
         Transfer {
             from: self.as_ref(),

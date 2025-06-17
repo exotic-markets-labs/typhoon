@@ -5,6 +5,7 @@ use {
 };
 
 pub trait LamportsChecked: WritableAccount + SignerAccount {
+    #[inline(always)]
     fn send(&self, to: &impl WritableAccount, amount: u64) -> Result<(), Error> {
         let mut payer_lamports = self.mut_lamports()?;
         let mut recipient_lamports = to.mut_lamports()?;
@@ -19,6 +20,7 @@ pub trait LamportsChecked: WritableAccount + SignerAccount {
         Ok(())
     }
 
+    #[inline(always)]
     fn send_all(&self, to: &impl WritableAccount) -> Result<(), Error> {
         let amount = *self.lamports()?;
         let mut payer_lamports = self.mut_lamports()?;

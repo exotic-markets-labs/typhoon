@@ -17,6 +17,7 @@ pub enum ErrorCode {
 impl TryFrom<u32> for ErrorCode {
     type Error = ProgramError;
 
+    #[inline(always)]
     fn try_from(value: u32) -> Result<Self, Self::Error> {
         match value {
             100 => Ok(ErrorCode::InvalidProgramExecutable),
@@ -35,6 +36,7 @@ impl TryFrom<u32> for ErrorCode {
 }
 
 impl From<ErrorCode> for ProgramError {
+    #[inline(always)]
     fn from(e: ErrorCode) -> Self {
         ProgramError::Custom(e as u32)
     }

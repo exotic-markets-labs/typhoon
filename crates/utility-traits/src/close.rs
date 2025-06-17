@@ -4,6 +4,7 @@ use {
 };
 
 pub trait CloseAccount: WritableAccount {
+    #[inline(always)]
     fn close(&self, destination: &impl WritableAccount) -> Result<(), Error> {
         let dest_lamports = *destination.lamports()?;
         let source_lamports = *self.lamports()?;
