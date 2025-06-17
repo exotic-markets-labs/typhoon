@@ -12,14 +12,38 @@ jobs:
     if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success'
     permissions:
       pull-requests: write
+      actions: read
 
     steps:
       - name: Download benchmark artifact
-        uses: actions/download-artifact@v4
+        uses: actions/github-script@v7
         with:
-          name: benchmark-results
-          path: .
-          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            let allArtifacts = await github.rest.actions.listWorkflowRunArtifacts({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               run_id: ${{ github.event.workflow_run.id }},
+            });
+            let matchArtifact = allArtifacts.data.artifacts.filter((artifact) => {
+              return artifact.name == "benchmark-results"
+            })[0];
+            if (!matchArtifact) {
+              throw new Error('No benchmark-results artifact found');
+            }
+            let download = await github.rest.actions.downloadArtifact({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               artifact_id: matchArtifact.id,
+               archive_format: 'zip',
+            });
+            let fs = require('fs');
+            fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/benchmark-results.zip`, Buffer.from(download.data));
+
+      - name: Extract benchmark results
+        run: |
+          unzip benchmark-results.zip
+          ls -la
 
       - name: Post benchmark comment
         uses: actions/github-script@v7
