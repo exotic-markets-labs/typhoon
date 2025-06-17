@@ -8,7 +8,7 @@ use {
     std::path::PathBuf,
 };
 
-const IX_NAMES: &[&str] = &["ping", "log", "create_account"];
+const IX_NAMES: &[&str] = &["ping", "log", "transfer", "create_account"];
 
 pub fn runner(name: &str) -> BenchResult {
     let mut so_path = PathBuf::from(concat!(
@@ -63,6 +63,23 @@ pub fn runner(name: &str) -> BenchResult {
         bencher.hash(),
     );
     bencher.execute_tx(IX_NAMES[2], tx);
+
+    let new_account = Keypair::new();
+    let tx = Transaction::new_signed_with_payer(
+        &[Instruction {
+            program_id,
+            accounts: vec![
+                AccountMeta::new(bencher.payer().pubkey(), true),
+                AccountMeta::new(new_account.pubkey(), false),
+                AccountMeta::new_readonly(solana_system_interface::program::ID, false),
+            ],
+            data: vec![3, 100, 0, 0, 0, 0, 0, 0, 0],
+        }],
+        Some(&bencher.payer().pubkey()),
+        &[bencher.payer()],
+        bencher.hash(),
+    );
+    bencher.execute_tx(IX_NAMES[3], tx);
 
     bencher.into_metrics()
 }

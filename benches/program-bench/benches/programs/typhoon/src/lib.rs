@@ -13,7 +13,8 @@ program_id!("Bench111111111111111111111111111111111111111");
 handlers! {
     ping,
     log,
-    create_account
+    create_account,
+    transfer
 }
 
 fn ping() -> ProgramResult {
@@ -31,6 +32,11 @@ fn create_account(ctx: CreateAccountContext) -> ProgramResult {
     Ok(())
 }
 
+fn transfer(amount: Arg<[u8; 8]>, ctx: TransferContext) -> ProgramResult {
+    ctx.admin
+        .transfer(&ctx.account, u64::from_le_bytes(*amount))
+}
+
 #[context]
 pub struct CreateAccountContext {
     pub admin: Mut<Signer>,
@@ -39,6 +45,13 @@ pub struct CreateAccountContext {
         payer = admin
     )]
     pub account: Mut<Account<Data>>,
+    pub system_program: Program<System>,
+}
+
+#[context]
+pub struct TransferContext {
+    pub admin: Mut<Signer>,
+    pub account: Mut<SystemAccount>,
     pub system_program: Program<System>,
 }
 

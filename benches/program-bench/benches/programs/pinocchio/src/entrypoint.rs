@@ -1,5 +1,5 @@
 use {
-    crate::processor::{process_create_account, process_log, process_ping},
+    crate::processor::{process_create_account, process_log, process_ping, process_transfer},
     pinocchio::{
         account_info::AccountInfo, entrypoint, nostd_panic_handler, program_error::ProgramError,
         pubkey::Pubkey, ProgramResult,
@@ -16,7 +16,7 @@ pub fn process_instruction(
     accounts: &[AccountInfo],
     instruction_data: &[u8],
 ) -> ProgramResult {
-    let [instruction, _remaining @ ..] = instruction_data else {
+    let [instruction, remaining @ ..] = instruction_data else {
         return Err(ProgramError::InvalidInstructionData);
     };
 
@@ -27,6 +27,7 @@ pub fn process_instruction(
         1 => process_log(),
         // 2 - CreateAccount
         2 => process_create_account(accounts),
+        3 => process_transfer(remaining, accounts),
         // Invalid instruction
         _ => Err(ProgramError::InvalidInstructionData),
     }

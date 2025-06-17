@@ -5,4 +5,5 @@ pub enum Instruction {
     Ping = 0,
     Log = 1,
     CreateAccount = 2,
+    Transfer = 3
 }

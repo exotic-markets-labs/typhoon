@@ -69,3 +69,17 @@ pub fn process_create_account(accounts: &[AccountInfo]) -> ProgramResult {
 
     Ok(())
 }
+
+#[inline(always)]
+pub fn process_transfer(instruction_data: &[u8], accounts: &[AccountInfo]) -> ProgramResult {
+    Transfer {
+        from: &accounts[0],
+        to: &accounts[1],
+        lamports: u64::from_le_bytes(
+            instruction_data[0..8]
+                .try_into()
+                .map_err(|_| ProgramError::InvalidInstructionData)?,
+        ),
+    }
+    .invoke()
+}

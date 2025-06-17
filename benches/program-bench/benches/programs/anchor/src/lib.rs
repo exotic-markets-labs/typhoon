@@ -23,6 +23,20 @@ pub mod lever {
         acc_mut.byte = 1;
         Ok(())
     }
+
+    #[instruction(discriminator = [3])]
+    pub fn transfer(ctx: Context<Transfer>, amount: u64) -> Result<()> {
+        anchor_lang::system_program::transfer(
+            CpiContext::new(
+                ctx.accounts.system_program.to_account_info(),
+                anchor_lang::system_program::Transfer {
+                    from: ctx.accounts.payer.to_account_info(),
+                    to: ctx.accounts.account.to_account_info(),
+                },
+            ),
+            amount,
+        )
+    }
 }
 
 #[derive(Accounts)]
@@ -38,6 +52,15 @@ pub struct CreateAccount<'info> {
         payer = admin
     )]
     pub account: AccountLoader<'info, Data>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct Transfer<'info> {
+    #[account(mut)]
+    pub payer: Signer<'info>,
+    #[account(mut)]
+    pub account: SystemAccount<'info>,
     pub system_program: Program<'info, System>,
 }
 
