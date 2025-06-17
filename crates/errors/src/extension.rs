@@ -5,6 +5,7 @@ pub trait ResultExtension {
 }
 
 impl<T> ResultExtension for Result<T, Error> {
+    #[inline(always)]
     fn trace_account(self, name: &'static str) -> Self {
         self.map_err(|err| err.with_account(name))
     }
