@@ -18,6 +18,7 @@ impl<'a, T> FromAccountInfo<'a> for Interface<'a, T>
 where
     T: ProgramIds,
 {
+    #[inline(always)]
     fn try_from_info(info: &'a AccountInfo) -> Result<Self, Error> {
         if !T::IDS.contains(info.key()) {
             return Err(ProgramError::IncorrectProgramId.into());
@@ -35,12 +36,14 @@ where
 }
 
 impl<'a, T> From<Interface<'a, T>> for &'a AccountInfo {
+    #[inline(always)]
     fn from(value: Interface<'a, T>) -> Self {
         value.info
     }
 }
 
 impl<T> AsRef<AccountInfo> for Interface<'_, T> {
+    #[inline(always)]
     fn as_ref(&self) -> &AccountInfo {
         self.info
     }
@@ -52,18 +55,22 @@ impl<T> ReadableAccount for Interface<'_, T> {
     where
         Self: 'a;
 
+    #[inline(always)]
     fn key(&self) -> &Pubkey {
         self.info.key()
     }
 
+    #[inline(always)]
     fn is_owned_by(&self, owner: &Pubkey) -> bool {
         self.info.is_owned_by(owner)
     }
 
+    #[inline(always)]
     fn lamports(&self) -> Result<Ref<'_, u64>, Error> {
         self.info.try_borrow_lamports().map_err(Into::into)
     }
 
+    #[inline(always)]
     fn data<'a>(&'a self) -> Result<Self::Data<'a>, Error> {
         self.info.try_borrow_data().map_err(Into::into)
     }

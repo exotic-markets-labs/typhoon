@@ -12,6 +12,7 @@ pub struct Signer<'a> {
 }
 
 impl<'a> FromAccountInfo<'a> for Signer<'a> {
+    #[inline(always)]
     fn try_from_info(info: &'a AccountInfo) -> Result<Self, Error> {
         if !info.is_signer() {
             return Err(ErrorCode::AccountNotSigner.into());
@@ -22,12 +23,14 @@ impl<'a> FromAccountInfo<'a> for Signer<'a> {
 }
 
 impl<'a> From<Signer<'a>> for &'a AccountInfo {
+    #[inline(always)]
     fn from(value: Signer<'a>) -> Self {
         value.info
     }
 }
 
 impl AsRef<AccountInfo> for Signer<'_> {
+    #[inline(always)]
     fn as_ref(&self) -> &AccountInfo {
         self.info
     }
@@ -41,18 +44,22 @@ impl ReadableAccount for Signer<'_> {
     where
         Self: 'a;
 
+    #[inline(always)]
     fn key(&self) -> &Pubkey {
         self.info.key()
     }
 
+    #[inline(always)]
     fn is_owned_by(&self, owner: &Pubkey) -> bool {
         self.info.is_owned_by(owner)
     }
 
+    #[inline(always)]
     fn lamports(&self) -> Result<Ref<'_, u64>, Error> {
         self.info.try_borrow_lamports().map_err(Into::into)
     }
 
+    #[inline(always)]
     fn data<'a>(&'a self) -> Result<Self::Data<'a>, Error> {
         self.info.try_borrow_data().map_err(Into::into)
     }

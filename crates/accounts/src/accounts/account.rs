@@ -67,6 +67,7 @@ impl<'a, T> From<Account<'a, T>> for &'a AccountInfo
 where
     T: Discriminator + RefFromBytes,
 {
+    #[inline(always)]
     fn from(value: Account<'a, T>) -> Self {
         value.info
     }
@@ -76,6 +77,7 @@ impl<T> AsRef<AccountInfo> for Account<'_, T>
 where
     T: Discriminator + RefFromBytes,
 {
+    #[inline(always)]
     fn as_ref(&self) -> &AccountInfo {
         self.info
     }
@@ -100,10 +102,12 @@ where
         self.info.is_owned_by(owner)
     }
 
+    #[inline(always)]
     fn lamports(&self) -> Result<Ref<'_, u64>, Error> {
         self.info.try_borrow_lamports().map_err(Into::into)
     }
 
+    #[inline(always)]
     fn data<'a>(&'a self) -> Result<Self::Data<'a>, Error> {
         Ref::filter_map(self.info.try_borrow_data()?, T::read)
             .map_err(|_| ProgramError::InvalidAccountData.into())

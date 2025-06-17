@@ -22,6 +22,7 @@ impl<'a, T> FromAccountInfo<'a> for BorshAccount<'a, T>
 where
     T: Owner + Discriminator + borsh::BorshSerialize + borsh::BorshDeserialize,
 {
+    #[inline(always)]
     fn try_from_info(info: &'a AccountInfo) -> Result<Self, Error> {
         if info.is_owned_by(&pinocchio_system::ID) && *info.try_borrow_lamports()? == 0 {
             return Err(ProgramError::UninitializedAccount.into());
@@ -56,6 +57,7 @@ impl<'a, T> From<BorshAccount<'a, T>> for &'a AccountInfo
 where
     T: Owner + Discriminator,
 {
+    #[inline(always)]
     fn from(value: BorshAccount<'a, T>) -> Self {
         value.info
     }
@@ -65,6 +67,7 @@ impl<T> AsRef<AccountInfo> for BorshAccount<'_, T>
 where
     T: Discriminator,
 {
+    #[inline(always)]
     fn as_ref(&self) -> &AccountInfo {
         self.info
     }
@@ -79,18 +82,22 @@ where
     where
         Self: 'a;
 
+    #[inline(always)]
     fn key(&self) -> &Pubkey {
         self.info.key()
     }
 
+    #[inline(always)]
     fn is_owned_by(&self, owner: &Pubkey) -> bool {
         self.info.is_owned_by(owner)
     }
 
+    #[inline(always)]
     fn lamports(&self) -> Result<Ref<'_, u64>, Error> {
         self.info.try_borrow_lamports().map_err(Into::into)
     }
 
+    #[inline(always)]
     fn data<'a>(&'a self) -> Result<Self::Data<'a>, Error> {
         Ok(self.data.borrow())
     }
@@ -105,12 +112,14 @@ where
     where
         Self: 'a;
 
+    #[inline(always)]
     fn assign(&self, new_owner: &Pubkey) {
         unsafe {
             self.0.as_ref().assign(new_owner);
         }
     }
 
+    #[inline(always)]
     fn realloc(&self, new_len: usize, zero_init: bool) -> Result<(), Error> {
         self.0
             .as_ref()
@@ -118,6 +127,7 @@ where
             .map_err(Into::into)
     }
 
+    #[inline(always)]
     fn mut_lamports(&self) -> Result<RefMut<'_, u64>, Error> {
         self.0
             .as_ref()
@@ -125,6 +135,7 @@ where
             .map_err(Into::into)
     }
 
+    #[inline(always)]
     fn mut_data<'a>(&'a self) -> Result<Self::DataMut<'a>, Error> {
         self.0
             .data
@@ -137,6 +148,7 @@ impl<T> Mut<BorshAccount<'_, T>>
 where
     T: Discriminator + borsh::BorshSerialize,
 {
+    #[inline(always)]
     pub fn serialize(&self) -> Result<(), Error> {
         let data = self
             .0

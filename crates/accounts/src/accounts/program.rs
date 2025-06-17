@@ -55,12 +55,14 @@ where
 }
 
 impl<'a, T> From<Program<'a, T>> for &'a AccountInfo {
+    #[inline(always)]
     fn from(value: Program<'a, T>) -> Self {
         value.info
     }
 }
 
 impl<T> AsRef<AccountInfo> for Program<'_, T> {
+    #[inline(always)]
     fn as_ref(&self) -> &AccountInfo {
         self.info
     }
@@ -82,10 +84,12 @@ impl<T> ReadableAccount for Program<'_, T> {
         self.info.is_owned_by(owner)
     }
 
+    #[inline(always)]
     fn lamports(&self) -> Result<Ref<'_, u64>, Error> {
         self.info.try_borrow_lamports().map_err(Into::into)
     }
 
+    #[inline(always)]
     fn data<'a>(&'a self) -> Result<Self::Data<'a>, Error> {
         self.info.try_borrow_data().map_err(Into::into)
     }
