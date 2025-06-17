@@ -6,14 +6,17 @@ pub struct MaybeUninitWriter<'a> {
 }
 
 impl<'a> MaybeUninitWriter<'a> {
+    #[inline(always)]
     pub fn new(buffer: &'a mut [core::mem::MaybeUninit<u8>], position: usize) -> Self {
         Self { buffer, position }
     }
 
+    #[inline(always)]
     pub fn initialized(&self) -> &[u8] {
         unsafe { core::slice::from_raw_parts(self.buffer.as_ptr() as *const u8, self.position) }
     }
 
+    #[inline(always)]
     pub fn write_bytes(&mut self, data: &[u8]) -> Result<usize, ErrorCode> {
         let available = self.buffer.len().saturating_sub(self.position);
         let to_write = data.len().min(available);

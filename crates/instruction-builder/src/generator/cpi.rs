@@ -98,11 +98,12 @@ impl Generator for CpiGenerator {
                 }
 
                 impl #instruction_name<'_> {
-                    #[inline]
+                    #[inline(always)]
                     pub fn invoke(&self) -> ProgramResult {
                         self.invoke_signed(&[])
                     }
 
+                    #[inline(always)]
                     pub fn invoke_signed(&self, seeds: &[instruction::CpiSigner]) -> ProgramResult {
                         let mut bytes = [bytes::UNINIT_BYTE; #len];
                         let mut writer = bytes::MaybeUninitWriter::new(&mut bytes, 0);

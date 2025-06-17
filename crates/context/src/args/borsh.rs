@@ -9,6 +9,7 @@ use {
 pub struct BorshArg<T>(T);
 
 impl<T> BorshArg<T> {
+    #[inline(always)]
     pub fn new(arg: T) -> Self {
         BorshArg(arg)
     }
@@ -17,6 +18,7 @@ impl<T> BorshArg<T> {
 impl<T> Deref for BorshArg<T> {
     type Target = T;
 
+    #[inline(always)]
     fn deref(&self) -> &Self::Target {
         &self.0
     }
@@ -26,6 +28,7 @@ impl<T> HandlerContext<'_> for BorshArg<T>
 where
     T: BorshDeserialize,
 {
+    #[inline(always)]
     fn from_entrypoint(
         _program_id: &Pubkey,
         _accounts: &mut &[AccountInfo],

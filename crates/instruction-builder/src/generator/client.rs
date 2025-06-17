@@ -85,6 +85,7 @@ impl Generator for ClientGenerator {
                 }
 
                 impl #name {
+                    #[inline(always)]
                     pub fn into_instruction(self) -> ::solana_instruction::Instruction {
                         let mut data = std::vec![#dis];
                         #(#arg_extend)*

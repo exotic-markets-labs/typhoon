@@ -5,6 +5,7 @@ use {
 };
 
 impl<'a> HandlerContext<'a> for &'a [AccountInfo] {
+    #[inline(always)]
     fn from_entrypoint(
         _program_id: &Pubkey,
         accounts: &mut &'a [AccountInfo],

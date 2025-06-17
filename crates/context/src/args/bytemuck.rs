@@ -10,6 +10,7 @@ use {
 pub struct Arg<'a, T>(&'a T);
 
 impl<'a, T> Arg<'a, T> {
+    #[inline(always)]
     pub fn new(arg: &'a T) -> Self {
         Arg(arg)
     }
@@ -18,6 +19,7 @@ impl<'a, T> Arg<'a, T> {
 impl<T> Deref for Arg<'_, T> {
     type Target = T;
 
+    #[inline(always)]
     fn deref(&self) -> &Self::Target {
         self.0
     }
@@ -27,6 +29,7 @@ impl<'a, T> HandlerContext<'a> for Arg<'a, T>
 where
     T: AnyBitPattern,
 {
+    #[inline(always)]
     fn from_entrypoint(
         _program_id: &Pubkey,
         _accounts: &mut &'a [AccountInfo],
