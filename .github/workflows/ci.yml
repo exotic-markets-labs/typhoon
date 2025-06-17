@@ -28,8 +28,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pull-requests: write
-      issues: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -74,68 +72,6 @@ jobs:
           name: benchmark-results
           path: benches/BENCHMARK.md
           retention-days: 30
-      - name: Comment PR with benchmark results
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            const path = require('path');
-
-            // Read the benchmark results
-            const benchmarkPath = path.join(process.cwd(), 'benches', 'BENCHMARK.md');
-            const benchmarkContent = fs.readFileSync(benchmarkPath, 'utf8');
-
-            // Create comment body with proper escaping
-            const commentBody = `## 📊 Benchmark Results
-
-            ${benchmarkContent}
-
-            <details>
-            <summary>ℹ️ Benchmark Details</summary>
-
-            This benchmark compares the performance of three Solana program frameworks:
-            - pinocchio: Minimal framework with direct syscall usage
-            - anchor: Popular framework with many features  
-            - typhoon: This framework
-
-            Metrics:
-            - CU Consumed: Compute Units used by each instruction
-            - Binary Size: Size of the compiled program binary
-
-            </details>
-
-            Benchmarks run on commit ${context.sha.substring(0, 7)}`;
-
-            // Find existing benchmark comment
-            const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-            });
-
-            const existingComment = comments.find(comment => 
-              comment.user.login === 'github-actions[bot]' && 
-              comment.body.includes('📊 Benchmark Results')
-            );
-
-            if (existingComment) {
-              // Update existing comment
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: existingComment.id,
-                body: commentBody,
-              });
-            } else {
-              // Create new comment
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body: commentBody,
-              });
-            }
 
   run_examples_tests:
     runs-on: ubuntu-latest
