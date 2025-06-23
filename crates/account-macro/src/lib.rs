@@ -1,7 +1,7 @@
 use {
     keys::PrimaryKeys,
     quote::{quote, ToTokens},
-    syn::{parse_macro_input, spanned::Spanned, Error, Item, DeriveInput},
+    syn::{parse_macro_input, spanned::Spanned, DeriveInput, Error, Item},
     typhoon_discriminator::DiscriminatorBuilder,
 };
 
@@ -60,7 +60,7 @@ pub fn derive_account(item: proc_macro::TokenStream) -> proc_macro::TokenStream 
 }
 
 /// Derive macro for generating optimized batch validation implementations.
-/// 
+///
 /// This macro generates validation code for account types, including:
 /// - Batch validation for multiple accounts of the same type
 /// - Pre-validation for early filtering
@@ -71,11 +71,11 @@ pub fn fast_validation(input: proc_macro::TokenStream) -> proc_macro::TokenStrea
     let name = &input.ident;
 
     // Extract owner pubkey from attributes if specified
-    let owner_attr = input.attrs.iter()
+    let owner_attr = input
+        .attrs
+        .iter()
         .find(|attr| attr.path().is_ident("owner"))
-        .map(|attr| {
-            attr.parse_args::<syn::Expr>().unwrap()
-        });
+        .map(|attr| attr.parse_args::<syn::Expr>().unwrap());
 
     let discriminator = typhoon_discriminator::DiscriminatorBuilder::new(&name.to_string()).build();
     let discriminator_bytes = discriminator.iter().map(|&byte| quote!(#byte));
@@ -102,7 +102,7 @@ pub fn fast_validation(input: proc_macro::TokenStream) -> proc_macro::TokenStrea
             #[inline(always)]
             fn validate_batch(accounts: &[&typhoon_accounts::AccountInfo]) -> Result<(), typhoon_accounts::Error> {
                 let mut first_error: Option<typhoon_accounts::Error> = None;
-                
+
                 for &account in accounts.iter() {
                     // Use pre-validation to quickly filter invalid accounts
                     if !Self::pre_validate(account) {
@@ -139,10 +139,10 @@ pub fn fast_validation(input: proc_macro::TokenStream) -> proc_macro::TokenStrea
             #[inline(always)]
             fn validate_single(info: &typhoon_accounts::AccountInfo) -> Result<(), typhoon_accounts::Error> {
                 use typhoon_accounts::*;
-                
+
                 // Borrow account data once for all validation checks
                 let account_data = info.try_borrow_data()?;
-                
+
                 // Check data length first (cheapest and most likely to fail)
                 if account_data.len() < Self::DISCRIMINATOR.len() {
                     return Err(pinocchio::program_error::ProgramError::AccountDataTooSmall.into());

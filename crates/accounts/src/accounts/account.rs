@@ -38,7 +38,7 @@ where
     T: Owner + Discriminator + RefFromBytes,
 {
     /// Fast-path account validation with reduced syscalls and optimized branch prediction.
-    /// 
+    ///
     /// This method combines multiple validation steps to minimize runtime overhead:
     /// - Single data borrow instead of separate lamports/data borrows
     /// - Ordered checks from most-likely-to-fail to least-likely-to-fail
@@ -47,7 +47,7 @@ where
     fn validate_account_fast_path(info: &AccountInfo) -> Result<(), Error> {
         // Borrow account data once for all validation checks
         let account_data = info.try_borrow_data()?;
-        
+
         // Check data length first - this is the cheapest check and most likely to fail
         if unlikely(account_data.len() < T::DISCRIMINATOR.len()) {
             return Err(ProgramError::AccountDataTooSmall.into());
@@ -73,12 +73,10 @@ where
 
         Ok(())
     }
-
-
 }
 
 /// discriminator matching with length-optimized comparison strategies.
-/// 
+///
 /// Uses different comparison methods based on discriminator length:
 /// - 1-8 bytes: Unaligned integer reads for maximum performance
 /// - 9-16 bytes: SIMD comparison on supported architectures
@@ -86,10 +84,10 @@ where
 #[inline(always)]
 fn discriminator_matches<T: Discriminator>(data: &[u8]) -> bool {
     const MAX_SIMD_DISCRIMINATOR: usize = 16;
-    
+
     let discriminator = T::DISCRIMINATOR;
     let len = discriminator.len();
-    
+
     // Choose optimal comparison strategy based on discriminator length
     match len {
         0 => true, // No discriminator to check
@@ -98,32 +96,32 @@ fn discriminator_matches<T: Discriminator>(data: &[u8]) -> bool {
             unsafe {
                 let data_ptr = data.as_ptr() as *const u64;
                 let disc_ptr = discriminator.as_ptr() as *const u64;
-                
+
                 match len {
                     1 => *data.get_unchecked(0) == *discriminator.get_unchecked(0),
                     2 => {
                         let data_val = (data_ptr as *const u16).read_unaligned();
                         let disc_val = (disc_ptr as *const u16).read_unaligned();
                         data_val == disc_val
-                    },
+                    }
                     4 => {
                         let data_val = (data_ptr as *const u32).read_unaligned();
                         let disc_val = (disc_ptr as *const u32).read_unaligned();
                         data_val == disc_val
-                    },
+                    }
                     8 => {
                         let data_val = data_ptr.read_unaligned();
                         let disc_val = disc_ptr.read_unaligned();
                         data_val == disc_val
-                    },
+                    }
                     _ => data[..len] == discriminator[..],
                 }
             }
-        },
+        }
         9..=MAX_SIMD_DISCRIMINATOR => {
             // Use SIMD comparison for medium-sized discriminators on supported architectures
             simd_compare_discriminator(data, discriminator, len)
-        },
+        }
         _ => {
             // Standard slice comparison for large discriminators
             data[..len] == discriminator[..]
@@ -132,7 +130,7 @@ fn discriminator_matches<T: Discriminator>(data: &[u8]) -> bool {
 }
 
 /// SIMD-optimized discriminator comparison with multi-architecture support.
-/// 
+///
 /// Provides optimized implementations for:
 /// - x86_64: SSE2 instructions for 16-byte comparisons
 /// - aarch64: NEON instructions for 16-byte comparisons  
@@ -195,15 +193,15 @@ fn simd_compare_aarch64(data: &[u8], discriminator: &[u8], len: usize) -> bool {
 }
 
 /// Cold function used for branch prediction hints in stable Rust.
-/// 
-/// This function is marked as `#[cold]` to hint to the compiler that any 
+///
+/// This function is marked as `#[cold]` to hint to the compiler that any
 /// branch containing a call to this function is unlikely to be taken.
 #[inline(always)]
 #[cold]
 fn cold() {}
 
 /// Branch prediction hint for unlikely conditions.
-/// 
+///
 /// Uses the stable `#[cold]` function approach to provide branch prediction hints.
 /// This works by calling a cold function in the unlikely branch, which signals
 /// to LLVM that this branch should be optimized for the uncommon case.
