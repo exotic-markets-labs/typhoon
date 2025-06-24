@@ -93,11 +93,11 @@ fn discriminator_matches<T: Discriminator>(data: &[u8]) -> bool {
         0 => true, // No discriminator to check
         1..=8 => {
             // Use unaligned integer reads for small discriminators (most common case)
-            // SAFETY: We've already verified that data.len() >= discriminator.len() 
-            // in the caller before calling this function, so we know we have at least 
-            // `len` bytes available for reading. Unaligned reads are safe for primitive 
-            // types on all supported architectures. The pointer casts to smaller integer 
-            // types (u16, u32, u64) are valid because we're only reading the exact number 
+            // SAFETY: We've already verified that data.len() >= discriminator.len()
+            // in the caller before calling this function, so we know we have at least
+            // `len` bytes available for reading. Unaligned reads are safe for primitive
+            // types on all supported architectures. The pointer casts to smaller integer
+            // types (u16, u32, u64) are valid because we're only reading the exact number
             // of bytes specified by `len`.
             unsafe {
                 let data_ptr = data.as_ptr() as *const u64;
