@@ -62,7 +62,7 @@ pub trait BatchValidation {
 /// reducing syscall overhead when multiple validation checks need the same data.
 pub struct AccountInfoCache<'a> {
     info: &'a AccountInfo,
-    cached_data: Option<&'a [u8]>,
+    cached_data: Option<Ref<'a, [u8]>>,
     cached_lamports: Option<u64>,
 }
 
@@ -78,16 +78,14 @@ impl<'a> AccountInfoCache<'a> {
 
     /// Get account data with caching to avoid repeated borrows.
     ///
-    /// The cached reference is valid for the lifetime of the cache because
-    /// AccountInfo borrows are checked at runtime.
+    /// Returns a reference to the borrowed data that's valid for the cache lifetime.
+    /// The Ref handle ensures the borrow remains valid for the entire cache lifetime.
     #[inline(always)]
-    pub fn data(&mut self) -> Result<&'a [u8], Error> {
+    pub fn data(&mut self) -> Result<&[u8], Error> {
         if self.cached_data.is_none() {
-            let data_ref = self.info.try_borrow_data()?;
-            self.cached_data =
-                Some(unsafe { core::slice::from_raw_parts(data_ref.as_ptr(), data_ref.len()) });
+            self.cached_data = Some(self.info.try_borrow_data()?);
         }
-        Ok(self.cached_data.unwrap())
+        Ok(&*self.cached_data.as_ref().unwrap())
     }
 
     /// Get lamports with caching to avoid repeated borrows.
@@ -145,7 +143,8 @@ where
         let dis_len = T::DISCRIMINATOR.len();
         let total_len = dis_len + core::mem::size_of::<T>();
 
-        // Check bounds before slicing
+        // Explicit bounds check prevents potential panic in slicing operations.
+        // This ensures we have enough bytes for both discriminator and data.
         if data.len() < total_len {
             return None;
         }
@@ -157,7 +156,8 @@ where
         let dis_len = T::DISCRIMINATOR.len();
         let total_len = dis_len + core::mem::size_of::<T>();
 
-        // Check bounds before slicing
+        // Explicit bounds check prevents potential panic in slicing operations.
+        // This ensures we have enough bytes for both discriminator and data.
         if data.len() < total_len {
             return None;
         }

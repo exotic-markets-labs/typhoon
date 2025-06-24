@@ -93,6 +93,12 @@ fn discriminator_matches<T: Discriminator>(data: &[u8]) -> bool {
         0 => true, // No discriminator to check
         1..=8 => {
             // Use unaligned integer reads for small discriminators (most common case)
+            // SAFETY: We've already verified that data.len() >= discriminator.len() 
+            // in the caller before calling this function, so we know we have at least 
+            // `len` bytes available for reading. Unaligned reads are safe for primitive 
+            // types on all supported architectures. The pointer casts to smaller integer 
+            // types (u16, u32, u64) are valid because we're only reading the exact number 
+            // of bytes specified by `len`.
             unsafe {
                 let data_ptr = data.as_ptr() as *const u64;
                 let disc_ptr = discriminator.as_ptr() as *const u64;
@@ -157,6 +163,9 @@ fn simd_compare_discriminator(data: &[u8], discriminator: &[u8], len: usize) -> 
 #[inline(always)]
 fn simd_compare_x86_64(data: &[u8], discriminator: &[u8], len: usize) -> bool {
     if len == 16 {
+        // SAFETY: We've verified len == 16, so both data and discriminator have at least
+        // 16 bytes. The _mm_loadu_si128 instruction can safely read 16 bytes from both
+        // pointers. SSE2 is available on all x86_64 processors.
         unsafe {
             use core::arch::x86_64::*;
             // Use SSE2 for 16-byte comparison
@@ -176,6 +185,9 @@ fn simd_compare_x86_64(data: &[u8], discriminator: &[u8], len: usize) -> bool {
 #[inline(always)]
 fn simd_compare_aarch64(data: &[u8], discriminator: &[u8], len: usize) -> bool {
     if len == 16 {
+        // SAFETY: We've verified len == 16, so both data and discriminator have at least
+        // 16 bytes. The vld1q_u8 instruction can safely load 16 bytes from both pointers.
+        // NEON is available on all aarch64 processors.
         unsafe {
             use core::arch::aarch64::*;
             // Use NEON for 16-byte comparison
