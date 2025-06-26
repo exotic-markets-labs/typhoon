@@ -2,10 +2,7 @@ use {
     super::Mut,
     crate::{Discriminator, FromAccountInfo, Owner, ReadableAccount, WritableAccount},
     core::cell::RefCell,
-    pinocchio::{
-        account_info::AccountInfo,
-        program_error::ProgramError,
-    },
+    pinocchio::{account_info::AccountInfo, program_error::ProgramError},
     typhoon_errors::{Error, ErrorCode},
 };
 
