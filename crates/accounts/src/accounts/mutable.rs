@@ -6,9 +6,8 @@ use {
     },
     core::marker::PhantomData,
     pinocchio::{
-        account_info::{AccountInfo, Ref, RefMut},
+        account_info::{AccountInfo, RefMut},
         program_error::ProgramError,
-        pubkey::Pubkey,
     },
     typhoon_errors::{Error, ErrorCode},
 };
@@ -59,21 +58,6 @@ where
         Self: 'a;
 
     #[inline(always)]
-    fn key(&self) -> &Pubkey {
-        self.0.key()
-    }
-
-    #[inline(always)]
-    fn is_owned_by(&self, owner: &Pubkey) -> bool {
-        self.0.is_owned_by(owner)
-    }
-
-    #[inline(always)]
-    fn lamports(&self) -> Result<Ref<'_, u64>, Error> {
-        self.0.lamports()
-    }
-
-    #[inline(always)]
     fn data<'a>(&'a self) -> Result<Self::Data<'a>, Error> {
         self.0.data()
     }
@@ -86,29 +70,6 @@ macro_rules! impl_writable {
                 = RefMut<'a, [u8]>
             where
                 Self: 'a;
-
-            #[inline(always)]
-            fn assign(&self, new_owner: &Pubkey) {
-                unsafe {
-                    self.0.as_ref().assign(new_owner);
-                }
-            }
-
-            #[inline(always)]
-            fn realloc(&self, new_len: usize, zero_init: bool) -> Result<(), Error> {
-                self.0
-                    .as_ref()
-                    .realloc(new_len, zero_init)
-                    .map_err(Into::into)
-            }
-
-            #[inline(always)]
-            fn mut_lamports(&self) -> Result<RefMut<'_, u64>, Error> {
-                self.0
-                    .as_ref()
-                    .try_borrow_mut_lamports()
-                    .map_err(Into::into)
-            }
 
             #[inline(always)]
             fn mut_data<'a>(&'a self) -> Result<Self::DataMut<'a>, Error> {
@@ -129,29 +90,6 @@ impl<T> WritableAccount for Mut<Program<'_, T>> {
         Self: 'a;
 
     #[inline(always)]
-    fn assign(&self, new_owner: &Pubkey) {
-        unsafe {
-            self.0.as_ref().assign(new_owner);
-        }
-    }
-
-    #[inline(always)]
-    fn realloc(&self, new_len: usize, zero_init: bool) -> Result<(), Error> {
-        self.0
-            .as_ref()
-            .realloc(new_len, zero_init)
-            .map_err(Into::into)
-    }
-
-    #[inline(always)]
-    fn mut_lamports(&self) -> Result<RefMut<'_, u64>, Error> {
-        self.0
-            .as_ref()
-            .try_borrow_mut_lamports()
-            .map_err(Into::into)
-    }
-
-    #[inline(always)]
     fn mut_data<'a>(&'a self) -> Result<Self::DataMut<'a>, Error> {
         self.0.as_ref().try_borrow_mut_data().map_err(Into::into)
     }
@@ -162,29 +100,6 @@ impl<T: Discriminator + RefFromBytes> WritableAccount for Mut<Account<'_, T>> {
         = RefMut<'a, T>
     where
         Self: 'a;
-
-    #[inline(always)]
-    fn assign(&self, new_owner: &Pubkey) {
-        unsafe {
-            self.0.as_ref().assign(new_owner);
-        }
-    }
-
-    #[inline(always)]
-    fn realloc(&self, new_len: usize, zero_init: bool) -> Result<(), Error> {
-        self.0
-            .as_ref()
-            .realloc(new_len, zero_init)
-            .map_err(Into::into)
-    }
-
-    #[inline(always)]
-    fn mut_lamports(&self) -> Result<RefMut<'_, u64>, Error> {
-        self.0
-            .as_ref()
-            .try_borrow_mut_lamports()
-            .map_err(Into::into)
-    }
 
     #[inline(always)]
     fn mut_data<'a>(&'a self) -> Result<Self::DataMut<'a>, Error> {

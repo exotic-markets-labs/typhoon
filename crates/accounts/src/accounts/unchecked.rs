@@ -1,9 +1,6 @@
 use {
     crate::{FromAccountInfo, ReadableAccount},
-    pinocchio::{
-        account_info::{AccountInfo, Ref},
-        pubkey::Pubkey,
-    },
+    pinocchio::account_info::{AccountInfo, Ref},
     typhoon_errors::Error,
 };
 
@@ -37,21 +34,6 @@ impl ReadableAccount for UncheckedAccount<'_> {
         = Ref<'a, [u8]>
     where
         Self: 'a;
-
-    #[inline(always)]
-    fn key(&self) -> &Pubkey {
-        self.info.key()
-    }
-
-    #[inline(always)]
-    fn is_owned_by(&self, owner: &Pubkey) -> bool {
-        self.info.is_owned_by(owner)
-    }
-
-    #[inline(always)]
-    fn lamports(&self) -> Result<Ref<'_, u64>, Error> {
-        self.info.try_borrow_lamports().map_err(Into::into)
-    }
 
     #[inline(always)]
     fn data<'a>(&'a self) -> Result<Self::Data<'a>, Error> {

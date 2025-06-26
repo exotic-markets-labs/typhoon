@@ -23,9 +23,21 @@ pub trait ReadableAccount: AsRef<AccountInfo> {
     where
         Self: 'a;
 
-    fn key(&self) -> &Pubkey;
-    fn is_owned_by(&self, owner: &Pubkey) -> bool;
-    fn lamports(&self) -> Result<Ref<'_, u64>, Error>;
+    #[inline(always)]
+    fn key(&self) -> &Pubkey {
+        self.as_ref().key()
+    }
+
+    #[inline(always)]
+    fn is_owned_by(&self, owner: &Pubkey) -> bool {
+        self.as_ref().is_owned_by(owner)
+    }
+
+    #[inline(always)]
+    fn lamports(&self) -> Result<Ref<'_, u64>, Error> {
+        self.as_ref().try_borrow_lamports().map_err(Into::into)
+    }
+
     fn data<'a>(&'a self) -> Result<Self::Data<'a>, Error>;
 }
 
@@ -34,9 +46,25 @@ pub trait WritableAccount: ReadableAccount + Sealed {
     where
         Self: 'a;
 
-    fn assign(&self, new_owner: &Pubkey);
-    fn realloc(&self, new_len: usize, zero_init: bool) -> Result<(), Error>;
-    fn mut_lamports(&self) -> Result<RefMut<'_, u64>, Error>;
+    #[inline(always)]
+    fn assign(&self, new_owner: &Pubkey) {
+        unsafe {
+            self.as_ref().assign(new_owner);
+        }
+    }
+
+    #[inline(always)]
+    fn realloc(&self, new_len: usize, zero_init: bool) -> Result<(), Error> {
+        self.as_ref()
+            .realloc(new_len, zero_init)
+            .map_err(Into::into)
+    }
+
+    #[inline(always)]
+    fn mut_lamports(&self) -> Result<RefMut<'_, u64>, Error> {
+        self.as_ref().try_borrow_mut_lamports().map_err(Into::into)
+    }
+
     fn mut_data<'a>(&'a self) -> Result<Self::DataMut<'a>, Error>;
 }
 
