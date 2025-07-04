@@ -19,7 +19,7 @@ pub struct Counter {
 pub struct InitContext {
     pub mint: Mut<Signer>,
     #[constraint(
-        token::owner = mint
+        token::authority = mint
     )]
     pub counter: Mut<Account<TokenAccount>>,
 }

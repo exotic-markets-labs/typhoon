@@ -4583,6 +4583,7 @@ dependencies = [
  "typhoon-errors",
  "typhoon-program-id-macro",
  "typhoon-syn",
+ "typhoon-token",
  "typhoon-utility-traits",
 ]
 

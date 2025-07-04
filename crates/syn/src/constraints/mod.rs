@@ -105,7 +105,7 @@ mod tests {
                 ],
                 bump = counter.data()?.bump,
                 token::mint = mint,
-                token::authority = authority,
+                token::owner = authority,
                 mint::decimals = args.decimals,
                 mint::authority = escrow.key(),
                 mint::freeze_authority = freeze_authority.key(),

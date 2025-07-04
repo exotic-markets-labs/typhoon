@@ -20,6 +20,7 @@ use {
     typhoon_context_macro::*,
     typhoon_errors::*,
     typhoon_program_id_macro::program_id,
+    typhoon_token::{Mint, TokenAccount},
     typhoon_utility_traits::SystemCpi,
 };
 
@@ -58,6 +59,12 @@ pub struct InitContext {
         has_one = payer
     )]
     pub counter_data: Mut<Account<CounterData>>,
+    pub mint: Mut<Account<Mint>>,
+    #[constraint(
+        token::mint = mint,
+        token::owner = payer
+    )]
+    pub token_acc: Mut<Account<TokenAccount>>,
     pub program: Program<System>,
 }
 

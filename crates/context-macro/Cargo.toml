@@ -27,3 +27,4 @@ typhoon-context.workspace = true
 typhoon-errors.workspace = true
 typhoon-program-id-macro.workspace = true
 typhoon-utility-traits.workspace = true
+typhoon-token.workspace = true

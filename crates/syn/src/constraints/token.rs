@@ -3,7 +3,7 @@ use syn::{parse::Parse, Expr, Ident, Token};
 #[derive(Clone)]
 pub enum ConstraintToken {
     Mint(Ident),
-    Authority(Expr),
+    Owner(Expr),
 }
 
 impl Parse for ConstraintToken {
@@ -16,10 +16,10 @@ impl Parse for ConstraintToken {
 
                 Ok(ConstraintToken::Mint(input.parse()?))
             }
-            "authority" => {
+            "owner" => {
                 input.parse::<Token![=]>()?;
 
-                Ok(ConstraintToken::Authority(input.parse()?))
+                Ok(ConstraintToken::Owner(input.parse()?))
             }
             _ => Err(syn::Error::new(
                 input.span(),

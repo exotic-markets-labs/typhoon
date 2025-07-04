@@ -13,7 +13,7 @@ enum InitTokenGeneratorTy {
     TokenAccount {
         is_ata: bool,
         mint: Option<Ident>,
-        authority: Option<Expr>,
+        owner: Option<Expr>,
     },
     Mint {
         decimals: Option<Expr>,
@@ -44,7 +44,7 @@ impl<'a> InitTokenGenerator<'a> {
             "TokenAccount" => InitTokenGeneratorTy::TokenAccount {
                 is_ata: false,
                 mint: None,
-                authority: None,
+                owner: None,
             },
             _ => InitTokenGeneratorTy::Other { space: None },
         };
@@ -120,11 +120,11 @@ impl<'a> InitTokenGenerator<'a> {
                 quote!(SplCreateMint::create_mint(#name, &rent, &#payer, &#authority, #decimals, #f_auth_token, #signers)?)
             }
             InitTokenGeneratorTy::TokenAccount {
-                authority,
+                owner,
                 mint,
                 is_ata,
             } => {
-                let Some(ref authority) = authority else {
+                let Some(ref owner) = owner else {
                     return Err(syn::Error::new(
                         name.span(),
                         "A `authority` need to be specified for the `init` constraint",
@@ -138,9 +138,9 @@ impl<'a> InitTokenGenerator<'a> {
                 };
 
                 if *is_ata {
-                    quote!(SplCreateToken::create_associated_token_account(#name, &#payer, &#mint, &#authority, &system_program, &token_program)?)
+                    quote!(SplCreateToken::create_associated_token_account(#name, &#payer, &#mint, &#owner, &system_program, &token_program)?)
                 } else {
-                    quote!(SplCreateToken::create_token_account(#name, &rent, &#payer, &#mint, &#authority, #signers)?)
+                    quote!(SplCreateToken::create_token_account(#name, &rent, &#payer, &#mint, &#owner, #signers)?)
                 }
             }
             InitTokenGeneratorTy::Other { space } => {
@@ -195,11 +195,9 @@ impl ContextVisitor for InitTokenGenerator<'_> {
 
     fn visit_token(&mut self, constraint: &ConstraintToken) -> Result<(), syn::Error> {
         match &mut self.ty {
-            InitTokenGeneratorTy::TokenAccount {
-                mint, authority, ..
-            } => match constraint {
+            InitTokenGeneratorTy::TokenAccount { mint, owner, .. } => match constraint {
                 ConstraintToken::Mint(ident) => *mint = Some(ident.clone()),
-                ConstraintToken::Authority(expr) => *authority = Some(expr.clone()),
+                ConstraintToken::Owner(expr) => *owner = Some(expr.clone()),
             },
             _ => {
                 return Err(syn::Error::new(
@@ -218,13 +216,13 @@ impl ContextVisitor for InitTokenGenerator<'_> {
         match &mut self.ty {
             InitTokenGeneratorTy::TokenAccount {
                 mint,
-                authority,
+                owner,
                 is_ata,
             } => {
                 match constraint {
                     ConstraintAssociatedToken::Mint(ident) => *mint = Some(ident.clone()),
                     ConstraintAssociatedToken::Authority(ident) => {
-                        *authority = Some(parse_quote!(#ident))
+                        *owner = Some(parse_quote!(#ident))
                     }
                 }
                 *is_ata = true

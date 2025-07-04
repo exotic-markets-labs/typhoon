@@ -9,7 +9,7 @@ use {
 #[derive(Default)]
 struct TokenChecks {
     mint: Option<Ident>,
-    authority: Option<Expr>,
+    owner: Option<Expr>,
     has_init: bool,
 }
 
@@ -17,7 +17,7 @@ impl ContextVisitor for TokenChecks {
     fn visit_token(&mut self, constraint: &ConstraintToken) -> Result<(), syn::Error> {
         match constraint {
             ConstraintToken::Mint(ident) => self.mint = Some(ident.clone()),
-            ConstraintToken::Authority(expr) => self.authority = Some(expr.clone()),
+            ConstraintToken::Owner(expr) => self.owner = Some(expr.clone()),
         }
         Ok(())
     }
@@ -50,23 +50,23 @@ impl StagedGenerator for TokenAccountGenerator<'_> {
             let mut checks = TokenChecks::default();
             checks.visit_account(account)?;
 
-            if (checks.authority.is_some() || checks.mint.is_some()) && !checks.has_init {
+            if (checks.owner.is_some() || checks.mint.is_some()) && !checks.has_init {
                 let mut check_token = Vec::with_capacity(2);
                 let name = &account.name;
                 let var_name = format_ident!("{}_state", name);
 
-                if let Some(authority) = checks.authority {
+                if let Some(owner) = checks.owner {
                     check_token.push(quote! {
-                        if &#var_name.authority() != #authority.key() {
-                            return Err(Error::TokenConstraintViolated.into());
+                        if #var_name.owner() != #owner.key() {
+                            return Err(ErrorCode::TokenConstraintViolated.into());
                         }
                     });
                 }
 
                 if let Some(mint) = checks.mint {
                     check_token.push(quote! {
-                        if &#var_name.mint() != #mint.key() {
-                            return Err(Error::TokenConstraintViolated.into());
+                        if #var_name.mint() != #mint.key() {
+                            return Err(ErrorCode::TokenConstraintViolated.into());
                         }
                     });
                 }

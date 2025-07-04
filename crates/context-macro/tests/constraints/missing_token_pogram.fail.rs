@@ -22,7 +22,7 @@ pub struct InitContext {
         init,
         payer = payer,
         token::mint = mint,
-        token::authority = owner
+        token::owner = owner
     )]
     pub token_acc: Mut<Account<TokenAccount>>,
     pub system_program: Program<System>,
