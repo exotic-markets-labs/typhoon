@@ -176,7 +176,11 @@ impl Instruction {
                 continue;
             };
 
-            if seg.ident == "Arg" {
+            if seg.ident == "ProgramIdArg" {
+                continue;
+            }
+
+            if seg.ident == "Arg" || seg.ident == "BorshArg" {
                 ix.parse_arg(seg)?;
             } else {
                 ix.parse_context(items, seg)?;
