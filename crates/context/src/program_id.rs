@@ -6,6 +6,7 @@ use {
 pub struct ProgramIdArg<'a>(pub &'a Pubkey);
 
 impl<'a> HandlerContext<'a, '_, '_> for ProgramIdArg<'a> {
+    #[inline(always)]
     fn from_entrypoint(
         program_id: &'a Pubkey,
         _accounts: &mut &[AccountInfo],
