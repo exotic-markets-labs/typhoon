@@ -7,8 +7,6 @@ no_allocator!();
 
 impl_error_logger!(ErrorCode);
 
-const ID: Pubkey = lever_interface::ID;
-
 handlers! {
     initialize,
     switch_power,

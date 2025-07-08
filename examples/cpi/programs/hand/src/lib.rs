@@ -12,8 +12,6 @@ no_allocator!();
 
 impl_error_logger!(ErrorCode);
 
-const ID: Pubkey = hand_interface::ID;
-
 handlers! {
     pull_lever,
     check_power

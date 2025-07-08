@@ -14,7 +14,7 @@ handlers! {
 pub fn hello_world(ProgramIdArg(program_id): ProgramIdArg) -> ProgramResult {
     pinocchio::log::sol_log("Hello World");
 
-    assert_eq!(program_id, crate::ID);
+    assert_eq!(program_id, &crate::ID);
 
     Ok(())
 }
