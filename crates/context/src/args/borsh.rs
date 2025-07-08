@@ -24,7 +24,7 @@ impl<T> Deref for BorshArg<T> {
     }
 }
 
-impl<T> HandlerContext<'_> for BorshArg<T>
+impl<T> HandlerContext<'_, '_, '_> for BorshArg<T>
 where
     T: BorshDeserialize,
 {

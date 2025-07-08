@@ -6,7 +6,7 @@ use {
     proc_macro::TokenStream,
     quote::{quote, ToTokens},
     sorter::sort_accounts,
-    syn::{parse_macro_input, parse_quote, visit_mut::VisitMut, Attribute, Ident, Lifetime},
+    syn::{parse_macro_input, parse_quote, visit_mut::VisitMut, Attribute, Ident},
 };
 
 mod accounts;
@@ -72,8 +72,17 @@ impl ToTokens for TokenGenerator {
         let name = &self.context.item_struct.ident;
         let generics = &self.context.item_struct.generics;
 
-        let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
-        let new_lifetime: Lifetime = parse_quote!('info);
+        let (_, ty_generics, _) = generics.split_for_impl();
+
+        // patch the lifetime of the new context here
+        let generics = &mut generics.to_owned();
+        generics.params.push(parse_quote!('c));
+        if let Some(where_clause) = &mut generics.where_clause {
+            where_clause.predicates.push(parse_quote!('c: 'info));
+        } else {
+            generics.where_clause = Some(parse_quote!(where 'c: 'info));
+        }
+        let (impl_generics, _, where_clause) = generics.split_for_impl();
 
         let outside = &self.result.outside;
         let inside = &self.result.inside;
@@ -97,12 +106,12 @@ impl ToTokens for TokenGenerator {
         let drop_vars = self.result.drop_vars.iter().map(|v| quote!(drop(#v);));
 
         let impl_context = quote! {
-            impl #impl_generics HandlerContext<#new_lifetime> for #name #ty_generics #where_clause {
+            impl #impl_generics HandlerContext<'_, 'info, 'c> for #name #ty_generics #where_clause {
                 #[inline(always)]
                 fn from_entrypoint(
                     program_id: &Pubkey,
                     accounts: &mut &'info [AccountInfo],
-                    instruction_data: &mut &'info [u8],
+                    instruction_data: &mut &'c [u8],
                 ) -> ProgramResult<Self> {
                     let [#(#name_list,)* rem @ ..] = accounts else {
                         return Err(ProgramError::NotEnoughAccountKeys.into());

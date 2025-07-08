@@ -25,15 +25,15 @@ impl<T> Deref for Arg<'_, T> {
     }
 }
 
-impl<'a, T> HandlerContext<'a> for Arg<'a, T>
+impl<'c, T> HandlerContext<'_, '_, 'c> for Arg<'c, T>
 where
     T: AnyBitPattern,
 {
     #[inline(always)]
     fn from_entrypoint(
         _program_id: &Pubkey,
-        _accounts: &mut &'a [AccountInfo],
-        instruction_data: &mut &'a [u8],
+        _accounts: &mut &[AccountInfo],
+        instruction_data: &mut &'c [u8],
     ) -> Result<Self, Error> {
         let (arg_data, remaining) = instruction_data.split_at(core::mem::size_of::<T>());
 

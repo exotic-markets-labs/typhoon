@@ -3,34 +3,35 @@
 use {bytemuck::NoUninit, paste::paste};
 
 mod args;
+mod program_id;
 mod remaining_accounts;
 
-pub use args::*;
+pub use {args::*, program_id::*};
 use {
     pinocchio::{account_info::AccountInfo, cpi::set_return_data, pubkey::Pubkey},
     typhoon_errors::Error,
 };
 
-pub trait HandlerContext<'a>: Sized {
+pub trait HandlerContext<'a, 'b, 'c>: Sized {
     fn from_entrypoint(
-        program_id: &Pubkey,
-        accounts: &mut &'a [AccountInfo],
-        instruction_data: &mut &'a [u8],
+        program_id: &'a Pubkey,
+        accounts: &mut &'b [AccountInfo],
+        instruction_data: &mut &'c [u8],
     ) -> Result<Self, Error>;
 }
 
-pub trait Handler<'a, T> {
+pub trait Handler<'a, 'b, 'c, T> {
     type Output: NoUninit;
 
     fn call(
         self,
-        program_id: &Pubkey,
-        accounts: &mut &'a [AccountInfo],
-        instruction_data: &mut &'a [u8],
+        program_id: &'a Pubkey,
+        accounts: &mut &'b [AccountInfo],
+        instruction_data: &mut &'c [u8],
     ) -> Result<Self::Output, Error>;
 }
 
-impl<'a, F, O> Handler<'a, ()> for F
+impl<F, O> Handler<'_, '_, '_, ()> for F
 where
     F: FnOnce() -> Result<O, Error>,
     O: NoUninit,
@@ -40,8 +41,8 @@ where
     fn call(
         self,
         _program_id: &Pubkey,
-        _accounts: &mut &'a [AccountInfo],
-        _instruction_data: &mut &'a [u8],
+        _accounts: &mut &[AccountInfo],
+        _instruction_data: &mut &[u8],
     ) -> Result<Self::Output, Error> {
         (self)()
     }
@@ -49,21 +50,21 @@ where
 
 macro_rules! impl_handler {
     ($( $t:ident ),+) => {
-        impl<'a, $( $t, )* F, O> Handler<'a, ($( $t, )*)> for F
+        impl<'a, 'b, 'c, $( $t, )* F, O> Handler<'a, 'b, 'c, ($( $t, )*)> for F
         where
             F: FnOnce($( $t ),*) -> Result<O, Error>,
             O: NoUninit,
             $(
-                $t: HandlerContext<'a>,
+                $t: HandlerContext<'a, 'b, 'c>,
             )*
         {
             type Output = O;
 
             fn call(
                 self,
-                program_id: &Pubkey,
-                accounts: &mut &'a [AccountInfo],
-                instruction_data: &mut &'a [u8],
+                program_id: &'a Pubkey,
+                accounts: &mut &'b [AccountInfo],
+                instruction_data: &mut &'c [u8],
             ) -> Result<Self::Output, Error> {
                 paste! {
                     $(
@@ -84,14 +85,14 @@ impl_handler!(T1, T2, T3, T4, T5);
 impl_handler!(T1, T2, T3, T4, T5, T6);
 impl_handler!(T1, T2, T3, T4, T5, T6, T7);
 
-pub fn handle<'a, T, H>(
-    program_id: &Pubkey,
-    mut accounts: &'a [AccountInfo],
-    mut instruction_data: &'a [u8],
+pub fn handle<'a, 'b, 'c, T, H>(
+    program_id: &'a Pubkey,
+    mut accounts: &'b [AccountInfo],
+    mut instruction_data: &'c [u8],
     handler: H,
 ) -> Result<(), Error>
 where
-    H: Handler<'a, T>,
+    H: Handler<'a, 'b, 'c, T>,
 {
     match handler.call(program_id, &mut accounts, &mut instruction_data) {
         Ok(res) => {
