@@ -17,3 +17,6 @@ typhoon.workspace = true
 typhoon-instruction-builder = { workspace = true, optional = true }
 solana-pubkey = { workspace = true, optional = true }
 solana-instruction = { workspace = true, optional = true }
+
+[package.metadata.typhoon.builder-dependencies]
+hand = { path = "../../programs/hand" }

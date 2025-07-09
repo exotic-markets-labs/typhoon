@@ -11,9 +11,9 @@ repository.workspace = true
 proc-macro = true
 
 [dependencies]
+cargo-manifest.workspace = true
 heck.workspace = true
-cargo_metadata.workspace = true
-syn = { workspace = true, features = ["full", "visit"] }
 proc-macro2.workspace = true
 quote.workspace = true
+syn = { workspace = true, features = ["full", "visit"] }
 typhoon-syn.workspace = true

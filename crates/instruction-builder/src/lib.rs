@@ -4,7 +4,7 @@ use {
         instruction::Instruction,
         resolver::Resolver,
     },
-    cargo_metadata::MetadataCommand,
+    cargo_manifest::{Dependency, Manifest},
     heck::ToKebabCase,
     proc_macro2::{Span, TokenStream},
     quote::ToTokens,
@@ -85,21 +85,18 @@ impl Parse for Instructions {
         let krate: Ident = input.parse()?;
         let crate_name = krate.to_string();
         let crate_kebab_name = crate_name.to_kebab_case();
+        let cargo_toml_dir = std::env::var("CARGO_MANIFEST_DIR")
+            .map_err(|_| syn::Error::new(Span::call_site(), "Not in valid rust project."))?;
+        // let temp_dir = env!("PROC_ARTIFACT_DIR");
+        let manifest = Manifest::from_path(format!("{cargo_toml_dir}/Cargo.toml"))
+            .map_err(|_| syn::Error::new(Span::call_site(), "Invalid Cargo.toml file."))?;
 
-        let metadata = MetadataCommand::new()
-            .exec()
-            .map_err(|_| syn::Error::new_spanned(&crate_name, "Failed to get cargo metadata"))?;
-        let source_file = metadata
-            .packages
-            .iter()
-            .find(|p| crate_name == *p.name || crate_kebab_name == *p.name)
-            .and_then(|p| p.targets.first())
-            .map(|t| t.src_path.to_string())
-            .ok_or(syn::Error::new_spanned(
-                &crate_name,
-                "Could not find source file for package",
-            ))?;
-        let path = Path::new(&source_file);
+        let package_relative_path = get_package_path(&manifest, &crate_kebab_name).ok_or(
+            syn::Error::new(Span::call_site(), "Cannot find the package."),
+        )?;
+
+        let package_absolute_path = format!("{cargo_toml_dir}/{package_relative_path}");
+        let path = Path::new(&package_absolute_path);
         let file = read_and_parse_file(path)?;
 
         let mut ix_list = InstructionsList::default();
@@ -140,4 +137,28 @@ fn read_and_parse_file(source_file: impl AsRef<Path>) -> syn::Result<syn::File> 
         .map_err(|err| syn::Error::new(Span::call_site(), err.to_string()))?;
 
     syn::parse_file(&file_content)
+}
+
+fn get_package_path(manifest: &Manifest, crate_name: &str) -> Option<String> {
+    let package = manifest.package.as_ref()?;
+    if package.name.to_kebab_case() == crate_name {
+        Some("src/lib.rs".to_string())
+    } else {
+        let dependency: Dependency = package
+            .metadata
+            .as_ref()?
+            .get("typhoon")?
+            .as_table()?
+            .get("builder-dependencies")?
+            .as_table()?
+            .iter()
+            .find_map(|(key, value)| (key.to_kebab_case() == crate_name).then_some(value))?
+            .clone()
+            .try_into()
+            .ok()?;
+        Some(format!(
+            "{}/src/lib.rs",
+            dependency.detail()?.path.as_ref()?
+        ))
+    }
 }
