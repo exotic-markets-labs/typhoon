@@ -76,9 +76,13 @@ where
 
 /// discriminator matching with length-optimized comparison strategies.
 ///
+/// **EXECUTION CONTEXT IMPORTANT:**
+/// - **On-chain (BPF/SVM)**: Always uses standard slice comparison fallbacks
+/// - **Off-chain (Native)**: Uses SIMD optimizations when available for RPC nodes, indexers, wallets, etc.
+///
 /// Uses different comparison methods based on discriminator length:
 /// - 1-8 bytes: Unaligned integer reads for maximum performance
-/// - 9-16 bytes: SIMD comparison on supported architectures
+/// - 9-16 bytes: SIMD comparison on supported architectures (OFF-CHAIN ONLY)
 /// - >16 bytes: Standard slice comparison
 #[inline(always)]
 fn discriminator_matches<T: Discriminator>(data: &[u8]) -> bool {
@@ -124,7 +128,8 @@ fn discriminator_matches<T: Discriminator>(data: &[u8]) -> bool {
             }
         }
         9..=MAX_SIMD_DISCRIMINATOR => {
-            // Use SIMD comparison for medium-sized discriminators on supported architectures
+            // IMPORTANT: SIMD comparison ONLY triggers for OFF-CHAIN native execution
+            // On-chain BPF programs will always use the standard slice comparison fallback
             simd_compare_discriminator(data, discriminator, len)
         }
         _ => {
@@ -136,9 +141,17 @@ fn discriminator_matches<T: Discriminator>(data: &[u8]) -> bool {
 
 /// SIMD-optimized discriminator comparison with multi-architecture support.
 ///
+/// **CRITICAL: OFF-CHAIN EXECUTION ONLY**
+/// This function provides SIMD optimizations that are ONLY available during off-chain execution:
+///
+/// **ON-CHAIN BEHAVIOR:**
+/// When compiled for BPF targets, the conditional compilation ensures that on-chain
+/// programs automatically fall back to standard slice comparison. The SVM does not
+/// expose native SIMD instructions like SSE2 or NEON to BPF programs.
+///
 /// Provides optimized implementations for:
-/// - x86_64: SSE2 instructions for 16-byte comparisons
-/// - aarch64: NEON instructions for 16-byte comparisons  
+/// - x86_64: SSE2 instructions for 16-byte comparisons (OFF-CHAIN ONLY)
+/// - aarch64: NEON instructions for 16-byte comparisons (OFF-CHAIN ONLY)
 /// - Other architectures: Safe fallback to slice comparison
 #[inline(always)]
 fn simd_compare_discriminator(data: &[u8], discriminator: &[u8], len: usize) -> bool {
@@ -152,12 +165,17 @@ fn simd_compare_discriminator(data: &[u8], discriminator: &[u8], len: usize) -> 
     }
     #[cfg(not(any(target_arch = "x86_64", target_arch = "aarch64")))]
     {
-        // Safe fallback for all other architectures
+        // Safe fallback for all other architectures (including BPF when no SIMD is available)
         data[..len] == discriminator[..]
     }
 }
 
 /// x86_64 SIMD implementation using SSE2 instructions.
+/// 
+/// **OFF-CHAIN NATIVE EXECUTION ONLY**
+/// This function uses SSE2 SIMD instructions that are only available when running
+/// natively on x86_64 processors. BPF programs compiled for on-chain execution
+/// will never call this function due to conditional compilation.
 #[cfg(target_arch = "x86_64")]
 #[inline(always)]
 fn simd_compare_x86_64(data: &[u8], discriminator: &[u8], len: usize) -> bool {
@@ -180,6 +198,11 @@ fn simd_compare_x86_64(data: &[u8], discriminator: &[u8], len: usize) -> bool {
 }
 
 /// ARM64 SIMD implementation using NEON instructions.
+///
+/// **OFF-CHAIN NATIVE EXECUTION ONLY** 
+/// This function uses NEON SIMD instructions that are only available when running
+/// natively on aarch64 processors. BPF programs compiled for on-chain execution
+/// will never call this function due to conditional compilation.
 #[cfg(target_arch = "aarch64")]
 #[inline(always)]
 fn simd_compare_aarch64(data: &[u8], discriminator: &[u8], len: usize) -> bool {

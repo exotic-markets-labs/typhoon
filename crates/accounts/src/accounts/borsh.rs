@@ -20,24 +20,28 @@ where
 {
     #[inline(always)]
     fn try_from_info(info: &'a AccountInfo) -> Result<Self, Error> {
-        if info.is_owned_by(&pinocchio_system::ID) && *info.try_borrow_lamports()? == 0 {
-            return Err(ProgramError::UninitializedAccount.into());
-        }
-
-        if !info.is_owned_by(&T::OWNER) {
-            return Err(ErrorCode::AccountOwnedByWrongProgram.into());
-        }
-
         let account_data = info.try_borrow_data()?;
 
+        // Check data length first - this is the cheapest check and most likely to fail
         if account_data.len() < T::DISCRIMINATOR.len() {
             return Err(ProgramError::AccountDataTooSmall.into());
         }
 
         let (discriminator, mut data) = account_data.split_at(T::DISCRIMINATOR.len());
 
+        // Validate discriminator
         if T::DISCRIMINATOR != discriminator {
             return Err(ErrorCode::AccountDiscriminatorMismatch.into());
+        }
+
+        // Verify account ownership
+        if !info.is_owned_by(&T::OWNER) {
+            return Err(ErrorCode::AccountOwnedByWrongProgram.into());
+        }
+
+        // Handle special case: zero-lamport system accounts (least common case)
+        if info.is_owned_by(&pinocchio_system::ID) && *info.try_borrow_lamports()? == 0 {
+            return Err(ProgramError::UninitializedAccount.into());
         }
 
         let state = T::deserialize(&mut data).map_err(|_| ProgramError::BorshIoError)?;
