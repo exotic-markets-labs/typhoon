@@ -18,12 +18,14 @@ handlers! {
 }
 
 pub fn check_power(ctx: PullLever) -> ProgramResult {
-    CheckPowerCpi {
+    let return_data = CheckPowerCpi {
         arg_0: &CheckStatusArgs { random: 1 },
         power: None,
         program: ctx.lever_program.as_ref(),
     }
-    .invoke()
+    .invoke()?;
+    assert_eq!(return_data, 1);
+    Ok(())
 }
 
 pub fn pull_lever(ctx: PullLever) -> ProgramResult {

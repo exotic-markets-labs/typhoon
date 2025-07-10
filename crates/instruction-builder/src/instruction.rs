@@ -9,6 +9,7 @@ use {
     typhoon_syn::{
         arguments::Arguments,
         constraints::{Constraint, Constraints},
+        helpers::PathHelper,
     },
 };
 
@@ -60,6 +61,7 @@ pub struct Instruction {
     pub name: Ident,
     pub args: Vec<InstructionArg>,
     pub accounts: Vec<(Ident, (bool, bool, bool))>,
+    pub return_data: Option<Type>,
 }
 
 impl Instruction {
@@ -156,11 +158,17 @@ impl Instruction {
                 Span::call_site(),
                 format!("Cannot find the instruction {name}"),
             ))?;
+        let return_data = ix_item
+            .sig
+            .output
+            .get_element_with_inner()
+            .and_then(|(_, inner)| inner);
 
         let mut ix = Self {
             name: ix_item.sig.ident.clone(),
             accounts: Vec::new(),
             args: Vec::new(),
+            return_data,
         };
 
         for fn_arg in ix_item.sig.inputs.iter() {

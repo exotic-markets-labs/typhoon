@@ -98,6 +98,18 @@ impl Generator for CpiGenerator {
             } else {
                 (quote!(&'a Pubkey), None)
             };
+            let (result_ty, return_data) = if let Some(ref ty) = instruction.return_data {
+                (
+                    Some(quote!(<#ty>)),
+                    quote! {
+                        bytemuck::pod_read_unaligned(
+                            &get_return_data().ok_or(ErrorCode::InvalidReturnData)?,
+                        )
+                    },
+                )
+            } else {
+                (None, quote!(()))
+            };
 
             token.extend(quote! {
                 pub struct #instruction_name<'a> {
@@ -108,12 +120,12 @@ impl Generator for CpiGenerator {
 
                 impl #instruction_name<'_> {
                     #[inline(always)]
-                    pub fn invoke(&self) -> ProgramResult {
+                    pub fn invoke(&self) -> ProgramResult #result_ty {
                         self.invoke_signed(&[])
                     }
 
                     #[inline(always)]
-                    pub fn invoke_signed(&self, seeds: &[instruction::CpiSigner]) -> ProgramResult {
+                    pub fn invoke_signed(&self, seeds: &[instruction::CpiSigner]) -> ProgramResult #result_ty {
                         let mut bytes = [bytes::UNINIT_BYTE; #len];
                         let mut writer = bytes::MaybeUninitWriter::new(&mut bytes, 0);
                         writer.write_bytes(&[#dis])?;
@@ -133,7 +145,9 @@ impl Generator for CpiGenerator {
                                 #(#infos),*
                             ],
                             seeds
-                        ).map_err(Into::into)
+                        )?;
+
+                        Ok(#return_data)
                     }
                 }
             });
