@@ -21,7 +21,7 @@ use {
     typhoon_errors::*,
     typhoon_program_id_macro::program_id,
     typhoon_token::{Mint, TokenAccount},
-    typhoon_utility_traits::SystemCpi,
+    typhoon_utility_traits::CreateAccountCpi,
 };
 
 pub type ProgramResult<T = ()> = Result<T, Error>;
