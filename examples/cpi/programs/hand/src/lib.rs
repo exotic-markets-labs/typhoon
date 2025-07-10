@@ -29,7 +29,7 @@ pub fn check_power(ctx: PullLever) -> ProgramResult {
 pub fn pull_lever(ctx: PullLever) -> ProgramResult {
     SwitchPowerCpi {
         power: ctx.power.as_ref(),
-        program: ctx.lever_program.as_ref(),
+        program: ctx.lever_program.key(),
     }
     .invoke()?;
     Ok(())

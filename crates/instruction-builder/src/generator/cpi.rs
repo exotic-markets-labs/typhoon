@@ -89,12 +89,21 @@ impl Generator for CpiGenerator {
             } else {
                 quote!(#(#lens)+*)
             };
+            let has_optional = instruction
+                .accounts
+                .iter()
+                .any(|(_, (is_optional, _, _))| *is_optional);
+            let (program_id_field, program_id_getter) = if has_optional {
+                (quote!(&'a AccountInfo), Some(quote!(.key())))
+            } else {
+                (quote!(&'a Pubkey), None)
+            };
 
             token.extend(quote! {
                 pub struct #instruction_name<'a> {
                     #(#argument_fields)*
                     #(#account_fields)*
-                    pub program: &'a AccountInfo,
+                    pub program: #program_id_field,
                 }
 
                 impl #instruction_name<'_> {
@@ -111,7 +120,7 @@ impl Generator for CpiGenerator {
                         #(writer.write_bytes(#bytes)?;)*
 
                         let instruction = instruction::Instruction {
-                            program_id: &self.program.key(),
+                            program_id: self.program #program_id_getter,
                             data: writer.initialized(),
                             accounts: &[
                                 #(#metas),*
