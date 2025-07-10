@@ -1,7 +1,9 @@
-use pinocchio::{account_info::AccountInfo, instruction, pubkey::Pubkey, sysvars::rent::Rent};
-use typhoon_accounts::{Account, Discriminator, Mut, RefFromBytes, SystemAccount, WritableAccount};
-use typhoon_errors::Error;
-use typhoon_utility::create_or_assign;
+use {
+    pinocchio::{account_info::AccountInfo, instruction, pubkey::Pubkey, sysvars::rent::Rent},
+    typhoon_accounts::{Account, Discriminator, Mut, RefFromBytes, SystemAccount, WritableAccount},
+    typhoon_errors::Error,
+    typhoon_utility::create_or_assign,
+};
 
 pub trait CreateAccountCpi<'a, T: Discriminator + RefFromBytes> {
     fn create(
