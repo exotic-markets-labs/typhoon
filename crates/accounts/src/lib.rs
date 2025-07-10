@@ -120,7 +120,7 @@ where
             return None;
         }
 
-        // Then check total length (discriminator + struct data)  
+        // Then check total length (discriminator + struct data)
         if data.len() < total_len {
             return None;
         }

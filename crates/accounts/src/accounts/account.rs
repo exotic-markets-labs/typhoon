@@ -165,13 +165,13 @@ fn simd_compare_discriminator(data: &[u8], discriminator: &[u8], len: usize) -> 
     }
     #[cfg(not(any(target_arch = "x86_64", target_arch = "aarch64")))]
     {
-        // Safe fallback for all other architectures (including BPF when no SIMD is available)
+        // Safe fallback for all other architectures
         data[..len] == discriminator[..]
     }
 }
 
 /// x86_64 SIMD implementation using SSE2 instructions.
-/// 
+///
 /// **OFF-CHAIN NATIVE EXECUTION ONLY**
 /// This function uses SSE2 SIMD instructions that are only available when running
 /// natively on x86_64 processors. BPF programs compiled for on-chain execution
@@ -199,7 +199,7 @@ fn simd_compare_x86_64(data: &[u8], discriminator: &[u8], len: usize) -> bool {
 
 /// ARM64 SIMD implementation using NEON instructions.
 ///
-/// **OFF-CHAIN NATIVE EXECUTION ONLY** 
+/// **OFF-CHAIN NATIVE EXECUTION ONLY**
 /// This function uses NEON SIMD instructions that are only available when running
 /// natively on aarch64 processors. BPF programs compiled for on-chain execution
 /// will never call this function due to conditional compilation.
