@@ -85,7 +85,6 @@ impl_handler!(T1, T2, T3, T4, T5);
 impl_handler!(T1, T2, T3, T4, T5, T6);
 impl_handler!(T1, T2, T3, T4, T5, T6, T7);
 
-#[inline(always)]
 pub fn handle<'a, 'b, 'c, T, H>(
     program_id: &'a Pubkey,
     mut accounts: &'b [AccountInfo],
@@ -100,6 +99,7 @@ where
             if core::mem::size_of::<H::Output>() > 0 {
                 set_return_data(bytemuck::bytes_of(&res));
             }
+
             Ok(())
         }
         Err(err) => Err(err),
