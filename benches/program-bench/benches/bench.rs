@@ -8,7 +8,7 @@ use {
     std::path::PathBuf,
 };
 
-const IX_NAMES: &[&str] = &["ping", "log", "transfer", "create_account"];
+const IX_NAMES: &[&str] = &["ping", "log", "create_account", "transfer"];
 
 pub fn runner(name: &str) -> BenchResult {
     let mut so_path = PathBuf::from(concat!(

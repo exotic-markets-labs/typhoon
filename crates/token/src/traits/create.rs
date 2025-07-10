@@ -28,7 +28,7 @@ where
         seeds: Option<&[Signer]>,
     ) -> Result<Mut<T>, Error> {
         create_or_assign(
-            &self,
+            self.as_ref(),
             rent,
             payer,
             &TokenProgram::ID,
@@ -102,7 +102,14 @@ where
         freeze_authority: Option<&Pubkey>,
         seeds: Option<&[Signer]>,
     ) -> Result<Mut<T>, Error> {
-        create_or_assign(&self, rent, payer, &TokenProgram::ID, Mint::LEN, seeds)?;
+        create_or_assign(
+            self.as_ref(),
+            rent,
+            payer,
+            &TokenProgram::ID,
+            Mint::LEN,
+            seeds,
+        )?;
 
         InitializeMint2 {
             mint: self.as_ref(),

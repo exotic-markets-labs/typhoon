@@ -21,35 +21,33 @@ impl<'a> AccountGenerator<'a> {
         }
     }
 
-    pub fn generate(&self) -> Result<TokenStream, syn::Error> {
+    pub fn generate(&self) -> Result<Option<TokenStream>, syn::Error> {
         let name = &self.account.name;
         let name_str = name.to_string();
 
-        let assign = if self.has_init {
-            quote! {
-                <Mut<SystemAccount> as FromAccountInfo>::try_from_info(#name).trace_account(#name_str)?
-            }
-        } else if self.has_init_if_needed {
-            quote! {
-                <Mut<UncheckedAccount> as FromAccountInfo>::try_from_info(#name).trace_account(#name_str)?
-            }
+        let assign = if self.has_init || self.has_init_if_needed {
+            None
         } else {
             let account_ty = &self.account.ty;
-            quote! {
+            Some(quote! {
                 <#account_ty as FromAccountInfo>::try_from_info(#name).trace_account(#name_str)?
-            }
+            })
         };
 
+        if assign.is_none() {
+            return Ok(None);
+        }
+
         if self.account.is_optional {
-            Ok(quote! {
+            Ok(Some(quote! {
                 let #name = if #name.key() == program_id {
                     None
                 } else {
                     Some(#assign)
                 };
-            })
+            }))
         } else {
-            Ok(quote!(let #name = #assign;))
+            Ok(Some(quote!(let #name = #assign;)))
         }
     }
 }
