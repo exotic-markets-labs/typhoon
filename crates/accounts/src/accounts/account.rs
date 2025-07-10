@@ -1,5 +1,5 @@
 use {
-    crate::{Discriminator, FromAccountInfo, Owner, ReadableAccount, RefFromBytes},
+    crate::{Discriminator, FromAccountInfo, FromRaw, Owner, ReadableAccount, RefFromBytes},
     core::marker::PhantomData,
     pinocchio::{
         account_info::{AccountInfo, Ref},
@@ -95,5 +95,17 @@ where
     fn data<'a>(&'a self) -> Result<Self::Data<'a>, Error> {
         Ref::filter_map(self.info.try_borrow_data()?, T::read)
             .map_err(|_| ProgramError::InvalidAccountData.into())
+    }
+}
+
+impl<'a, T> FromRaw<'a> for Account<'a, T>
+where
+    T: RefFromBytes + Discriminator,
+{
+    fn from_raw(info: &'a AccountInfo) -> Self {
+        Self {
+            info,
+            _phantom: PhantomData,
+        }
     }
 }

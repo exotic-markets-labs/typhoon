@@ -1,5 +1,5 @@
 use {
-    crate::{Discriminator, FromAccountInfo, Owners, ReadableAccount, RefFromBytes},
+    crate::{Discriminator, FromAccountInfo, FromRaw, Owners, ReadableAccount, RefFromBytes},
     core::marker::PhantomData,
     pinocchio::{
         account_info::{AccountInfo, Ref},
@@ -12,8 +12,8 @@ pub struct InterfaceAccount<'a, T>
 where
     T: Discriminator + RefFromBytes,
 {
-    info: &'a AccountInfo,
-    _phantom: PhantomData<T>,
+    pub(crate) info: &'a AccountInfo,
+    pub(crate) _phantom: PhantomData<T>,
 }
 
 impl<'a, T> FromAccountInfo<'a> for InterfaceAccount<'a, T>
@@ -81,5 +81,17 @@ where
     fn data<'a>(&'a self) -> Result<Self::Data<'a>, Error> {
         Ref::filter_map(self.info.try_borrow_data()?, T::read)
             .map_err(|_| ProgramError::InvalidAccountData.into())
+    }
+}
+
+impl<'a, T> FromRaw<'a> for InterfaceAccount<'a, T>
+where
+    T: RefFromBytes + Discriminator,
+{
+    fn from_raw(info: &'a AccountInfo) -> Self {
+        Self {
+            info,
+            _phantom: PhantomData,
+        }
     }
 }

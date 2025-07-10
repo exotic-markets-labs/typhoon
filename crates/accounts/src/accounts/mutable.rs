@@ -1,10 +1,9 @@
 use {
     super::{Account, Program, SystemAccount, UncheckedAccount},
     crate::{
-        Discriminator, FromAccountInfo, ReadableAccount, RefFromBytes, Signer, SignerAccount,
-        WritableAccount,
+        Discriminator, FromAccountInfo, FromRaw, ReadableAccount, RefFromBytes, Signer,
+        SignerAccount, WritableAccount,
     },
-    core::marker::PhantomData,
     pinocchio::{
         account_info::{AccountInfo, RefMut},
         program_error::ProgramError,
@@ -110,15 +109,13 @@ impl<T: Discriminator + RefFromBytes> WritableAccount for Mut<Account<'_, T>> {
 
 impl SignerAccount for Mut<Signer<'_>> {}
 
-impl<'a, T> Mut<Account<'a, T>>
+#[doc(hidden)]
+impl<'a, T> Mut<T>
 where
-    T: RefFromBytes + Discriminator,
+    T: ReadableAccount + FromRaw<'a>,
 {
     #[inline(always)]
     pub fn from_raw_info(info: &'a AccountInfo) -> Self {
-        Mut(Account {
-            info,
-            _phantom: PhantomData,
-        })
+        Mut(T::from_raw(info))
     }
 }
