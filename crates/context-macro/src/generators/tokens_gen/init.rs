@@ -148,7 +148,7 @@ impl<'a> InitTokenGenerator<'a> {
                 let default_space = parse_quote!(#account_ty::SPACE);
                 let space = space.as_ref().unwrap_or(&default_space);
 
-                quote!(SystemCpi::create_account(#name, &rent, &#payer, &program_id, #space, #signers)?)
+                quote!(CreateAccountCpi::create(#name, &rent, &#payer, &program_id, #space, #signers)?)
             }
         };
 

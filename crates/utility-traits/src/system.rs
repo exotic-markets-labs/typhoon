@@ -1,14 +1,10 @@
 use {
-    pinocchio::{
-        account_info::AccountInfo, instruction::Signer, pubkey::Pubkey, sysvars::rent::Rent,
-    },
+    pinocchio::{account_info::AccountInfo, pubkey::Pubkey},
     pinocchio_system::instructions::{Allocate, Assign, Transfer},
     typhoon_accounts::{
-        Account, Discriminator, Mut, Owner, RefFromBytes, Signer as SignerAccount, SystemAccount,
-        UncheckedAccount, WritableAccount,
+        Mut, Signer as SignerAccount, SystemAccount, UncheckedAccount, WritableAccount,
     },
     typhoon_errors::Error,
-    typhoon_utility::create_or_assign,
 };
 
 pub trait SystemCpi<'a>: WritableAccount + Into<&'a AccountInfo>
@@ -33,26 +29,6 @@ where
         }
         .invoke()
         .map_err(Into::into)
-    }
-
-    #[inline(always)]
-    fn create_account<T: Discriminator + RefFromBytes + Owner>(
-        self,
-        rent: &Rent,
-        payer: &impl WritableAccount,
-        owner: &Pubkey,
-        space: usize,
-        seeds: Option<&[Signer]>,
-    ) -> Result<Mut<Account<'a, T>>, Error> {
-        create_or_assign(&self, rent, payer, owner, space, seeds)?;
-
-        // Set discriminator
-        {
-            let mut data = self.as_ref().try_borrow_mut_data()?;
-            data[..T::DISCRIMINATOR.len()].copy_from_slice(T::DISCRIMINATOR);
-        }
-
-        Ok(Mut::from_raw_info(self.into()))
     }
 
     #[inline(always)]

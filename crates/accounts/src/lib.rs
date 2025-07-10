@@ -147,3 +147,7 @@ where
         bytemuck::try_from_bytes_mut(&mut data[dis_len..total_len]).ok()
     }
 }
+
+pub trait FromRaw<'a> {
+    fn from_raw(info: &'a AccountInfo) -> Self;
+}
