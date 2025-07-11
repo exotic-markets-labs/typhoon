@@ -867,9 +867,9 @@ dependencies = [
 
 [[package]]
 name = "curve25519-dalek"
-version = "4.1.3"
+version = "4.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "97fb8b7c4503de7d6ae7b42ab72a5a59857b4c937ec27a3d4539dba95b5ab2be"
+checksum = "373b7c5dbd637569a2cca66e8d66b8c446a1e7bf064ea321d265d7b3dfe7c97e"
 dependencies = [
  "cfg-if",
  "cpufeatures",
@@ -1053,9 +1053,9 @@ checksum = "835a3dc7d1ec9e75e2b5fb4ba75396837112d2060b03f7d43bc1897c7f7211da"
 
 [[package]]
 name = "fiat-crypto"
-version = "0.2.9"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "28dea519a9695b9977216879a3ebfddf92f1c08c05d984f8996aecd6ecdc811d"
+checksum = "64cd1e32ddd350061ae6edb1b082d7c54915b5c672c389143b9a63403a109f24"
 
 [[package]]
 name = "five8_const"
@@ -2165,7 +2165,7 @@ dependencies = [
 
 [[package]]
 name = "program-bench"
-version = "0.1.0-alpha.13"
+version = "0.1.0-alpha.14"
 dependencies = [
  "litesvm",
  "serde",
@@ -2981,7 +2981,7 @@ checksum = "9b3d15f1a893ced38529d44d7fe0d4348dc38c28fea13b6d6be5d13d438a441f"
 dependencies = [
  "bytemuck",
  "bytemuck_derive",
- "curve25519-dalek 4.1.3",
+ "curve25519-dalek 4.2.0",
  "solana-define-syscall",
  "subtle",
  "thiserror 2.0.12",
@@ -3538,7 +3538,7 @@ dependencies = [
  "bs58",
  "bytemuck",
  "bytemuck_derive",
- "curve25519-dalek 4.1.3",
+ "curve25519-dalek 4.2.0",
  "five8_const",
  "getrandom 0.2.16",
  "js-sys",
@@ -4111,7 +4111,7 @@ dependencies = [
  "bincode",
  "bytemuck",
  "bytemuck_derive",
- "curve25519-dalek 4.1.3",
+ "curve25519-dalek 4.2.0",
  "itertools 0.12.1",
  "js-sys",
  "lazy_static",
@@ -4165,7 +4165,7 @@ dependencies = [
  "bincode",
  "bytemuck",
  "bytemuck_derive",
- "curve25519-dalek 4.1.3",
+ "curve25519-dalek 4.2.0",
  "itertools 0.12.1",
  "lazy_static",
  "merlin",
@@ -4406,9 +4406,9 @@ dependencies = [
 
 [[package]]
 name = "toml"
-version = "0.9.0"
+version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f271e09bde39ab52250160a67e88577e0559ad77e9085de6e9051a2c4353f8f8"
+checksum = "0207d6ed1852c2a124c1fbec61621acb8330d2bf969a5d0643131e9affd985a5"
 dependencies = [
  "indexmap",
  "serde",
@@ -4515,7 +4515,7 @@ dependencies = [
  "serde_json",
  "target-triple",
  "termcolor",
- "toml 0.9.0",
+ "toml 0.9.1",
 ]
 
 [[package]]
@@ -4526,7 +4526,7 @@ checksum = "1dccffe3ce07af9386bfd29e80c0ab1a8205a2fc34e4bcd40364df902cfa8f3f"
 
 [[package]]
 name = "typhoon"
-version = "0.1.0-alpha.13"
+version = "0.1.0-alpha.14"
 dependencies = [
  "pinocchio",
  "pinocchio-pubkey",
@@ -4545,7 +4545,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-account-macro"
-version = "0.1.0-alpha.13"
+version = "0.1.0-alpha.14"
 dependencies = [
  "bytemuck",
  "pinocchio",
@@ -4559,7 +4559,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-accounts"
-version = "0.1.0-alpha.13"
+version = "0.1.0-alpha.14"
 dependencies = [
  "borsh 1.5.7",
  "bytemuck",
@@ -4570,7 +4570,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-context"
-version = "0.1.0-alpha.13"
+version = "0.1.0-alpha.14"
 dependencies = [
  "borsh 1.5.7",
  "bytemuck",
@@ -4581,7 +4581,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-context-macro"
-version = "0.1.0-alpha.13"
+version = "0.1.0-alpha.14"
 dependencies = [
  "bytemuck",
  "pinocchio-pubkey",
@@ -4602,7 +4602,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-cpi-generator"
-version = "0.1.0-alpha.13"
+version = "0.1.0-alpha.14"
 dependencies = [
  "anchor-lang-idl-spec",
  "five8_const",
@@ -4614,7 +4614,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-cpi-generator-macro"
-version = "0.1.0-alpha.13"
+version = "0.1.0-alpha.14"
 dependencies = [
  "anchor-lang-idl-spec",
  "serde_json",
@@ -4624,14 +4624,14 @@ dependencies = [
 
 [[package]]
 name = "typhoon-discriminator"
-version = "0.1.0-alpha.13"
+version = "0.1.0-alpha.14"
 dependencies = [
  "sha2 0.10.9",
 ]
 
 [[package]]
 name = "typhoon-discriminator-macro"
-version = "0.1.0-alpha.13"
+version = "0.1.0-alpha.14"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4642,14 +4642,14 @@ dependencies = [
 
 [[package]]
 name = "typhoon-errors"
-version = "0.1.0-alpha.13"
+version = "0.1.0-alpha.14"
 dependencies = [
  "pinocchio",
 ]
 
 [[package]]
 name = "typhoon-errors-macro"
-version = "0.1.0-alpha.13"
+version = "0.1.0-alpha.14"
 dependencies = [
  "pinocchio",
  "proc-macro2",
@@ -4660,7 +4660,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-handler-macro"
-version = "0.1.0-alpha.13"
+version = "0.1.0-alpha.14"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4669,7 +4669,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-idl-generator"
-version = "0.1.0-alpha.13"
+version = "0.1.0-alpha.14"
 dependencies = [
  "codama",
  "codama-attributes",
@@ -4687,7 +4687,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-instruction-builder"
-version = "0.1.0-alpha.13"
+version = "0.1.0-alpha.14"
 dependencies = [
  "cargo-manifest",
  "heck",
@@ -4699,7 +4699,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-program-id-macro"
-version = "0.1.0-alpha.13"
+version = "0.1.0-alpha.14"
 dependencies = [
  "cargo-manifest",
  "heck",
@@ -4710,7 +4710,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-syn"
-version = "0.1.0-alpha.13"
+version = "0.1.0-alpha.14"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4719,7 +4719,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-token"
-version = "0.1.0-alpha.13"
+version = "0.1.0-alpha.14"
 dependencies = [
  "five8_const",
  "pinocchio",
@@ -4732,7 +4732,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-utility"
-version = "0.1.0-alpha.13"
+version = "0.1.0-alpha.14"
 dependencies = [
  "borsh 1.5.7",
  "pinocchio",
@@ -4743,7 +4743,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-utility-traits"
-version = "0.1.0-alpha.13"
+version = "0.1.0-alpha.14"
 dependencies = [
  "pinocchio",
  "pinocchio-system",
