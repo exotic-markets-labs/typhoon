@@ -113,12 +113,38 @@ where
 {
     fn read(data: &[u8]) -> Option<&Self> {
         let dis_len = T::DISCRIMINATOR.len();
-        bytemuck::try_from_bytes(&data[dis_len..core::mem::size_of::<T>() + dis_len]).ok()
+        let total_len = dis_len + core::mem::size_of::<T>();
+
+        // Match the optimized validation order: check discriminator length first
+        if data.len() < dis_len {
+            return None;
+        }
+
+        // Then check total length (discriminator + struct data)
+        if data.len() < total_len {
+            return None;
+        }
+
+        // Finally parse the struct data (no discriminator validation here - that's done upstream)
+        bytemuck::try_from_bytes(&data[dis_len..total_len]).ok()
     }
 
     fn read_mut(data: &mut [u8]) -> Option<&mut Self> {
         let dis_len = T::DISCRIMINATOR.len();
-        bytemuck::try_from_bytes_mut(&mut data[dis_len..core::mem::size_of::<T>() + dis_len]).ok()
+        let total_len = dis_len + core::mem::size_of::<T>();
+
+        // Match the optimized validation order: check discriminator length first
+        if data.len() < dis_len {
+            return None;
+        }
+
+        // Then check total length (discriminator + struct data)
+        if data.len() < total_len {
+            return None;
+        }
+
+        // Finally parse the struct data (no discriminator validation here - that's done upstream)
+        bytemuck::try_from_bytes_mut(&mut data[dis_len..total_len]).ok()
     }
 }
 
