@@ -1,19 +1,17 @@
 mod instruction {
-    pub use pinocchio_pubkey::pinocchio::instruction::{Seed, Signer as CpiSigner};
+    pub use pinocchio::instruction::{Seed, Signer as CpiSigner};
 }
 
 use {
     bytemuck::{AnyBitPattern, NoUninit},
-    pinocchio_pubkey::{
-        declare_id,
-        pinocchio::{
-            account_info::AccountInfo,
-            program_error::ProgramError,
-            pubkey::{Pubkey, *},
-            seeds,
-            sysvars::{rent::Rent, Sysvar},
-        },
+    pinocchio::{
+        account_info::AccountInfo,
+        program_error::ProgramError,
+        pubkey::{Pubkey, *},
+        seeds,
+        sysvars::{rent::Rent, Sysvar},
     },
+    pinocchio_pubkey::declare_id,
     typhoon_account_macro::*,
     typhoon_accounts::*,
     typhoon_context::HandlerContext,

@@ -1,6 +1,7 @@
 use {
     bytemuck::{AnyBitPattern, NoUninit},
-    pinocchio_pubkey::{declare_id, pinocchio::pubkey::Pubkey},
+    pinocchio::pubkey::Pubkey,
+    pinocchio_pubkey::declare_id,
     typhoon_account_macro::*,
     typhoon_accounts::*,
     typhoon_context_macro::*,
