@@ -1,5 +1,5 @@
 error: One constraint requires including the `Program<System>` account.
-  --> tests/constraints/missing_system_program.fail.rs:19:1
+  --> tests/constraints/missing_system_program.fail.rs:20:1
    |
-19 | pub struct InitContext {
+20 | pub struct InitContext {
    | ^^^

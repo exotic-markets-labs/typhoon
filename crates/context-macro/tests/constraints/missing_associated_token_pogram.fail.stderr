@@ -1,5 +1,5 @@
 error: One constraint requires including the `Program<AtaTokenProgram>` account.
-  --> tests/constraints/missing_associated_token_pogram.fail.rs:19:1
+  --> tests/constraints/missing_associated_token_pogram.fail.rs:20:1
    |
-19 | pub struct InitContext {
+20 | pub struct InitContext {
    | ^^^

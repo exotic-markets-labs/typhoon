@@ -27,7 +27,7 @@ where
         }
 
         // Safe because we don't store the owner key
-        if !T::OWNERS.contains(unsafe { info.owner() }) {
+        if !T::OWNERS.contains(info.owner()) {
             return Err(ErrorCode::AccountOwnedByWrongProgram.into());
         }
 
