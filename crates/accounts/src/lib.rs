@@ -54,10 +54,8 @@ pub trait WritableAccount: ReadableAccount + Sealed {
     }
 
     #[inline(always)]
-    fn realloc(&self, new_len: usize, zero_init: bool) -> Result<(), Error> {
-        self.as_ref()
-            .realloc(new_len, zero_init)
-            .map_err(Into::into)
+    fn resize(&self, new_len: usize) -> Result<(), Error> {
+        self.as_ref().resize(new_len).map_err(Into::into)
     }
 
     #[inline(always)]

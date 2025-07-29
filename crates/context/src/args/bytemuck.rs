@@ -1,29 +1,12 @@
 use {
     crate::HandlerContext,
     bytemuck::{try_from_bytes, AnyBitPattern},
-    core::ops::Deref,
     pinocchio::{account_info::AccountInfo, program_error::ProgramError, pubkey::Pubkey},
     typhoon_errors::Error,
 };
 
 #[derive(Debug)]
-pub struct Arg<'a, T>(&'a T);
-
-impl<'a, T> Arg<'a, T> {
-    #[inline(always)]
-    pub fn new(arg: &'a T) -> Self {
-        Arg(arg)
-    }
-}
-
-impl<T> Deref for Arg<'_, T> {
-    type Target = T;
-
-    #[inline(always)]
-    fn deref(&self) -> &Self::Target {
-        self.0
-    }
-}
+pub struct Arg<'a, T>(pub &'a T);
 
 impl<'c, T> HandlerContext<'_, '_, 'c> for Arg<'c, T>
 where
@@ -41,6 +24,6 @@ where
 
         *instruction_data = remaining;
 
-        Ok(Arg::new(arg))
+        Ok(Arg(arg))
     }
 }

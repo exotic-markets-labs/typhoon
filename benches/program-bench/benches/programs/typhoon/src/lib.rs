@@ -32,7 +32,7 @@ fn create_account(ctx: CreateAccountContext) -> ProgramResult {
     Ok(())
 }
 
-fn transfer(amount: Arg<[u8; 8]>, ctx: TransferContext) -> ProgramResult {
+fn transfer(Arg(amount): Arg<[u8; 8]>, ctx: TransferContext) -> ProgramResult {
     ctx.admin
         .transfer(&ctx.account, u64::from_le_bytes(*amount))
 }
