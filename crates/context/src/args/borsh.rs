@@ -1,28 +1,11 @@
 use {
     crate::HandlerContext,
     borsh::BorshDeserialize,
-    core::ops::Deref,
     pinocchio::{account_info::AccountInfo, program_error::ProgramError, pubkey::Pubkey},
     typhoon_errors::Error,
 };
 
-pub struct BorshArg<T>(T);
-
-impl<T> BorshArg<T> {
-    #[inline(always)]
-    pub fn new(arg: T) -> Self {
-        BorshArg(arg)
-    }
-}
-
-impl<T> Deref for BorshArg<T> {
-    type Target = T;
-
-    #[inline(always)]
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
+pub struct BorshArg<T>(pub T);
 
 impl<T> HandlerContext<'_, '_, '_> for BorshArg<T>
 where
@@ -36,7 +19,7 @@ where
     ) -> Result<Self, Error> {
         let arg = T::deserialize(instruction_data).map_err(|_| ProgramError::BorshIoError)?;
 
-        Ok(BorshArg::new(arg))
+        Ok(BorshArg(arg))
     }
 }
 
@@ -60,7 +43,7 @@ mod tests {
             &mut instruction_data_slice,
         )
         .unwrap_or(BorshArg(0));
-        assert_eq!(*result, 42);
+        assert_eq!(result.0, 42);
         assert_eq!(instruction_data_slice.len(), 0);
     }
 }

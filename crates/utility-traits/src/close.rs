@@ -15,7 +15,7 @@ pub trait CloseAccount: WritableAccount {
         *self.mut_lamports()? = 0;
 
         self.assign(&pinocchio_system::ID);
-        self.realloc(0, false)
+        self.resize(0)
     }
 }
 
