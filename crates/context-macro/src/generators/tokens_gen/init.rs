@@ -2,10 +2,13 @@ use {
     crate::{accounts::Account, visitor::ContextVisitor},
     proc_macro2::TokenStream,
     quote::{format_ident, quote},
-    syn::{parse_quote, punctuated::Punctuated, Expr, Ident, Token},
-    typhoon_syn::constraints::{
-        ConstraintAssociatedToken, ConstraintMint, ConstraintPayer, ConstraintSeeded,
-        ConstraintSeeds, ConstraintSpace, ConstraintToken,
+    syn::{parse_quote, Expr, Ident},
+    typhoon_syn::{
+        constraints::{
+            ConstraintAssociatedToken, ConstraintMint, ConstraintPayer, ConstraintSeeded,
+            ConstraintSeeds, ConstraintSpace, ConstraintToken,
+        },
+        utils::SeedsExpr,
     },
 };
 
@@ -29,7 +32,7 @@ pub struct InitTokenGenerator<'a> {
     account: &'a Account,
     payer: Option<Ident>,
     is_seeded: bool,
-    keys: Option<Punctuated<Expr, Token![,]>>,
+    keys: Option<SeedsExpr>,
     ty: InitTokenGeneratorTy,
 }
 
