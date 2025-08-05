@@ -2,64 +2,47 @@ name: Post Benchmark Comment
 
 on:
   workflow_run:
-    workflows: ["CI"]
-    types:
-      - completed
+    workflows: [CI]
+    types: [completed]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.workflow_run.pull_requests[0].number || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
   comment:
     runs-on: ubuntu-latest
-    if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success'
+    if: |
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success'
     permissions:
       pull-requests: write
       actions: read
 
     steps:
       - name: Download benchmark artifact
-        uses: actions/github-script@v7
+        uses: actions/download-artifact@v4
         with:
+          name: benchmark-results
+          path: benchmark-results
+          run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            let allArtifacts = await github.rest.actions.listWorkflowRunArtifacts({
-               owner: context.repo.owner,
-               repo: context.repo.repo,
-               run_id: ${{ github.event.workflow_run.id }},
-            });
-            let matchArtifact = allArtifacts.data.artifacts.filter((artifact) => {
-              return artifact.name == "benchmark-results"
-            })[0];
-            if (!matchArtifact) {
-              throw new Error('No benchmark-results artifact found');
-            }
-            let download = await github.rest.actions.downloadArtifact({
-               owner: context.repo.owner,
-               repo: context.repo.repo,
-               artifact_id: matchArtifact.id,
-               archive_format: 'zip',
-            });
-            let fs = require('fs');
-            fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/benchmark-results.zip`, Buffer.from(download.data));
 
-      - name: Extract benchmark results
-        run: |
-          unzip benchmark-results.zip
-          ls -la
-
-      - name: Post benchmark comment
+      - name: Post or update benchmark comment
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require('fs');
-            const benchmarkContent = fs.readFileSync('BENCHMARK.md', 'utf8');
+            const benchmarkContent = fs.readFileSync('benchmark-results/BENCHMARK.md', 'utf8');
             const prNumber = context.payload.workflow_run.pull_requests?.[0]?.number;
 
             if (!prNumber) {
-              console.log('Could not find the PR number. Aborting.');
+              core.info('No PR number found, skipping comment.');
               return;
             }
 
-            const commentBody = `## 📊 Benchmark Results\n\n${benchmarkContent}\n\n<details>\n<summary>ℹ️ Benchmark Details</summary>\n\nThis benchmark compares the performance of three Solana program frameworks:\n- pinocchio: Minimal framework with direct syscall usage\n- anchor: Popular framework with many features\n- typhoon: This framework\n\nMetrics:\n- CU Consumed: Compute Units used by each instruction\n- Binary Size: Size of the compiled program binary\n\n</details>\n\nBenchmarks run on commit \`${context.payload.workflow_run.head_sha.substring(0, 7)}\``;
+            const body = `## 📊 Benchmark Results\n\n${benchmarkContent}\n\n<details>\n<summary>ℹ️ Benchmark Details</summary>\n\nThis benchmark compares the performance of three Solana program frameworks:\n- pinocchio: Minimal framework with direct syscall usage\n- anchor: Popular framework with many features\n- typhoon: This framework\n\nMetrics:\n- CU Consumed: Compute Units used by each instruction\n- Binary Size: Size of the compiled program binary\n\n</details>\n\nBenchmarks run on commit \`${context.payload.workflow_run.head_sha.slice(0, 7)}\``;
 
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
@@ -67,23 +50,22 @@ jobs:
               issue_number: prNumber,
             });
 
-            const existingComment = comments.find(comment =>
-              comment.user.login === 'github-actions[bot]' &&
-              comment.body.includes('📊 Benchmark Results')
+            const botComment = comments.find(c =>
+              c.user.login === 'github-actions[bot]' && c.body.includes('📊 Benchmark Results')
             );
 
-            if (existingComment) {
+            if (botComment) {
               await github.rest.issues.updateComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                comment_id: existingComment.id,
-                body: commentBody,
+                comment_id: botComment.id,
+                body,
               });
             } else {
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: prNumber,
-                body: commentBody,
+                body,
               });
             }
