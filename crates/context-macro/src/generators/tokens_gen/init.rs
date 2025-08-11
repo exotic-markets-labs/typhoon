@@ -2,6 +2,7 @@ use {
     crate::{accounts::Account, visitor::ContextVisitor},
     proc_macro2::TokenStream,
     quote::{format_ident, quote},
+    std::mem::MaybeUninit,
     syn::{parse_quote, Expr, Ident},
     typhoon_syn::{
         constraints::{
@@ -66,9 +67,28 @@ impl<'a> InitTokenGenerator<'a> {
 
         let seeds = if self.is_seeded {
             let account_ty = format_ident!("{}", self.account.inner_ty);
-            quote!(#account_ty::derive_with_bump(#punctuated_keys, &bump))
+            quote! {
+                let seeds = #account_ty::derive_with_bump(#punctuated_keys, &bump);
+                let signer = instruction::CpiSigner::from(&seeds);
+            }
         } else {
-            quote!(seeds!(#punctuated_keys, &bump))
+            match punctuated_keys {
+                SeedsExpr::Punctuated(punctuated) => {
+                    quote! {
+                        let seeds = seeds!(#punctuated, &bump);
+                        let signer = instruction::CpiSigner::from(&seeds);
+                    }
+                }
+                SeedsExpr::Single(expr) => {
+                    quote! {
+                        let mut buffer = [bytes::UNINIT_BYTE; #expr.len()];
+                        let mut writer = bytes::MaybeUninitWriter::new(&mut buffer, 0);
+                        writer.write_bytes(#expr);
+                        writer.write_bytes(&bump);
+                        let signer = instruction::CpiSigner::from(writer.initialized());
+                    }
+                }
+            }
         };
 
         Some(seeds)
@@ -89,8 +109,7 @@ impl<'a> InitTokenGenerator<'a> {
                 quote! {
                     // TODO: avoid reusing seeds here and in verifications
                     let bump = [#pda_bump];
-                    let seeds = #seeds;
-                    let signer = instruction::CpiSigner::from(&seeds);
+                    #seeds
                 }
             })
         };

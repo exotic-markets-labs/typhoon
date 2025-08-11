@@ -2,8 +2,7 @@ use {
     crate::utils::SeedsExpr,
     syn::{
         parse::{Parse, ParseStream},
-        token::Bracket,
-        Expr, Token,
+        Token,
     },
 };
 
@@ -15,20 +14,8 @@ impl Parse for ConstraintSeeded {
         if input.peek(Token![=]) {
             input.parse::<Token![=]>()?;
 
-            if input.peek(Bracket) {
-                let content;
-                syn::bracketed!(content in input);
-
-                let mut seeds = content.parse_terminated(Expr::parse, Token![,])?;
-
-                if seeds.trailing_punct() {
-                    seeds.pop_punct();
-                }
-
-                Ok(ConstraintSeeded(Some(SeedsExpr::Punctuated(seeds))))
-            } else {
-                Ok(ConstraintSeeded(Some(SeedsExpr::Single(input.parse()?))))
-            }
+            let seeds = input.parse()?;
+            Ok(ConstraintSeeded(Some(seeds)))
         } else {
             Ok(ConstraintSeeded(None))
         }

@@ -19,6 +19,10 @@ handlers! {
     increment,
 }
 
+fn pda_seeds<'a>() -> [&'a [u8]; 1] {
+    [b"counter".as_ref()]
+}
+
 #[context]
 pub struct InitContext {
     pub payer: Mut<Signer>,
@@ -27,9 +31,7 @@ pub struct InitContext {
         init,
         payer = payer,
         space = Counter::SPACE,
-        seeds = [
-            b"counter".as_ref(),
-        ],
+        seeds = pda_seeds(),
         bump
     )]
     pub counter: Mut<Account<Counter>>,
