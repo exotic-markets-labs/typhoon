@@ -51,8 +51,8 @@ impl<'a> BumpTokenGenerator<'a> {
             quote!(#inner_ty::derive(#keys))
         } else {
             match keys {
-                SeedsExpr::Punctuated(punctuated) => quote!([#keys]),
-                SeedsExpr::Single(expr) => quote!(#keys),
+                SeedsExpr::Punctuated(punctuated) => quote!([#punctuated]),
+                SeedsExpr::Single(expr) => quote!(#expr),
             }
         };
         Ok(seeds)

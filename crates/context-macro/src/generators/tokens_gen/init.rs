@@ -2,7 +2,6 @@ use {
     crate::{accounts::Account, visitor::ContextVisitor},
     proc_macro2::TokenStream,
     quote::{format_ident, quote},
-    std::mem::MaybeUninit,
     syn::{parse_quote, Expr, Ident},
     typhoon_syn::{
         constraints::{
@@ -81,11 +80,17 @@ impl<'a> InitTokenGenerator<'a> {
                 }
                 SeedsExpr::Single(expr) => {
                     quote! {
-                        let mut buffer = [bytes::UNINIT_BYTE; #expr.len()];
-                        let mut writer = bytes::MaybeUninitWriter::new(&mut buffer, 0);
-                        writer.write_bytes(#expr);
-                        writer.write_bytes(&bump);
-                        let signer = instruction::CpiSigner::from(writer.initialized());
+                        let expr = #expr;
+                        let expr_len = expr.len();
+                        let mut buffer = [bytes::UNINIT_SEED; MAX_SEEDS];
+                        unsafe {
+                            for (uninit_byte, &src_byte) in buffer[..expr_len].iter_mut().zip(&expr) {
+                                uninit_byte.write(instruction::Seed::from(src_byte));
+                            }
+                            buffer[expr_len].write(instruction::Seed::from(&bump));
+                        }
+
+                        let signer = instruction::CpiSigner::from(unsafe { core::slice::from_raw_parts(buffer.as_ptr() as *const instruction::Seed, expr_len + 1) });
                     }
                 }
             }
