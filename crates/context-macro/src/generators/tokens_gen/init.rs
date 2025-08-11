@@ -2,10 +2,13 @@ use {
     crate::{accounts::Account, visitor::ContextVisitor},
     proc_macro2::TokenStream,
     quote::{format_ident, quote},
-    syn::{parse_quote, punctuated::Punctuated, Expr, Ident, Token},
-    typhoon_syn::constraints::{
-        ConstraintAssociatedToken, ConstraintMint, ConstraintPayer, ConstraintSeeded,
-        ConstraintSeeds, ConstraintSpace, ConstraintToken,
+    syn::{parse_quote, Expr, Ident},
+    typhoon_syn::{
+        constraints::{
+            ConstraintAssociatedToken, ConstraintMint, ConstraintPayer, ConstraintSeeded,
+            ConstraintSeeds, ConstraintSpace, ConstraintToken,
+        },
+        utils::SeedsExpr,
     },
 };
 
@@ -29,7 +32,7 @@ pub struct InitTokenGenerator<'a> {
     account: &'a Account,
     payer: Option<Ident>,
     is_seeded: bool,
-    keys: Option<Punctuated<Expr, Token![,]>>,
+    keys: Option<SeedsExpr>,
     ty: InitTokenGeneratorTy,
 }
 
@@ -63,9 +66,34 @@ impl<'a> InitTokenGenerator<'a> {
 
         let seeds = if self.is_seeded {
             let account_ty = format_ident!("{}", self.account.inner_ty);
-            quote!(#account_ty::derive_with_bump(#punctuated_keys, &bump))
+            quote! {
+                let seeds = #account_ty::derive_with_bump(#punctuated_keys, &bump);
+                let signer = instruction::CpiSigner::from(&seeds);
+            }
         } else {
-            quote!(seeds!(#punctuated_keys, &bump))
+            match punctuated_keys {
+                SeedsExpr::Punctuated(punctuated) => {
+                    quote! {
+                        let seeds = seeds!(#punctuated, &bump);
+                        let signer = instruction::CpiSigner::from(&seeds);
+                    }
+                }
+                SeedsExpr::Single(expr) => {
+                    quote! {
+                        let expr = #expr;
+                        let expr_len = expr.len();
+                        let mut buffer = [bytes::UNINIT_SEED; MAX_SEEDS];
+                        unsafe {
+                            for (uninit_byte, &src_byte) in buffer[..expr_len].iter_mut().zip(&expr) {
+                                uninit_byte.write(instruction::Seed::from(src_byte));
+                            }
+                            buffer[expr_len].write(instruction::Seed::from(&bump));
+                        }
+
+                        let signer = instruction::CpiSigner::from(unsafe { core::slice::from_raw_parts(buffer.as_ptr() as *const instruction::Seed, expr_len + 1) });
+                    }
+                }
+            }
         };
 
         Some(seeds)
@@ -86,8 +114,7 @@ impl<'a> InitTokenGenerator<'a> {
                 quote! {
                     // TODO: avoid reusing seeds here and in verifications
                     let bump = [#pda_bump];
-                    let seeds = #seeds;
-                    let signer = instruction::CpiSigner::from(&seeds);
+                    #seeds
                 }
             })
         };
