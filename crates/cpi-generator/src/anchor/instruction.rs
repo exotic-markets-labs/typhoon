@@ -72,7 +72,7 @@ fn gen_instruction_data(
 
             (
                 quote!(pub #ident: #ty_ref,),
-                quote!(borsh::ser::BorshSerialize::serialize(self.#ident, &mut writer).map_err(|_| ProgramError::BorshIoError)?;),
+                quote!(borsh::ser::BorshSerialize::serialize(&self.#ident, &mut writer).map_err(|_| ProgramError::BorshIoError)?;),
             )
         })
         .unzip();
