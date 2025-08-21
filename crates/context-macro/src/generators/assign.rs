@@ -3,6 +3,7 @@ use {
     crate::{accounts::Account, context::Context, visitor::ContextVisitor, StagedGenerator},
     proc_macro2::TokenStream,
     quote::quote,
+    syn::Ident,
     typhoon_syn::constraints::{ConstraintInit, ConstraintInitIfNeeded},
 };
 
@@ -80,9 +81,52 @@ impl<'a> AssignGenerator<'a> {
 impl StagedGenerator for AssignGenerator<'_> {
     fn append(&mut self, context: &mut GeneratorResult) -> Result<(), syn::Error> {
         for account in &self.0.accounts {
-            let mut generator = AccountGenerator::new(account);
-            generator.visit_account(account)?;
-            context.inside.extend(generator.generate()?);
+            if account.is_array {
+                // Handle array accounts by generating individual account processing for each element
+                if let Some(size) = account.array_size {
+                    let mut generator = AccountGenerator::new(account);
+                    generator.visit_account(account)?;
+
+                    for i in 0..size {
+                        let element_name =
+                            Ident::new(&format!("{}_{}", account.name, i), account.name.span());
+                        let element_account = Account {
+                            name: element_name.clone(),
+                            constraints: account.constraints.clone(),
+                            ty: account.ty.clone(),
+                            is_optional: account.is_optional,
+                            inner_ty: account.inner_ty.clone(),
+                            is_array: false,
+                            array_size: None,
+                        };
+
+                        let mut element_generator = AccountGenerator::new(&element_account);
+                        element_generator.visit_account(&element_account)?;
+
+                        if let Some(code) = element_generator.generate()? {
+                            context.inside.extend(Some(code));
+                        }
+                    }
+
+                    // Generate the array construction
+                    let array_name = &account.name;
+                    let element_names: Vec<Ident> = (0..size)
+                        .map(|i| {
+                            Ident::new(&format!("{}_{}", account.name, i), account.name.span())
+                        })
+                        .collect();
+
+                    let array_code = quote! {
+                        let #array_name = [#(#element_names),*];
+                    };
+                    context.inside.extend(Some(array_code));
+                }
+            } else {
+                // Handle regular (non-array) accounts
+                let mut generator = AccountGenerator::new(account);
+                generator.visit_account(account)?;
+                context.inside.extend(generator.generate()?);
+            }
         }
 
         Ok(())

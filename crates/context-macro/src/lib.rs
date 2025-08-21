@@ -105,6 +105,28 @@ impl ToTokens for TokenGenerator {
         }
         let drop_vars = self.result.drop_vars.iter().map(|v| quote!(drop(#v);));
 
+        // Generate the destructuring pattern, handling arrays by expanding them into individual variables
+        // SECURITY: Each array element is treated as a separate account with full validation
+        // This ensures that constraints and access controls are applied to each element individually
+        let mut destructuring_vars = Vec::new();
+        let mut total_account_count = 0usize;
+
+        for account in &self.context.accounts {
+            if account.is_array {
+                if let Some(size) = account.array_size {
+                    for i in 0..size {
+                        let var_name = format!("{}_{}", account.name, i);
+                        let var_ident = Ident::new(&var_name, account.name.span());
+                        destructuring_vars.push(var_ident);
+                        total_account_count += 1;
+                    }
+                }
+            } else {
+                destructuring_vars.push(account.name.clone());
+                total_account_count += 1;
+            }
+        }
+
         let impl_context = quote! {
             impl #impl_generics HandlerContext<'_, 'info, 'c> for #name #ty_generics #where_clause {
                 #[inline(always)]
@@ -113,7 +135,14 @@ impl ToTokens for TokenGenerator {
                     accounts: &mut &'info [AccountInfo],
                     instruction_data: &mut &'c [u8],
                 ) -> ProgramResult<Self> {
-                    let [#(#name_list,)* rem @ ..] = accounts else {
+                    // SECURITY: Validate that we have enough accounts for all array elements
+                    // This is a runtime check to ensure the instruction provides sufficient accounts
+                    let expected_accounts = #total_account_count;
+                    if accounts.len() < expected_accounts {
+                        return Err(ProgramError::NotEnoughAccountKeys.into());
+                    }
+
+                    let [#(#destructuring_vars,)* rem @ ..] = accounts else {
                         return Err(ProgramError::NotEnoughAccountKeys.into());
                     };
 
