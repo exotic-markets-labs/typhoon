@@ -87,7 +87,7 @@ impl Generator for CpiGenerator {
             let len = if lens.is_empty() {
                 quote!(1)
             } else {
-                quote!(#(#lens)+*)
+                quote!(1 + #(#lens)+*)
             };
             let has_optional = instruction
                 .accounts
