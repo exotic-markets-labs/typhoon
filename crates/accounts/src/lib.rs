@@ -111,12 +111,36 @@ where
 {
     fn read(data: &[u8]) -> Option<&Self> {
         let dis_len = T::DISCRIMINATOR.len();
-        bytemuck::try_from_bytes(&data[dis_len..core::mem::size_of::<T>() + dis_len]).ok()
+        let total_len = dis_len + core::mem::size_of::<T>();
+
+        if data.len() < total_len {
+            return None;
+        }
+
+        let data_ptr = data[dis_len..total_len].as_ptr();
+
+        if data_ptr.align_offset(core::mem::align_of::<T>()) != 0 {
+            return None;
+        }
+
+        Some(unsafe { &*(data_ptr as *const T) })
     }
 
     fn read_mut(data: &mut [u8]) -> Option<&mut Self> {
         let dis_len = T::DISCRIMINATOR.len();
-        bytemuck::try_from_bytes_mut(&mut data[dis_len..core::mem::size_of::<T>() + dis_len]).ok()
+        let total_len = dis_len + core::mem::size_of::<T>();
+
+        if data.len() < total_len {
+            return None;
+        }
+
+        let data_ptr = data[dis_len..total_len].as_mut_ptr();
+
+        if data_ptr.align_offset(core::mem::align_of::<T>()) != 0 {
+            return None;
+        }
+
+        Some(unsafe { &mut *(data_ptr as *mut T) })
     }
 }
 
