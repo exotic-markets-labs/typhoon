@@ -4,6 +4,7 @@ use {
         Discriminator, FromAccountInfo, FromRaw, ReadableAccount, RefFromBytes, Signer,
         SignerAccount, WritableAccount,
     },
+    core::marker::PhantomData,
     pinocchio::{
         account_info::{AccountInfo, RefMut},
         program_error::ProgramError,
@@ -11,44 +12,74 @@ use {
     typhoon_errors::{Error, ErrorCode},
 };
 
-pub struct Mut<T: ReadableAccount>(pub(crate) T);
+pub trait MutCheck {
+    fn check(_info: &AccountInfo) -> Result<(), Error> {
+        Ok(())
+    }
+}
 
-impl<'a, T> FromAccountInfo<'a> for Mut<T>
+pub struct Check;
+
+impl MutCheck for Check {
+    fn check(info: &AccountInfo) -> Result<(), Error> {
+        if info.is_writable() {
+            Ok(())
+        } else {
+            Err(ErrorCode::AccountNotMutable.into())
+        }
+    }
+}
+
+pub struct NoCheck;
+
+impl MutCheck for NoCheck {}
+
+pub struct Mut<T: ReadableAccount, C: MutCheck = Check> {
+    pub(crate) acc: T,
+    _phantom: PhantomData<C>,
+}
+
+impl<'a, T, C> FromAccountInfo<'a> for Mut<T, C>
 where
+    C: MutCheck,
     T: FromAccountInfo<'a> + ReadableAccount,
 {
     #[inline(always)]
     fn try_from_info(info: &'a AccountInfo) -> Result<Self, Error> {
-        if !info.is_writable() {
-            return Err(ErrorCode::AccountNotMutable.into());
-        }
+        C::check(info)?;
 
-        Ok(Mut(T::try_from_info(info)?))
+        Ok(Mut {
+            acc: T::try_from_info(info)?,
+            _phantom: PhantomData,
+        })
     }
 }
 
-impl<T> AsRef<AccountInfo> for Mut<T>
+impl<T, C> AsRef<AccountInfo> for Mut<T, C>
 where
+    C: MutCheck,
     T: ReadableAccount,
 {
     #[inline(always)]
     fn as_ref(&self) -> &AccountInfo {
-        self.0.as_ref()
+        self.acc.as_ref()
     }
 }
 
-impl<'a, T> From<Mut<T>> for &'a AccountInfo
+impl<'a, T, C> From<Mut<T, C>> for &'a AccountInfo
 where
+    C: MutCheck,
     T: ReadableAccount + Into<&'a AccountInfo>,
 {
     #[inline(always)]
-    fn from(value: Mut<T>) -> Self {
-        value.0.into()
+    fn from(value: Mut<T, C>) -> Self {
+        value.acc.into()
     }
 }
 
-impl<T> ReadableAccount for Mut<T>
+impl<T, C> ReadableAccount for Mut<T, C>
 where
+    C: MutCheck,
     T: ReadableAccount,
 {
     type Data<'a>
@@ -58,13 +89,13 @@ where
 
     #[inline(always)]
     fn data<'a>(&'a self) -> Result<Self::Data<'a>, Error> {
-        self.0.data()
+        self.acc.data()
     }
 }
 
 macro_rules! impl_writable {
     ($name: ident) => {
-        impl WritableAccount for Mut<$name<'_>> {
+        impl<C: MutCheck> WritableAccount for Mut<$name<'_>, C> {
             type DataMut<'a>
                 = RefMut<'a, [u8]>
             where
@@ -72,7 +103,7 @@ macro_rules! impl_writable {
 
             #[inline(always)]
             fn mut_data<'a>(&'a self) -> Result<Self::DataMut<'a>, Error> {
-                self.0.as_ref().try_borrow_mut_data().map_err(Into::into)
+                self.acc.as_ref().try_borrow_mut_data().map_err(Into::into)
             }
         }
     };
@@ -82,7 +113,10 @@ impl_writable!(Signer);
 impl_writable!(SystemAccount);
 impl_writable!(UncheckedAccount);
 
-impl<T> WritableAccount for Mut<Program<'_, T>> {
+impl<T, C> WritableAccount for Mut<Program<'_, T>, C>
+where
+    C: MutCheck,
+{
     type DataMut<'a>
         = RefMut<'a, [u8]>
     where
@@ -90,11 +124,15 @@ impl<T> WritableAccount for Mut<Program<'_, T>> {
 
     #[inline(always)]
     fn mut_data<'a>(&'a self) -> Result<Self::DataMut<'a>, Error> {
-        self.0.as_ref().try_borrow_mut_data().map_err(Into::into)
+        self.acc.as_ref().try_borrow_mut_data().map_err(Into::into)
     }
 }
 
-impl<T: Discriminator + RefFromBytes> WritableAccount for Mut<Account<'_, T>> {
+impl<T, C> WritableAccount for Mut<Account<'_, T>, C>
+where
+    C: MutCheck,
+    T: Discriminator + RefFromBytes,
+{
     type DataMut<'a>
         = RefMut<'a, T>
     where
@@ -102,20 +140,24 @@ impl<T: Discriminator + RefFromBytes> WritableAccount for Mut<Account<'_, T>> {
 
     #[inline(always)]
     fn mut_data<'a>(&'a self) -> Result<Self::DataMut<'a>, Error> {
-        RefMut::filter_map(self.0.as_ref().try_borrow_mut_data()?, T::read_mut)
+        RefMut::filter_map(self.acc.as_ref().try_borrow_mut_data()?, T::read_mut)
             .map_err(|_| ProgramError::InvalidAccountData.into())
     }
 }
 
-impl SignerAccount for Mut<Signer<'_>> {}
+impl<C: MutCheck> SignerAccount for Mut<Signer<'_>, C> {}
 
 #[doc(hidden)]
-impl<'a, T> Mut<T>
+impl<'a, T, C> Mut<T, C>
 where
+    C: MutCheck,
     T: ReadableAccount + FromRaw<'a>,
 {
     #[inline(always)]
     pub fn from_raw_info(info: &'a AccountInfo) -> Self {
-        Mut(T::from_raw(info))
+        Mut {
+            acc: T::from_raw(info),
+            _phantom: PhantomData,
+        }
     }
 }

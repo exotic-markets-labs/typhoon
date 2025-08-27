@@ -70,13 +70,18 @@ pub trait SignerAccount: ReadableAccount + Sealed {}
 
 mod sealed {
     use {
-        super::{Mut, ReadableAccount, Signer},
+        super::{Mut, MutCheck, ReadableAccount, Signer},
         pinocchio::account_info::AccountInfo,
     };
 
     pub trait Sealed {}
 
-    impl<T> Sealed for Mut<T> where T: ReadableAccount + AsRef<AccountInfo> {}
+    impl<T, C> Sealed for Mut<T, C>
+    where
+        T: ReadableAccount + AsRef<AccountInfo>,
+        C: MutCheck,
+    {
+    }
     impl Sealed for Signer<'_> {}
 }
 
