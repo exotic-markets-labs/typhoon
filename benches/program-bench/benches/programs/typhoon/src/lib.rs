@@ -14,7 +14,8 @@ handlers! {
     ping,
     log,
     create_account,
-    transfer
+    transfer,
+    unchecked_accounts
 }
 
 fn ping() -> ProgramResult {
@@ -37,6 +38,10 @@ fn transfer(Arg(amount): Arg<[u8; 8]>, ctx: TransferContext) -> ProgramResult {
         .transfer(&ctx.account, u64::from_le_bytes(*amount))
 }
 
+fn unchecked_accounts(ctx: UncheckedAccountsContext) -> ProgramResult {
+    Ok(())
+}
+
 #[context]
 pub struct CreateAccountContext {
     pub admin: Mut<Signer>,
@@ -53,6 +58,20 @@ pub struct TransferContext {
     pub admin: Mut<Signer>,
     pub account: Mut<SystemAccount>,
     pub system_program: Program<System>,
+}
+
+#[context]
+pub struct UncheckedAccountsContext {
+    pub account1: UncheckedAccount,
+    pub account2: UncheckedAccount,
+    pub account3: UncheckedAccount,
+    pub account4: UncheckedAccount,
+    pub account5: UncheckedAccount,
+    pub account6: UncheckedAccount,
+    pub account7: UncheckedAccount,
+    pub account8: UncheckedAccount,
+    pub account9: UncheckedAccount,
+    pub account10: UncheckedAccount,
 }
 
 #[derive(NoUninit, AnyBitPattern, AccountState, Copy, Clone)]

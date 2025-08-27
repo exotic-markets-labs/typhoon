@@ -8,7 +8,13 @@ use {
     std::path::PathBuf,
 };
 
-const IX_NAMES: &[&str] = &["ping", "log", "create_account", "transfer"];
+const IX_NAMES: &[&str] = &[
+    "ping",
+    "log",
+    "create_account",
+    "transfer",
+    "unchecked_accounts",
+];
 
 pub fn runner(name: &str) -> BenchResult {
     let mut so_path = PathBuf::from(concat!(
@@ -80,6 +86,29 @@ pub fn runner(name: &str) -> BenchResult {
         bencher.hash(),
     );
     bencher.execute_tx(IX_NAMES[3], tx);
+
+    let tx = Transaction::new_signed_with_payer(
+        &[Instruction {
+            program_id,
+            accounts: vec![
+                AccountMeta::new_readonly(Pubkey::new_unique(), false),
+                AccountMeta::new_readonly(Pubkey::new_unique(), false),
+                AccountMeta::new_readonly(Pubkey::new_unique(), false),
+                AccountMeta::new_readonly(Pubkey::new_unique(), false),
+                AccountMeta::new_readonly(Pubkey::new_unique(), false),
+                AccountMeta::new_readonly(Pubkey::new_unique(), false),
+                AccountMeta::new_readonly(Pubkey::new_unique(), false),
+                AccountMeta::new_readonly(Pubkey::new_unique(), false),
+                AccountMeta::new_readonly(Pubkey::new_unique(), false),
+                AccountMeta::new_readonly(Pubkey::new_unique(), false),
+            ],
+            data: vec![4],
+        }],
+        Some(&bencher.payer().pubkey()),
+        &[bencher.payer()],
+        bencher.hash(),
+    );
+    bencher.execute_tx(IX_NAMES[4], tx);
 
     bencher.into_metrics()
 }
