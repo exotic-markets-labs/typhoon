@@ -2,13 +2,13 @@ use {
     crate::{accounts::Account, visitor::ContextVisitor},
     proc_macro2::TokenStream,
     quote::{format_ident, quote},
-    syn::{parse_quote, punctuated::Punctuated, Expr, Token},
+    syn::{parse_quote, Expr},
     typhoon_syn::{
         constraints::{
             ConstraintAssociatedToken, ConstraintBump, ConstraintInitIfNeeded, ConstraintProgram,
             ConstraintSeeded, ConstraintSeeds,
         },
-        utils::ContextExpr,
+        utils::{ContextExpr, SeedsExpr},
     },
 };
 
@@ -22,7 +22,7 @@ pub struct BumpTokenGenerator<'a> {
     account: &'a Account,
     init_if_needed: bool,
     pda_ty: PdaType,
-    seeds: Option<Punctuated<Expr, Token![,]>>,
+    seeds: Option<SeedsExpr>,
     program_id: Option<Expr>,
     bump: Option<ContextExpr>,
 }
@@ -50,7 +50,10 @@ impl<'a> BumpTokenGenerator<'a> {
 
             quote!(#inner_ty::derive(#keys))
         } else {
-            quote!([#keys])
+            match keys {
+                SeedsExpr::Punctuated(punctuated) => quote!([#punctuated]),
+                SeedsExpr::Single(expr) => quote!(#expr),
+            }
         };
         Ok(seeds)
     }
@@ -187,17 +190,35 @@ impl ContextVisitor for BumpTokenGenerator<'_> {
         match constraint {
             ConstraintAssociatedToken::Mint(ident) => {
                 if let Some(seeds) = self.seeds.as_mut() {
-                    seeds.insert(2, parse_quote!(#ident));
+                    let SeedsExpr::Punctuated(expr) = seeds else {
+                        return Err(syn::Error::new_spanned(
+                            &seeds,
+                            "Seeds expr cannot be used in this context.",
+                        ));
+                    };
+
+                    expr.insert(2, parse_quote!(#ident));
                 } else {
-                    self.seeds = Some(parse_quote!(token_program.key().as_ref(), #ident));
+                    self.seeds = Some(SeedsExpr::Punctuated(
+                        parse_quote!(token_program.key().as_ref(), #ident),
+                    ));
                     self.program_id = Some(parse_quote!(AtaTokenProgram::ID))
                 }
             }
             ConstraintAssociatedToken::Authority(ident) => {
                 if let Some(seeds) = self.seeds.as_mut() {
-                    seeds.insert(0, parse_quote!(#ident));
+                    let SeedsExpr::Punctuated(expr) = seeds else {
+                        return Err(syn::Error::new_spanned(
+                            &seeds,
+                            "Seeds expr cannot be used in this context.",
+                        ));
+                    };
+
+                    expr.insert(0, parse_quote!(#ident));
                 } else {
-                    self.seeds = Some(parse_quote!(#ident, token_program.key().as_ref()));
+                    self.seeds = Some(SeedsExpr::Punctuated(
+                        parse_quote!(#ident, token_program.key().as_ref()),
+                    ));
                     self.program_id = Some(parse_quote!(AtaTokenProgram::ID))
                 }
             }

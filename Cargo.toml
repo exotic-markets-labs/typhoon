@@ -1,10 +1,10 @@
 [workspace]
-members = [ "benches/program-bench","crates/*"]
+members = ["benches/program-bench", "crates/*"]
 exclude = ["examples"]
 resolver = "2"
 
 [workspace.package]
-version = "0.1.0-alpha.13"
+version = "0.1.0-alpha.15"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 authors = ["Aursen"]
@@ -15,44 +15,44 @@ anchor-lang-idl-spec = "0.1"
 borsh = { version = "1.5", default-features = false }
 bytemuck = "1.23"
 cargo-manifest = "0.19"
-five8_const = "0.1"
-cargo_metadata = "0.19.2"
-codama = "0.4"
-codama-attributes = "0.4"
-codama-nodes = "0.4"
-codama-koroks = "0.4"
-codama-korok-plugins = "0.4"
-codama-korok-visitors = "0.4"
-codama-stores = "0.4"
-codama-syn-helpers = "0.4"
+five8_const = "1.0"
+cargo_metadata = "0.22.0"
+codama = "0.5"
+codama-attributes = "0.5"
+codama-nodes = "0.5"
+codama-koroks = "0.5"
+codama-korok-plugins = "0.5"
+codama-korok-visitors = "0.5"
+codama-stores = "0.5"
+codama-syn-helpers = "0.5"
 trybuild = "1.0"
-typhoon = { version = "0.1.0-alpha.13", path = "crates/lib" }
-typhoon-accounts = { version = "0.1.0-alpha.13", path = "crates/accounts" }
-typhoon-account-macro = { version = "0.1.0-alpha.13", path = "crates/account-macro" }
-typhoon-context = { version = "0.1.0-alpha.13", path = "crates/context" }
-typhoon-context-macro = { version = "0.1.0-alpha.13", path = "crates/context-macro" }
-typhoon-cpi-generator = { version = "0.1.0-alpha.13", path = "crates/cpi-generator" }
-typhoon-cpi-generator-macro = { version = "0.1.0-alpha.13", path = "crates/cpi-generator-macro" }
-typhoon-discriminator = { version = "0.1.0-alpha.13", path = "crates/discriminator" }
-typhoon-discriminator-macro = { version = "0.1.0-alpha.13", path = "crates/discriminator-macro" }
-typhoon-errors = { version = "0.1.0-alpha.13", path = "crates/errors" }
-typhoon-errors-macro = { version = "0.1.0-alpha.13", path = "crates/errors-macro" }
-typhoon-handler-macro = { version = "0.1.0-alpha.13", path = "crates/handler-macro" }
-typhoon-idl-generator = { version = "0.1.0-alpha.13", path = "crates/idl-generator" }
-typhoon-instruction-builder = { version = "0.1.0-alpha.13", path = "crates/instruction-builder" }
-typhoon-program-id-macro = { version = "0.1.0-alpha.13", path = "crates/program-id-macro" }
-typhoon-token = { version = "0.1.0-alpha.13", path = "crates/token" }
-typhoon-utility = { version = "0.1.0-alpha.13", path = "crates/utility" }
-typhoon-utility-traits = { version = "0.1.0-alpha.13", path = "crates/utility-traits" }
-typhoon-syn = { version = "0.1.0-alpha.13", path = "crates/syn" }
+typhoon = { version = "0.1.0-alpha.15", path = "crates/lib" }
+typhoon-accounts = { version = "0.1.0-alpha.15", path = "crates/accounts" }
+typhoon-account-macro = { version = "0.1.0-alpha.15", path = "crates/account-macro" }
+typhoon-context = { version = "0.1.0-alpha.15", path = "crates/context" }
+typhoon-context-macro = { version = "0.1.0-alpha.15", path = "crates/context-macro" }
+typhoon-cpi-generator = { version = "0.1.0-alpha.15", path = "crates/cpi-generator" }
+typhoon-cpi-generator-macro = { version = "0.1.0-alpha.15", path = "crates/cpi-generator-macro" }
+typhoon-discriminator = { version = "0.1.0-alpha.15", path = "crates/discriminator" }
+typhoon-discriminator-macro = { version = "0.1.0-alpha.15", path = "crates/discriminator-macro" }
+typhoon-errors = { version = "0.1.0-alpha.15", path = "crates/errors" }
+typhoon-errors-macro = { version = "0.1.0-alpha.15", path = "crates/errors-macro" }
+typhoon-handler-macro = { version = "0.1.0-alpha.15", path = "crates/handler-macro" }
+typhoon-idl-generator = { version = "0.1.0-alpha.15", path = "crates/idl-generator" }
+typhoon-instruction-builder = { version = "0.1.0-alpha.15", path = "crates/instruction-builder" }
+typhoon-program-id-macro = { version = "0.1.0-alpha.15", path = "crates/program-id-macro" }
+typhoon-token = { version = "0.1.0-alpha.15", path = "crates/token" }
+typhoon-utility = { version = "0.1.0-alpha.15", path = "crates/utility" }
+typhoon-utility-traits = { version = "0.1.0-alpha.15", path = "crates/utility-traits" }
+typhoon-syn = { version = "0.1.0-alpha.15", path = "crates/syn" }
 heck = "0.5"
 paste = "1.0"
-pinocchio = "0.8.4"
-pinocchio-associated-token-account = "0.1.1"
-pinocchio-log = "0.4.0"
-pinocchio-pubkey = "0.2.4"
-pinocchio-token = "0.3.0"
-pinocchio-system = "0.2.3"
+pinocchio = "0.9"
+pinocchio-associated-token-account = "0.2"
+pinocchio-log = "0.5"
+pinocchio-pubkey = "0.3"
+pinocchio-token = "0.4"
+pinocchio-system = "0.3"
 prettyplease = "0.2"
 proc-macro2 = "1.0"
 quote = "1.0"

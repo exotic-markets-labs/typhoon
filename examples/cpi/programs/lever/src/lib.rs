@@ -28,7 +28,7 @@ pub fn switch_power(ctx: SetPowerStatus) -> ProgramResult {
     Ok(())
 }
 
-pub fn check_power(ctx: CheckStatus) -> ProgramResult {
+pub fn check_power(ctx: CheckStatus) -> ProgramResult<u8> {
     let power = ctx.power.as_ref().unwrap().data()?;
 
     match power.is_on() {
@@ -36,7 +36,7 @@ pub fn check_power(ctx: CheckStatus) -> ProgramResult {
         false => msg!("The power is now off!"),
     };
 
-    Ok(())
+    Ok(1)
 }
 
 #[context]

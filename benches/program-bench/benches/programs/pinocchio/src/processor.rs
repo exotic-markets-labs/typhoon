@@ -83,3 +83,8 @@ pub fn process_transfer(instruction_data: &[u8], accounts: &[AccountInfo]) -> Pr
     }
     .invoke()
 }
+
+#[inline(always)]
+pub fn process_unchecked_accounts(accounts: &[AccountInfo]) -> ProgramResult {
+    Ok(())
+}

@@ -87,31 +87,52 @@ impl Generator for CpiGenerator {
             let len = if lens.is_empty() {
                 quote!(1)
             } else {
-                quote!(#(#lens)+*)
+                quote!(1 + #(#lens)+*)
+            };
+            let has_optional = instruction
+                .accounts
+                .iter()
+                .any(|(_, (is_optional, _, _))| *is_optional);
+            let (program_id_field, program_id_getter) = if has_optional {
+                (quote!(&'a AccountInfo), Some(quote!(.key())))
+            } else {
+                (quote!(&'a Pubkey), None)
+            };
+            let (result_ty, return_data) = if let Some(ref ty) = instruction.return_data {
+                (
+                    Some(quote!(<#ty>)),
+                    quote! {
+                        bytemuck::pod_read_unaligned(
+                            &get_return_data().ok_or(ErrorCode::InvalidReturnData)?,
+                        )
+                    },
+                )
+            } else {
+                (None, quote!(()))
             };
 
             token.extend(quote! {
                 pub struct #instruction_name<'a> {
                     #(#argument_fields)*
                     #(#account_fields)*
-                    pub program: &'a AccountInfo,
+                    pub program: #program_id_field,
                 }
 
                 impl #instruction_name<'_> {
                     #[inline(always)]
-                    pub fn invoke(&self) -> ProgramResult {
+                    pub fn invoke(&self) -> ProgramResult #result_ty {
                         self.invoke_signed(&[])
                     }
 
                     #[inline(always)]
-                    pub fn invoke_signed(&self, seeds: &[instruction::CpiSigner]) -> ProgramResult {
+                    pub fn invoke_signed(&self, seeds: &[instruction::CpiSigner]) -> ProgramResult #result_ty {
                         let mut bytes = [bytes::UNINIT_BYTE; #len];
                         let mut writer = bytes::MaybeUninitWriter::new(&mut bytes, 0);
                         writer.write_bytes(&[#dis])?;
                         #(writer.write_bytes(#bytes)?;)*
 
                         let instruction = instruction::Instruction {
-                            program_id: &self.program.key(),
+                            program_id: self.program #program_id_getter,
                             data: writer.initialized(),
                             accounts: &[
                                 #(#metas),*
@@ -124,7 +145,9 @@ impl Generator for CpiGenerator {
                                 #(#infos),*
                             ],
                             seeds
-                        ).map_err(Into::into)
+                        )?;
+
+                        Ok(#return_data)
                     }
                 }
             });

@@ -1,29 +1,12 @@
 use {
     crate::HandlerContext,
-    bytemuck::{try_from_bytes, AnyBitPattern},
-    core::ops::Deref,
+    bytemuck::AnyBitPattern,
     pinocchio::{account_info::AccountInfo, program_error::ProgramError, pubkey::Pubkey},
     typhoon_errors::Error,
 };
 
 #[derive(Debug)]
-pub struct Arg<'a, T>(&'a T);
-
-impl<'a, T> Arg<'a, T> {
-    #[inline(always)]
-    pub fn new(arg: &'a T) -> Self {
-        Arg(arg)
-    }
-}
-
-impl<T> Deref for Arg<'_, T> {
-    type Target = T;
-
-    #[inline(always)]
-    fn deref(&self) -> &Self::Target {
-        self.0
-    }
-}
+pub struct Arg<'a, T>(pub &'a T);
 
 impl<'c, T> HandlerContext<'_, '_, 'c> for Arg<'c, T>
 where
@@ -35,12 +18,27 @@ where
         _accounts: &mut &[AccountInfo],
         instruction_data: &mut &'c [u8],
     ) -> Result<Self, Error> {
-        let (arg_data, remaining) = instruction_data.split_at(core::mem::size_of::<T>());
+        let len = core::mem::size_of::<T>();
 
-        let arg: &T = try_from_bytes(arg_data).map_err(|_| ProgramError::InvalidInstructionData)?;
+        if len > instruction_data.len() {
+            return Err(ProgramError::InvalidInstructionData.into());
+        }
+
+        // SAFETY: The invariant `len <= instruction_data.len()` is upheld by the preceding
+        // bounds check, ensuring that the split index is within the valid range [0, len]
+        // where len does not exceed the slice length, thus satisfying the preconditions
+        // for `split_at_unchecked`.
+        let (arg_data, remaining) = unsafe { instruction_data.split_at_unchecked(len) };
+        let data_ptr = arg_data.as_ptr();
+
+        if data_ptr.align_offset(core::mem::align_of::<T>()) != 0 {
+            return Err(ProgramError::InvalidInstructionData.into());
+        }
+
+        let arg: &T = unsafe { &*(data_ptr as *const T) };
 
         *instruction_data = remaining;
 
-        Ok(Arg::new(arg))
+        Ok(Arg(arg))
     }
 }

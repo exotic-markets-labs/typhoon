@@ -22,8 +22,24 @@ where
 {
     #[inline(always)]
     fn try_from_info(info: &'a AccountInfo) -> Result<Self, Error> {
-        // Validate account ownership, discriminator, and data integrity in a single pass
-        Self::validate_interface_account_fast_path(info)?;
+        if info.is_owned_by(&pinocchio_system::ID) && *info.try_borrow_lamports()? == 0 {
+            return Err(ProgramError::UninitializedAccount.into());
+        }
+
+        // Safe because we don't store the owner key
+        if !T::OWNERS.contains(info.owner()) {
+            return Err(ErrorCode::AccountOwnedByWrongProgram.into());
+        }
+
+        let account_data = info.try_borrow_data()?;
+
+        if account_data.len() < T::DISCRIMINATOR.len() {
+            return Err(ProgramError::AccountDataTooSmall.into());
+        }
+
+        if T::DISCRIMINATOR != &account_data[..T::DISCRIMINATOR.len()] {
+            return Err(ErrorCode::AccountDiscriminatorMismatch.into());
+        }
 
         Ok(InterfaceAccount {
             info,
@@ -59,7 +75,7 @@ where
         }
 
         // Verify account ownership against multiple allowed owners - checked after discriminator for better branch prediction
-        if unlikely(!T::OWNERS.contains(unsafe { info.owner() })) {
+        if unlikely(!T::OWNERS.contains(info.owner())) {
             return Err(ErrorCode::AccountOwnedByWrongProgram.into());
         }
 

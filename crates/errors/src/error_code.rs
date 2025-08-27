@@ -12,6 +12,7 @@ pub enum ErrorCode {
     TryingToInitPayerAsProgramAccount,
     TokenConstraintViolated,
     BufferFull,
+    InvalidReturnData,
 }
 
 impl TryFrom<u32> for ErrorCode {
@@ -30,6 +31,7 @@ impl TryFrom<u32> for ErrorCode {
             107 => Ok(ErrorCode::TryingToInitPayerAsProgramAccount),
             108 => Ok(ErrorCode::TokenConstraintViolated),
             109 => Ok(ErrorCode::BufferFull),
+            110 => Ok(ErrorCode::InvalidReturnData),
             _ => Err(ProgramError::InvalidArgument),
         }
     }
@@ -64,6 +66,7 @@ impl ToStr for ErrorCode {
             }
             ErrorCode::TokenConstraintViolated => "Error: Token constraint was violated",
             ErrorCode::BufferFull => "Error: Buffer is full",
+            ErrorCode::InvalidReturnData => "Error: The return data is invalid",
         }
     }
 }

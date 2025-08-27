@@ -47,7 +47,7 @@ impl Mint {
 
 impl RefFromBytes for Mint {
     fn read(data: &[u8]) -> Option<&Self> {
-        Some(unsafe { transmute::<&SplMint, &Mint>(SplMint::from_bytes(data)) })
+        Some(unsafe { transmute::<&SplMint, &Mint>(SplMint::from_bytes_unchecked(data)) })
     }
 
     fn read_mut(_data: &mut [u8]) -> Option<&mut Self> {
@@ -85,7 +85,9 @@ impl TokenAccount {
 impl RefFromBytes for TokenAccount {
     fn read(data: &[u8]) -> Option<&Self> {
         Some(unsafe {
-            transmute::<&SplTokenAccount, &TokenAccount>(SplTokenAccount::from_bytes(data))
+            transmute::<&SplTokenAccount, &TokenAccount>(SplTokenAccount::from_bytes_unchecked(
+                data,
+            ))
         })
     }
 

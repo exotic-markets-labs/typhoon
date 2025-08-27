@@ -37,6 +37,11 @@ pub mod lever {
             amount,
         )
     }
+
+    #[instruction(discriminator = [4])]
+    pub fn unchecked_accounts(_ctx: Context<UncheckedAccounts>) -> Result<()> {
+        Ok(())
+    }
 }
 
 #[derive(Accounts)]
@@ -62,6 +67,20 @@ pub struct Transfer<'info> {
     #[account(mut)]
     pub account: SystemAccount<'info>,
     pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct UncheckedAccounts<'info> {
+    pub account1: UncheckedAccount<'info>,
+    pub account2: UncheckedAccount<'info>,
+    pub account3: UncheckedAccount<'info>,
+    pub account4: UncheckedAccount<'info>,
+    pub account5: UncheckedAccount<'info>,
+    pub account6: UncheckedAccount<'info>,
+    pub account7: UncheckedAccount<'info>,
+    pub account8: UncheckedAccount<'info>,
+    pub account9: UncheckedAccount<'info>,
+    pub account10: UncheckedAccount<'info>,
 }
 
 #[account(zero_copy)]

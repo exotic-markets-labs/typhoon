@@ -1,26 +1,21 @@
-use syn::{
-    parse::{Parse, ParseStream},
-    punctuated::Punctuated,
-    Expr, Token,
+use {
+    crate::utils::SeedsExpr,
+    syn::{
+        parse::{Parse, ParseStream},
+        Token,
+    },
 };
 
 #[derive(Clone)]
 pub struct ConstraintSeeds {
-    pub seeds: Punctuated<Expr, Token![,]>,
+    pub seeds: SeedsExpr,
 }
 
 impl Parse for ConstraintSeeds {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         input.parse::<Token![=]>()?;
-        let content;
-        syn::bracketed!(content in input);
 
-        let mut seeds = content.parse_terminated(Expr::parse, Token![,])?;
-
-        if seeds.trailing_punct() {
-            seeds.pop_punct();
-        }
-
+        let seeds = input.parse()?;
         Ok(ConstraintSeeds { seeds })
     }
 }

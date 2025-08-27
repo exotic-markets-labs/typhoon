@@ -13,6 +13,6 @@ unexpected_cfgs = { level = "warn", check-cfg = [
 ] }
 
 [dependencies]
-pinocchio = "0.8"
-pinocchio-pubkey = "0.2.4"
-pinocchio-system = "0.2.3"
+pinocchio = "0.9.0"
+pinocchio-pubkey = "0.3.0"
+pinocchio-system = "0.3.0"
