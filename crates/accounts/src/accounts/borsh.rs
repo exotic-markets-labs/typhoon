@@ -1,6 +1,9 @@
 use {
     super::Mut,
-    crate::{Discriminator, FromAccountInfo, Owner, ReadableAccount, WritableAccount},
+    crate::{
+        discriminator_matches, internal::unlikely, Discriminator, FromAccountInfo, Owner,
+        ReadableAccount, WritableAccount,
+    },
     core::cell::RefCell,
     pinocchio::{account_info::AccountInfo, program_error::ProgramError},
     typhoon_errors::{Error, ErrorCode},
@@ -49,7 +52,7 @@ where
         let (discriminator, mut data) = account_data.split_at(T::DISCRIMINATOR.len());
 
         // Validate discriminator using optimized comparison for small discriminators
-        if unlikely(!discriminator_matches_slice::<T>(discriminator)) {
+        if unlikely(!discriminator_matches::<T>(discriminator)) {
             return Err(ErrorCode::AccountDiscriminatorMismatch.into());
         }
 
