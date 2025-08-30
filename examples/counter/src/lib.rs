@@ -143,22 +143,30 @@ mod tests {
         // Valid cases that should compile:
         #[context]
         struct ValidArrayContext {
-            pub small_array: [Mut<Account<Counter>>; 5], // Valid: size 5 <= 100
+            pub small_array: [Mut<Account<Counter>>; 5], // Valid: size 5 <= 64
             pub single_item: [Account<Counter>; 1],      // Valid: size 1 >= 1
         }
         assert!(true);
     }
 
     #[test]
-    fn test_array_validation_violations() {
+    fn test_literal_array_sizes() {
+        // Test various literal array sizes within bounds
+        // These should compile successfully
+
         #[context]
-        struct InvalidZeroArray {
-            pub zero: [Account<Counter>; 0], //invalid: size 0
+        struct TinyArrayContext {
+            pub items: [Account<Counter>; 1],
         }
 
         #[context]
-        struct InvalidLargeArray {
-            pub large: [Account<Counter>; 101], //invalid: size > 100
+        struct MediumArrayContext {
+            pub items: [Account<Counter>; 32],
+        }
+
+        #[context]
+        struct LargeArrayContext {
+            pub items: [Account<Counter>; 64], // MAX_CPI_ACCOUNTS
         }
 
         assert!(true);

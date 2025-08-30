@@ -82,8 +82,10 @@ impl StagedGenerator for AssignGenerator<'_> {
     fn append(&mut self, context: &mut GeneratorResult) -> Result<(), syn::Error> {
         for account in &self.0.accounts {
             if account.is_array {
-                // Handle array accounts by generating individual account processing for each element
-                if let Some(size) = account.array_size {
+                if account.const_generic.is_some() {
+                    // For const generic arrays, the code generation is handled in the account splitting phase
+                    // Nothing to do here
+                } else if let Some(size) = account.array_size {
                     let mut generator = AccountGenerator::new(account);
                     generator.visit_account(account)?;
 
@@ -98,6 +100,7 @@ impl StagedGenerator for AssignGenerator<'_> {
                             inner_ty: account.inner_ty.clone(),
                             is_array: false,
                             array_size: None,
+                            const_generic: None,
                         };
 
                         let mut element_generator = AccountGenerator::new(&element_account);
@@ -108,7 +111,6 @@ impl StagedGenerator for AssignGenerator<'_> {
                         }
                     }
 
-                    // Generate the array construction
                     let array_name = &account.name;
                     let element_names: Vec<Ident> = (0..size)
                         .map(|i| {

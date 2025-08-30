@@ -4,6 +4,7 @@ use {
     generators::*,
     injector::FieldInjector,
     proc_macro::TokenStream,
+    proc_macro2::Span,
     quote::{quote, ToTokens},
     sorter::sort_accounts,
     syn::{parse_macro_input, parse_quote, visit_mut::VisitMut, Attribute, Ident},
@@ -105,54 +106,152 @@ impl ToTokens for TokenGenerator {
         }
         let drop_vars = self.result.drop_vars.iter().map(|v| quote!(drop(#v);));
 
-        // Generate the destructuring pattern, handling arrays by expanding them into individual variables
-        // SECURITY: Each array element is treated as a separate account with full validation
-        // This ensures that constraints and access controls are applied to each element individually
         let mut destructuring_vars = Vec::new();
-        let mut total_account_count = 0usize;
+        let mut fixed_account_count = 0usize;
+        let mut has_const_generic_arrays = false;
+        let mut const_generic_arrays = Vec::new();
 
         for account in &self.context.accounts {
             if account.is_array {
-                if let Some(size) = account.array_size {
+                if let Some(const_generic) = &account.const_generic {
+                    has_const_generic_arrays = true;
+                    const_generic_arrays.push((account.name.clone(), const_generic.clone()));
+                } else if let Some(size) = account.array_size {
                     for i in 0..size {
                         let var_name = format!("{}_{}", account.name, i);
                         let var_ident = Ident::new(&var_name, account.name.span());
                         destructuring_vars.push(var_ident);
-                        total_account_count += 1;
+                        fixed_account_count += 1;
                     }
                 }
             } else {
                 destructuring_vars.push(account.name.clone());
-                total_account_count += 1;
+                fixed_account_count += 1;
             }
         }
 
-        let impl_context = quote! {
-            impl #impl_generics HandlerContext<'_, 'info, 'c> for #name #ty_generics #where_clause {
-                #[inline(always)]
-                fn from_entrypoint(
-                    program_id: &Pubkey,
-                    accounts: &mut &'info [AccountInfo],
-                    instruction_data: &mut &'c [u8],
-                ) -> ProgramResult<Self> {
-                    // SECURITY: Validate that we have enough accounts for all array elements
-                    // This is a runtime check to ensure the instruction provides sufficient accounts
-                    let expected_accounts = #total_account_count;
-                    if accounts.len() < expected_accounts {
-                        return Err(ProgramError::NotEnoughAccountKeys.into());
-                    }
+        fn generate_const_generic_splitting(
+            const_generic_arrays: &[(Ident, Ident)],
+            fixed_account_count: usize,
+            context: &Context,
+        ) -> proc_macro2::TokenStream {
+            let mut splitting_code = Vec::new();
 
-                    let [#(#destructuring_vars,)* rem @ ..] = accounts else {
+            if fixed_account_count > 0 {
+                let destructuring_vars = (0..fixed_account_count)
+                    .map(|i| Ident::new(&format!("fixed_{}", i), Span::call_site()))
+                    .collect::<Vec<_>>();
+
+                splitting_code.push(quote! {
+                    let [#(#destructuring_vars,)* remaining_accounts @ ..] = accounts else {
                         return Err(ProgramError::NotEnoughAccountKeys.into());
                     };
+                });
+            } else {
+                splitting_code.push(quote! {
+                    let remaining_accounts = accounts;
+                });
+            }
 
-                    #inside
+            // For const generic arrays, create the actual arrays
+            for (array_name, const_param) in const_generic_arrays {
+                // Find the account type and optional flag for this array
+                let (account_ty, is_optional) = context
+                    .accounts
+                    .iter()
+                    .find(|acc| acc.name == *array_name)
+                    .map(|acc| (&acc.ty, acc.is_optional))
+                    .unwrap_or_else(|| panic!("Array account not found: {}", array_name));
 
-                    #(#drop_vars)*
+                let array_creation = if is_optional {
+                    quote! {
+                        let #array_name = core::array::from_fn::<_, #const_param, _>(|i| {
+                            let account_info = &remaining_accounts[i];
+                            if account_info.key() == program_id {
+                                None
+                            } else {
+                                Some(<#account_ty as FromAccountInfo>::try_from_info(account_info).trace_account(stringify!(#array_name)).unwrap())
+                            }
+                        });
+                    }
+                } else {
+                    quote! {
+                        let #array_name = core::array::from_fn::<_, #const_param, _>(|i| {
+                            <#account_ty as FromAccountInfo>::try_from_info(&remaining_accounts[i]).trace_account(stringify!(#array_name)).unwrap()
+                        });
+                    }
+                };
 
-                    *accounts = rem;
+                splitting_code.push(quote! {
+                    if remaining_accounts.len() < #const_param {
+                        return Err(ProgramError::NotEnoughAccountKeys.into());
+                    }
+                    #array_creation
+                    remaining_accounts = &remaining_accounts[#const_param..];
+                });
+            }
 
-                    Ok(#name { #(#struct_fields),* })
+            quote! {
+                #(#splitting_code)*
+            }
+        }
+
+        let impl_context = if has_const_generic_arrays {
+            let account_splitting_code = generate_const_generic_splitting(
+                &const_generic_arrays,
+                fixed_account_count,
+                &self.context,
+            );
+
+            quote! {
+                impl #impl_generics HandlerContext<'_, 'info, 'c> for #name #ty_generics #where_clause {
+                    #[inline(always)]
+                    fn from_entrypoint(
+                        program_id: &Pubkey,
+                        accounts: &mut &'info [AccountInfo],
+                        instruction_data: &mut &'c [u8],
+                    ) -> ProgramResult<Self> {
+                        let min_accounts = #fixed_account_count;
+                        if accounts.len() < min_accounts {
+                            return Err(ProgramError::NotEnoughAccountKeys.into());
+                        }
+
+                        #account_splitting_code
+
+                        #inside
+
+                        #(#drop_vars)*
+
+                        Ok(#name { #(#struct_fields),* })
+                    }
+                }
+            }
+        } else {
+            quote! {
+                impl #impl_generics HandlerContext<'_, 'info, 'c> for #name #ty_generics #where_clause {
+                    #[inline(always)]
+                    fn from_entrypoint(
+                        program_id: &Pubkey,
+                        accounts: &mut &'info [AccountInfo],
+                        instruction_data: &mut &'c [u8],
+                    ) -> ProgramResult<Self> {
+                        let expected_accounts = #fixed_account_count;
+                        if accounts.len() < expected_accounts {
+                            return Err(ProgramError::NotEnoughAccountKeys.into());
+                        }
+
+                        let [#(#destructuring_vars,)* rem @ ..] = accounts else {
+                            return Err(ProgramError::NotEnoughAccountKeys.into());
+                        };
+
+                        #inside
+
+                        #(#drop_vars)*
+
+                        *accounts = rem;
+
+                        Ok(#name { #(#struct_fields),* })
+                    }
                 }
             }
         };

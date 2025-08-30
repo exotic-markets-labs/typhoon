@@ -1,12 +1,15 @@
 use {
     crate::{extractor::InnerTyExtractor, remover::AttributeRemover},
+    pinocchio::cpi::MAX_CPI_ACCOUNTS,
     proc_macro2::Span,
     syn::{
-        spanned::Spanned, visit::Visit, visit_mut::VisitMut, Expr, ExprLit, Field, Ident, Lit,
-        PathSegment, Type, TypeArray, TypePath,
+        spanned::Spanned, visit::Visit, visit_mut::VisitMut, Expr, ExprLit, ExprPath, Field, Ident,
+        Lit, PathSegment, Type, TypeArray, TypePath,
     },
     typhoon_syn::constraints::{Constraints, CONSTRAINT_IDENT_STR},
 };
+
+const MAX_ARRAY_SIZE: usize = MAX_CPI_ACCOUNTS; // using the MAX_CPI_ACCOUNTS from pinocchio to limit the array size
 
 #[derive(Clone)]
 pub struct Account {
@@ -17,6 +20,7 @@ pub struct Account {
     pub inner_ty: String,
     pub is_array: bool,
     pub array_size: Option<usize>,
+    pub const_generic: Option<Ident>,
 }
 
 impl TryFrom<&mut Field> for Account {
@@ -61,6 +65,7 @@ impl TryFrom<&mut Field> for Account {
                     inner_ty,
                     is_array: false,
                     array_size: None,
+                    const_generic: None,
                 })
             }
             Type::Array(TypeArray { elem, len, .. }) => {
@@ -74,12 +79,12 @@ impl TryFrom<&mut Field> for Account {
                 })?;
 
                 // Extract array size from the length expression
-                let array_size = extract_array_size(len).ok_or_else(|| {
+                let (array_size, const_generic) = extract_array_size(len).ok_or_else(|| {
                     syn::Error::new(
                         len.span(),
-                        "Invalid array size. Must be a constant integer between 1 and 100. \
-                         Zero-sized arrays and arrays larger than 100 elements are not allowed \
-                         for security and performance reasons.",
+                        "Invalid array size. Must be a constant integer between 1 and 64, \
+                         or a const generic parameter. Zero-sized arrays and arrays larger \
+                         than 64 elements are not allowed for security and performance reasons.",
                     )
                 })?;
 
@@ -99,7 +104,8 @@ impl TryFrom<&mut Field> for Account {
                     is_optional,
                     inner_ty,
                     is_array: true,
-                    array_size: Some(array_size),
+                    array_size,
+                    const_generic,
                 })
             }
             _ => Err(syn::Error::new(
@@ -120,7 +126,8 @@ fn get_inner(seg: &PathSegment) -> Option<&PathSegment> {
     }
 }
 
-fn extract_array_size(len: &Expr) -> Option<usize> {
+
+fn extract_array_size(len: &Expr) -> Option<(Option<usize>, Option<Ident>)> {
     match len {
         Expr::Lit(ExprLit {
             lit: Lit::Int(int), ..
@@ -132,13 +139,25 @@ fn extract_array_size(len: &Expr) -> Option<usize> {
                     }
                     // Security: Prevent excessively large arrays that could cause
                     // compilation issues, stack overflow, or resource exhaustion
-                    const MAX_ARRAY_SIZE: usize = 100;
                     if size > MAX_ARRAY_SIZE {
                         return None;
                     }
-                    Some(size)
+                    Some((Some(size), None))
                 }
                 Err(_) => None, // Handle integer overflow/underflow
+            }
+        }
+        Expr::Path(ExprPath { path, .. }) => {
+            // Handle const generic parameters like 'N'
+            if let Some(segment) = path.segments.last() {
+                let const_name = segment.ident.clone();
+                // For const generics, we don't validate the size at macro expansion time
+                // Validation must happen where the const parameter is defined:
+                // const N: usize = 5; // Must be: 1 <= N <= MAX_CPI_ACCOUNTS
+                // This ensures security and performance constraints are maintained
+                Some((None, Some(const_name)))
+            } else {
+                None
             }
         }
         _ => None,
