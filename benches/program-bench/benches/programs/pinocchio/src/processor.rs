@@ -85,6 +85,6 @@ pub fn process_transfer(instruction_data: &[u8], accounts: &[AccountInfo]) -> Pr
 }
 
 #[inline(always)]
-pub fn process_unchecked_accounts(accounts: &[AccountInfo]) -> ProgramResult {
+pub fn process_unchecked_accounts(_accounts: &[AccountInfo]) -> ProgramResult {
     Ok(())
 }

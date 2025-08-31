@@ -1,5 +1,8 @@
 use {
-    crate::{Discriminator, FromAccountInfo, FromRaw, Owner, ReadableAccount, RefFromBytes},
+    crate::{
+        utils::fast_32_byte_eq, Discriminator, FromAccountInfo, FromRaw, Owner, ReadableAccount,
+        RefFromBytes,
+    },
     core::marker::PhantomData,
     pinocchio::{
         account_info::{AccountInfo, Ref},
@@ -22,12 +25,14 @@ where
 {
     #[inline(always)]
     fn try_from_info(info: &'a AccountInfo) -> Result<Self, Error> {
-        if info.is_owned_by(&pinocchio_system::ID) && *info.try_borrow_lamports()? == 0 {
+        if fast_32_byte_eq(info.owner(), &pinocchio_system::ID) && *info.try_borrow_lamports()? == 0
+        {
             return Err(ProgramError::UninitializedAccount.into());
         }
 
-        // owner check with compile-time constant
-        Self::validate_owner(info)?;
+        if !fast_32_byte_eq(info.owner(), &T::OWNER) {
+            return Err(ErrorCode::AccountOwnedByWrongProgram.into());
+        }
 
         let account_data = info.try_borrow_data()?;
 
@@ -43,22 +48,6 @@ where
             info,
             _phantom: PhantomData,
         })
-    }
-}
-
-impl<'a, T> Account<'a, T>
-where
-    T: Owner + Discriminator + RefFromBytes,
-{
-    /// owner validation using compile-time constants
-    /// This function is inlined and the compiler can optimize the check since T::OWNER is known at compile time
-    #[inline(always)]
-    fn validate_owner(info: &AccountInfo) -> Result<(), Error> {
-        // The compiler can optimize this check since T::OWNER is a compile-time constant
-        if !info.is_owned_by(&T::OWNER) {
-            return Err(ErrorCode::AccountOwnedByWrongProgram.into());
-        }
-        Ok(())
     }
 }
 
