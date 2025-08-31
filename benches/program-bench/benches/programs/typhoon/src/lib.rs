@@ -38,7 +38,7 @@ fn transfer(Arg(amount): Arg<[u8; 8]>, ctx: TransferContext) -> ProgramResult {
         .transfer(&ctx.account, u64::from_le_bytes(*amount))
 }
 
-fn unchecked_accounts(ctx: UncheckedAccountsContext) -> ProgramResult {
+fn unchecked_accounts(_ctx: UncheckedAccountsContext) -> ProgramResult {
     Ok(())
 }
 

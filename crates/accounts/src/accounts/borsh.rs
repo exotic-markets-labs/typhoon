@@ -1,6 +1,9 @@
 use {
     super::Mut,
-    crate::{Discriminator, FromAccountInfo, Owner, ReadableAccount, WritableAccount},
+    crate::{
+        utils::fast_32_byte_eq, Discriminator, FromAccountInfo, Owner, ReadableAccount,
+        WritableAccount,
+    },
     core::cell::RefCell,
     pinocchio::{account_info::AccountInfo, program_error::ProgramError},
     typhoon_errors::{Error, ErrorCode},
@@ -20,11 +23,12 @@ where
 {
     #[inline(always)]
     fn try_from_info(info: &'a AccountInfo) -> Result<Self, Error> {
-        if info.is_owned_by(&pinocchio_system::ID) && *info.try_borrow_lamports()? == 0 {
+        if fast_32_byte_eq(info.owner(), &pinocchio_system::ID) && *info.try_borrow_lamports()? == 0
+        {
             return Err(ProgramError::UninitializedAccount.into());
         }
 
-        if !info.is_owned_by(&T::OWNER) {
+        if !fast_32_byte_eq(info.owner(), &T::OWNER) {
             return Err(ErrorCode::AccountOwnedByWrongProgram.into());
         }
 
