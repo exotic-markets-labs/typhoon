@@ -12,6 +12,7 @@ name = "bench"
 harness = false
 
 [dependencies]
+sha2 = "0.10.9"
 litesvm = "0.6.1"
 serde = "1.0"
 solana-hash = "2.2.1"
