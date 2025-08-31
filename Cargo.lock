@@ -2209,6 +2209,7 @@ dependencies = [
  "litesvm",
  "serde",
  "serde_json",
+ "sha2 0.10.9",
  "solana-hash",
  "solana-instruction",
  "solana-keypair",
