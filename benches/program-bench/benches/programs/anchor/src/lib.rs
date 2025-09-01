@@ -42,6 +42,11 @@ pub mod lever {
     pub fn unchecked_accounts(_ctx: Context<UncheckedAccounts>) -> Result<()> {
         Ok(())
     }
+
+    #[instruction(discriminator = [5])]
+    pub fn accounts(_ctx: Context<AccountsC>) -> Result<()> {
+        Ok(())
+    }
 }
 
 #[derive(Accounts)]
@@ -81,6 +86,20 @@ pub struct UncheckedAccounts<'info> {
     pub account8: UncheckedAccount<'info>,
     pub account9: UncheckedAccount<'info>,
     pub account10: UncheckedAccount<'info>,
+}
+
+#[derive(Accounts)]
+pub struct AccountsC<'info> {
+    pub account1: AccountLoader<'info, Data>,
+    pub account2: AccountLoader<'info, Data>,
+    pub account3: AccountLoader<'info, Data>,
+    pub account4: AccountLoader<'info, Data>,
+    pub account5: AccountLoader<'info, Data>,
+    pub account6: AccountLoader<'info, Data>,
+    pub account7: AccountLoader<'info, Data>,
+    pub account8: AccountLoader<'info, Data>,
+    pub account9: AccountLoader<'info, Data>,
+    pub account10: AccountLoader<'info, Data>,
 }
 
 #[account(zero_copy)]

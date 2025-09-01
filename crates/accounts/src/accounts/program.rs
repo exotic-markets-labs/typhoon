@@ -1,5 +1,5 @@
 use {
-    crate::{FromAccountInfo, ProgramId, ReadableAccount},
+    crate::{utils::fast_32_byte_eq, FromAccountInfo, ProgramId, ReadableAccount},
     core::marker::PhantomData,
     pinocchio::{
         account_info::{AccountInfo, Ref},
@@ -21,10 +21,12 @@ impl<'a, T> FromAccountInfo<'a> for Program<'a, T>
 where
     T: ProgramId,
 {
-    #[inline(always)]
+    #[inline]
     fn try_from_info(info: &'a AccountInfo) -> Result<Self, Error> {
-        // program ID check with compile-time constant
-        Self::validate_program_id(info)?;
+        // Optimized program ID check using fast memory comparison
+        if !fast_32_byte_eq(info.key(), &T::ID) {
+            return Err(ProgramError::IncorrectProgramId.into());
+        }
 
         if !info.executable() {
             return Err(ErrorCode::AccountOwnedByWrongProgram.into());
@@ -34,22 +36,6 @@ where
             info,
             _phantom: PhantomData,
         })
-    }
-}
-
-impl<'a, T> Program<'a, T>
-where
-    T: ProgramId,
-{
-    /// program ID validation using compile-time constants
-    /// This function is inlined and the compiler can optimize the check since T::ID is known at compile time
-    #[inline(always)]
-    fn validate_program_id(info: &AccountInfo) -> Result<(), Error> {
-        // The compiler can optimize this check since T::ID is a compile-time constant
-        if info.key() != &T::ID {
-            return Err(ProgramError::IncorrectProgramId.into());
-        }
-        Ok(())
     }
 }
 

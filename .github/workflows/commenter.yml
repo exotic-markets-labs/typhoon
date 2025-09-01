@@ -42,7 +42,7 @@ jobs:
               return;
             }
 
-            const body = `## 📊 Benchmark Results\n\n${benchmarkContent}\n\n<details>\n<summary>ℹ️ Benchmark Details</summary>\n\nThis benchmark compares the performance of three Solana program frameworks:\n- pinocchio: Minimal framework with direct syscall usage\n- anchor: Popular framework with many features\n- typhoon: This framework\n\nMetrics:\n- CU Consumed: Compute Units used by each instruction\n- Binary Size: Size of the compiled program binary\n\n</details>\n\nBenchmarks run on commit \`${context.payload.workflow_run.head_sha.slice(0, 7)}\``;
+            const body = `## 📊 Benchmark Results\n\n${benchmarkContent}\n\n<details>\n<summary>ℹ️ Benchmark Details</summary>\n\nMetrics:\n- CU Consumed: Compute Units used by each instruction\n- Binary Size: Size of the compiled program binary\n\n</details>\n\nBenchmarks run on commit \`${context.payload.workflow_run.head_sha.slice(0, 7)}\``;
 
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,

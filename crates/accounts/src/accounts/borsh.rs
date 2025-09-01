@@ -1,8 +1,8 @@
 use {
     super::Mut,
     crate::{
-        discriminator_matches, internal::unlikely, Discriminator, FromAccountInfo, Owner,
-        ReadableAccount, WritableAccount,
+        discriminator_matches, internal::unlikely, utils::fast_32_byte_eq, Discriminator,
+        FromAccountInfo, Owner, ReadableAccount, WritableAccount,
     },
     core::cell::RefCell,
     pinocchio::{account_info::AccountInfo, program_error::ProgramError},
@@ -23,23 +23,6 @@ where
 {
     #[inline(always)]
     fn try_from_info(info: &'a AccountInfo) -> Result<Self, Error> {
-        // Validate account and deserialize in a single pass
-        let state = Self::validate_and_deserialize_fast_path(info)?;
-
-        Ok(BorshAccount {
-            info,
-            data: RefCell::new(state),
-        })
-    }
-}
-
-impl<'a, T> BorshAccount<'a, T>
-where
-    T: Owner + Discriminator + borsh::BorshSerialize + borsh::BorshDeserialize,
-{
-    /// Fast-path borsh account validation and deserialization with optimized branch prediction.
-    #[inline(always)]
-    fn validate_and_deserialize_fast_path(info: &AccountInfo) -> Result<T, Error> {
         // Borrow account data once for all validation checks and deserialization
         let account_data = info.try_borrow_data()?;
 
@@ -57,12 +40,12 @@ where
         }
 
         // Verify account ownership - checked after discriminator for better branch prediction
-        if unlikely(!info.is_owned_by(&T::OWNER)) {
+        if unlikely(!fast_32_byte_eq(info.owner(), &T::OWNER)) {
             return Err(ErrorCode::AccountOwnedByWrongProgram.into());
         }
 
         // Handle special case: zero-lamport system accounts (least common case)
-        if unlikely(info.is_owned_by(&pinocchio_system::ID)) {
+        if unlikely(fast_32_byte_eq(info.owner(), &pinocchio_system::ID)) {
             // Only perform additional lamports check for system accounts
             if *info.try_borrow_lamports()? == 0 {
                 return Err(ProgramError::UninitializedAccount.into());
@@ -72,7 +55,10 @@ where
         // Deserialize the state data (this is the most expensive operation, done last)
         let state = T::deserialize(&mut data).map_err(|_| ProgramError::BorshIoError)?;
 
-        Ok(state)
+        Ok(BorshAccount {
+            info,
+            data: RefCell::new(state),
+        })
     }
 }
 

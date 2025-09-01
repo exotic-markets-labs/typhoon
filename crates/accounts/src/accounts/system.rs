@@ -1,5 +1,5 @@
 use {
-    crate::{FromAccountInfo, ReadableAccount},
+    crate::{utils::fast_32_byte_eq, FromAccountInfo, ReadableAccount},
     pinocchio::account_info::{AccountInfo, Ref},
     typhoon_errors::{Error, ErrorCode},
 };
@@ -11,7 +11,7 @@ pub struct SystemAccount<'a> {
 impl<'a> FromAccountInfo<'a> for SystemAccount<'a> {
     #[inline(always)]
     fn try_from_info(info: &'a AccountInfo) -> Result<Self, Error> {
-        if !info.is_owned_by(&pinocchio_system::ID) {
+        if !fast_32_byte_eq(info.owner(), &pinocchio_system::ID) {
             return Err(ErrorCode::AccountOwnedByWrongProgram.into());
         }
 

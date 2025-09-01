@@ -7,4 +7,5 @@ pub enum Instruction {
     CreateAccount = 2,
     Transfer = 3,
     UncheckedAccount = 4,
+    Accounts = 5
 }
