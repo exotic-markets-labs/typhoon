@@ -1,7 +1,7 @@
 use {
     crate::{
-        utils::fast_32_byte_eq, Discriminator, FromAccountInfo, FromRaw, Owner, ReadableAccount,
-        RefFromBytes,
+        discriminator_matches, internal::unlikely, utils::fast_32_byte_eq, Discriminator,
+        FromAccountInfo, FromRaw, Owner, ReadableAccount, RefFromBytes,
     },
     core::marker::PhantomData,
     pinocchio::{
@@ -25,23 +25,29 @@ where
 {
     #[inline(always)]
     fn try_from_info(info: &'a AccountInfo) -> Result<Self, Error> {
-        if fast_32_byte_eq(info.owner(), &pinocchio_system::ID) && *info.try_borrow_lamports()? == 0
-        {
-            return Err(ProgramError::UninitializedAccount.into());
-        }
-
-        if !fast_32_byte_eq(info.owner(), &T::OWNER) {
-            return Err(ErrorCode::AccountOwnedByWrongProgram.into());
-        }
-
         let account_data = info.try_borrow_data()?;
 
-        if account_data.len() < T::DISCRIMINATOR.len() {
+        // Check data length first - this is the cheapest check and most likely to fail
+        if unlikely(account_data.len() < T::DISCRIMINATOR.len()) {
             return Err(ProgramError::AccountDataTooSmall.into());
         }
 
-        if T::DISCRIMINATOR != &account_data[..T::DISCRIMINATOR.len()] {
+        // Validate discriminator using optimized comparison for small discriminators
+        if unlikely(!discriminator_matches::<T>(&account_data)) {
             return Err(ErrorCode::AccountDiscriminatorMismatch.into());
+        }
+
+        // Verify account ownership - checked after discriminator for better branch prediction
+        if unlikely(!fast_32_byte_eq(info.owner(), &T::OWNER)) {
+            return Err(ErrorCode::AccountOwnedByWrongProgram.into());
+        }
+
+        // Handle special case: zero-lamport system accounts (least common case)
+        if unlikely(fast_32_byte_eq(info.owner(), &pinocchio_system::ID)) {
+            // Only perform additional lamports check for system accounts
+            if *info.try_borrow_lamports()? == 0 {
+                return Err(ProgramError::UninitializedAccount.into());
+            }
         }
 
         Ok(Account {

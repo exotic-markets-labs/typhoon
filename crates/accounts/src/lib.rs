@@ -1,6 +1,6 @@
 #![no_std]
 
-pub use {accounts::*, programs::*};
+pub use {accounts::*, discriminator::*, programs::*};
 use {
     bytemuck::{AnyBitPattern, NoUninit},
     pinocchio::{
@@ -12,6 +12,8 @@ use {
 };
 
 mod accounts;
+mod discriminator;
+mod internal;
 mod programs;
 mod utils;
 

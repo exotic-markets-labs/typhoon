@@ -1,8 +1,8 @@
 use {
     super::Mut,
     crate::{
-        utils::fast_32_byte_eq, Discriminator, FromAccountInfo, Owner, ReadableAccount,
-        WritableAccount,
+        discriminator_matches, internal::unlikely, utils::fast_32_byte_eq, Discriminator,
+        FromAccountInfo, Owner, ReadableAccount, WritableAccount,
     },
     core::cell::RefCell,
     pinocchio::{account_info::AccountInfo, program_error::ProgramError},
@@ -23,27 +23,36 @@ where
 {
     #[inline(always)]
     fn try_from_info(info: &'a AccountInfo) -> Result<Self, Error> {
-        if fast_32_byte_eq(info.owner(), &pinocchio_system::ID) && *info.try_borrow_lamports()? == 0
-        {
-            return Err(ProgramError::UninitializedAccount.into());
-        }
-
-        if !fast_32_byte_eq(info.owner(), &T::OWNER) {
-            return Err(ErrorCode::AccountOwnedByWrongProgram.into());
-        }
-
+        // Borrow account data once for all validation checks and deserialization
         let account_data = info.try_borrow_data()?;
 
-        if account_data.len() < T::DISCRIMINATOR.len() {
+        // Check data length first - this is the cheapest check and most likely to fail
+        if unlikely(account_data.len() < T::DISCRIMINATOR.len()) {
             return Err(ProgramError::AccountDataTooSmall.into());
         }
 
+        // Split data once for validation and deserialization
         let (discriminator, mut data) = account_data.split_at(T::DISCRIMINATOR.len());
 
-        if T::DISCRIMINATOR != discriminator {
+        // Validate discriminator using optimized comparison for small discriminators
+        if unlikely(!discriminator_matches::<T>(discriminator)) {
             return Err(ErrorCode::AccountDiscriminatorMismatch.into());
         }
 
+        // Verify account ownership - checked after discriminator for better branch prediction
+        if unlikely(!fast_32_byte_eq(info.owner(), &T::OWNER)) {
+            return Err(ErrorCode::AccountOwnedByWrongProgram.into());
+        }
+
+        // Handle special case: zero-lamport system accounts (least common case)
+        if unlikely(fast_32_byte_eq(info.owner(), &pinocchio_system::ID)) {
+            // Only perform additional lamports check for system accounts
+            if *info.try_borrow_lamports()? == 0 {
+                return Err(ProgramError::UninitializedAccount.into());
+            }
+        }
+
+        // Deserialize the state data (this is the most expensive operation, done last)
         let state = T::deserialize(&mut data).map_err(|_| ProgramError::BorshIoError)?;
 
         Ok(BorshAccount {
