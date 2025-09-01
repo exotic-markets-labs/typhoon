@@ -15,6 +15,7 @@ const IX_NAMES: &[&str] = &[
     "create_account",
     "transfer",
     "unchecked_accounts",
+    "accounts",
 ];
 
 fn discriminator(name: &str) -> Vec<u8> {
@@ -72,10 +73,10 @@ pub fn runner(name: &str) -> BenchResult {
     );
     bencher.execute_tx(IX_NAMES[1], tx);
 
-    let new_account = Keypair::new();
+    let initialized_account = Keypair::new();
     let account_metas = vec![
         AccountMeta::new(bencher.payer().pubkey(), true),
-        AccountMeta::new(new_account.pubkey(), true),
+        AccountMeta::new(initialized_account.pubkey(), true),
         AccountMeta::new_readonly(solana_system_interface::program::ID, false),
     ];
 
@@ -91,7 +92,7 @@ pub fn runner(name: &str) -> BenchResult {
             data,
         }],
         Some(&bencher.payer().pubkey()),
-        &[bencher.payer(), &new_account],
+        &[bencher.payer(), &initialized_account],
         bencher.hash(),
     );
     bencher.execute_tx(IX_NAMES[2], tx);
@@ -147,6 +148,34 @@ pub fn runner(name: &str) -> BenchResult {
         bencher.hash(),
     );
     bencher.execute_tx(IX_NAMES[4], tx);
+
+    let data = if name == "star_frame" {
+        discriminator("accounts")
+    } else {
+        vec![5]
+    };
+    let tx = Transaction::new_signed_with_payer(
+        &[Instruction {
+            program_id,
+            accounts: vec![
+                AccountMeta::new_readonly(initialized_account.pubkey(), false),
+                AccountMeta::new_readonly(initialized_account.pubkey(), false),
+                AccountMeta::new_readonly(initialized_account.pubkey(), false),
+                AccountMeta::new_readonly(initialized_account.pubkey(), false),
+                AccountMeta::new_readonly(initialized_account.pubkey(), false),
+                AccountMeta::new_readonly(initialized_account.pubkey(), false),
+                AccountMeta::new_readonly(initialized_account.pubkey(), false),
+                AccountMeta::new_readonly(initialized_account.pubkey(), false),
+                AccountMeta::new_readonly(initialized_account.pubkey(), false),
+                AccountMeta::new_readonly(initialized_account.pubkey(), false),
+            ],
+            data,
+        }],
+        Some(&bencher.payer().pubkey()),
+        &[bencher.payer()],
+        bencher.hash(),
+    );
+    bencher.execute_tx(IX_NAMES[5], tx);
 
     bencher.into_metrics()
 }
