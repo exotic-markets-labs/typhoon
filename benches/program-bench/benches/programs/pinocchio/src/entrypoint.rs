@@ -1,6 +1,6 @@
 use {
     crate::processor::{
-        process_create_account, process_log, process_ping, process_transfer,
+        process_accounts, process_create_account, process_log, process_ping, process_transfer,
         process_unchecked_accounts,
     },
     pinocchio::{
@@ -32,6 +32,7 @@ pub fn process_instruction(
         2 => process_create_account(accounts),
         3 => process_transfer(remaining, accounts),
         4 => process_unchecked_accounts(accounts),
+        5 => process_accounts(accounts),
         // Invalid instruction
         _ => Err(ProgramError::InvalidInstructionData),
     }

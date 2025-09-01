@@ -15,7 +15,8 @@ handlers! {
     log,
     create_account,
     transfer,
-    unchecked_accounts
+    unchecked_accounts,
+    accounts_c
 }
 
 fn ping() -> ProgramResult {
@@ -39,6 +40,10 @@ fn transfer(Arg(amount): Arg<[u8; 8]>, ctx: TransferContext) -> ProgramResult {
 }
 
 fn unchecked_accounts(_ctx: UncheckedAccountsContext) -> ProgramResult {
+    Ok(())
+}
+
+fn accounts_c(_ctx: AccountsContext) -> ProgramResult {
     Ok(())
 }
 
@@ -72,6 +77,20 @@ pub struct UncheckedAccountsContext {
     pub account8: UncheckedAccount,
     pub account9: UncheckedAccount,
     pub account10: UncheckedAccount,
+}
+
+#[context]
+pub struct AccountsContext {
+    pub account1: Account<Data>,
+    pub account2: Account<Data>,
+    pub account3: Account<Data>,
+    pub account4: Account<Data>,
+    pub account5: Account<Data>,
+    pub account6: Account<Data>,
+    pub account7: Account<Data>,
+    pub account8: Account<Data>,
+    pub account9: Account<Data>,
+    pub account10: Account<Data>,
 }
 
 #[derive(NoUninit, AnyBitPattern, AccountState, Copy, Clone)]

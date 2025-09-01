@@ -20,11 +20,9 @@ impl Bencher {
     pub fn new(path: impl AsRef<Path>) -> Bencher {
         let mut svm = LiteSVM::new();
         let bytes = std::fs::read(path).unwrap();
+        let program_id = Pubkey::from_str_const("Bench111111111111111111111111111111111111111");
 
-        svm.add_program(
-            Pubkey::from_str_const("Bench111111111111111111111111111111111111111"),
-            &bytes,
-        );
+        svm.add_program(program_id, &bytes).unwrap();
 
         let payer = Keypair::new();
 

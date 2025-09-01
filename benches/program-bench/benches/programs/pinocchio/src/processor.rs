@@ -88,3 +88,17 @@ pub fn process_transfer(instruction_data: &[u8], accounts: &[AccountInfo]) -> Pr
 pub fn process_unchecked_accounts(_accounts: &[AccountInfo]) -> ProgramResult {
     Ok(())
 }
+
+#[inline(always)]
+pub fn process_accounts(accounts: &[AccountInfo]) -> ProgramResult {
+    for account in accounts {
+        if account.owner() != &crate::ID {
+            return Err(ProgramError::InvalidAccountOwner);
+        }
+
+        if account.data_len() < 9 {
+            return Err(ProgramError::InvalidAccountData);
+        }
+    }
+    Ok(())
+}
