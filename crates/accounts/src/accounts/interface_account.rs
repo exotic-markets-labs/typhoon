@@ -25,30 +25,6 @@ where
 {
     #[inline(always)]
     fn try_from_info(info: &'a AccountInfo) -> Result<Self, Error> {
-        // Validate account ownership, discriminator, and data integrity in a single pass
-        Self::validate_interface_account_fast_path(info)?;
-
-        Ok(InterfaceAccount {
-            info,
-            _phantom: PhantomData,
-        })
-    }
-}
-
-impl<'a, T> InterfaceAccount<'a, T>
-where
-    T: Discriminator + RefFromBytes + Owners,
-{
-    /// Fast-path interface account validation with reduced syscalls and optimized branch prediction.
-    ///
-    /// This method combines multiple validation steps to minimize runtime overhead:
-    /// - Single data borrow instead of separate lamports/data borrows
-    /// - Ordered checks from most-likely-to-fail to least-likely-to-fail
-    /// - Branch prediction hints for common failure cases
-    /// - SIMD-optimized discriminator matching for supported architectures (off-chain only)
-    #[inline(always)]
-    fn validate_interface_account_fast_path(info: &AccountInfo) -> Result<(), Error> {
-        // Borrow account data once for all validation checks
         let account_data = info.try_borrow_data()?;
 
         // Check data length first - this is the cheapest check and most likely to fail
@@ -74,7 +50,10 @@ where
             }
         }
 
-        Ok(())
+        Ok(InterfaceAccount {
+            info,
+            _phantom: PhantomData,
+        })
     }
 }
 
