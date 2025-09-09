@@ -8,7 +8,6 @@ publish.workspace = true
 crate-type = ["cdylib", "lib"]
 
 [features]
-default = []
 no_entrypoint = []
 idl = ["star_frame/idl"]
 
