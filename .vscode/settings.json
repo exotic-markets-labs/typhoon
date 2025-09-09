@@ -1,0 +1,10 @@
+{
+  "rust-analyzer.linkedProjects": [
+    "benches/program-bench/benches/programs/pinocchio/Cargo.toml",
+    "benches/program-bench/benches/programs/anchor/Cargo.toml",
+    "benches/program-bench/benches/programs/typhoon/Cargo.toml",
+    "benches/program-bench/benches/programs/star-frame/Cargo.toml",
+    "benches/program-bench/benches/programs/star-frame/Cargo.toml",
+    "benches/program-bench/Cargo.toml"
+  ]
+}

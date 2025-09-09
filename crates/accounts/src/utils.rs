@@ -1,5 +1,6 @@
 #[inline]
-pub fn fast_32_byte_eq(a: &[u8], b: &[u8]) -> bool {
+pub fn fast_32_byte_eq(a: &[u8; 32], b: &[u8; 32]) -> bool {
+    // a == b
     unsafe {
         let a_ptr = a.as_ptr() as *const u64;
         let b_ptr = b.as_ptr() as *const u64;

@@ -39,11 +39,7 @@ pub fn runner(name: &str) -> BenchResult {
 
     let program_id = Pubkey::from_str_const("Bench111111111111111111111111111111111111111");
 
-    let data = if name == "star_frame" {
-        discriminator("ping")
-    } else {
-        vec![0]
-    };
+    let data = vec![0];
     let tx = Transaction::new_signed_with_payer(
         &[Instruction {
             program_id,
@@ -56,11 +52,7 @@ pub fn runner(name: &str) -> BenchResult {
     );
     bencher.execute_tx(IX_NAMES[0], tx);
 
-    let data = if name == "star_frame" {
-        discriminator("log")
-    } else {
-        vec![1]
-    };
+    let data = vec![1];
     let tx = Transaction::new_signed_with_payer(
         &[Instruction {
             program_id,
@@ -80,11 +72,7 @@ pub fn runner(name: &str) -> BenchResult {
         AccountMeta::new_readonly(solana_system_interface::program::ID, false),
     ];
 
-    let data = if name == "star_frame" {
-        discriminator("create_account")
-    } else {
-        vec![2]
-    };
+    let data = vec![2];
     let tx = Transaction::new_signed_with_payer(
         &[Instruction {
             program_id,
@@ -97,13 +85,7 @@ pub fn runner(name: &str) -> BenchResult {
     );
     bencher.execute_tx(IX_NAMES[2], tx);
 
-    let data = if name == "star_frame" {
-        let mut data = discriminator("transfer");
-        data.append(&mut vec![100, 0, 0, 0, 0, 0, 0, 0]);
-        data
-    } else {
-        vec![3, 100, 0, 0, 0, 0, 0, 0, 0]
-    };
+    let data = vec![3, 100, 0, 0, 0, 0, 0, 0, 0];
     let new_account = Keypair::new();
     let tx = Transaction::new_signed_with_payer(
         &[Instruction {
@@ -121,11 +103,7 @@ pub fn runner(name: &str) -> BenchResult {
     );
     bencher.execute_tx(IX_NAMES[3], tx);
 
-    let data = if name == "star_frame" {
-        discriminator("unchecked_accounts")
-    } else {
-        vec![4]
-    };
+    let data = vec![4];
     let tx = Transaction::new_signed_with_payer(
         &[Instruction {
             program_id,
@@ -149,11 +127,7 @@ pub fn runner(name: &str) -> BenchResult {
     );
     bencher.execute_tx(IX_NAMES[4], tx);
 
-    let data = if name == "star_frame" {
-        discriminator("accounts")
-    } else {
-        vec![5]
-    };
+    let data = vec![5];
     let tx = Transaction::new_signed_with_payer(
         &[Instruction {
             program_id,
