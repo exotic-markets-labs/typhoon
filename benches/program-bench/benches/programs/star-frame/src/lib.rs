@@ -8,53 +8,27 @@ use star_frame::prelude::*;
 pub struct CounterProgram;
 
 #[derive(InstructionSet)]
+#[ix_set(use_repr)]
+#[repr(u8)]
 pub enum StarFrameInstructionSet {
-    Ping(Ping),
+    Ping(()),
     Log(Log),
     CreateAccount(CreateAccount),
     Transfer(Transfer),
     UncheckedAccounts(UncheckedAccounts),
     Accounts(Accounts),
 }
-
-#[derive(AccountSet)]
-pub struct Empty;
-
-#[derive(InstructionArgs, BorshDeserialize)]
-pub struct Ping;
-
-impl StarFrameInstruction for Ping {
-    type ReturnType = ();
-    type Accounts<'b, 'c> = Empty;
-
-    fn process(
-        _accounts: &mut Self::Accounts<'_, '_>,
-        _run_arg: Self::RunArg<'_>,
-        _ctx: &mut Context,
-    ) -> Result<Self::ReturnType> {
-        Ok(())
-    }
-}
-
-#[derive(InstructionArgs, BorshDeserialize)]
+#[derive(Debug, InstructionArgs, BorshDeserialize)]
 pub struct Log;
 
-impl StarFrameInstruction for Log {
-    type ReturnType = ();
-    type Accounts<'b, 'c> = ();
-
-    fn process(
-        _accounts: &mut Self::Accounts<'_, '_>,
-        _run_arg: Self::RunArg<'_>,
-        _ctx: &mut Context,
-    ) -> Result<Self::ReturnType> {
-        msg!("Instruction: Log");
-        Ok(())
-    }
+#[star_frame_instruction]
+fn Log(_accounts: &mut ()) -> Result<()> {
+    msg!("Instruction: Log");
+    Ok(())
 }
 
-#[derive(Copy, Clone, ProgramAccount, CheckedBitPattern, NoUninit, Align1, Zeroable, Debug)]
-#[repr(C)]
+#[zero_copy(pod, skip_packed)]
+#[derive(ProgramAccount, Debug)]
 pub struct Data {
     pub byte: u8,
 }
@@ -64,61 +38,43 @@ pub struct CreateAccount;
 
 #[derive(AccountSet)]
 pub struct CreateAccountAccounts {
-    #[validate(funder)]
-    pub authority: Signer<Mut<SystemAccount>>,
-    #[validate(arg = Create(()))]
+    pub authority: Mut<Signer>,
+    #[validate(arg = Create((&self.authority,)))]
     pub counter: Init<Signer<Account<Data>>>,
     pub system_program: Program<System>,
 }
 
-impl StarFrameInstruction for CreateAccount {
-    type ReturnType = ();
-    type Accounts<'b, 'c> = CreateAccountAccounts;
-
-    fn process(
-        accounts: &mut Self::Accounts<'_, '_>,
-        _args: Self::RunArg<'_>,
-        _ctx: &mut Context,
-    ) -> Result<Self::ReturnType> {
-        accounts.counter.data_mut()?.byte = 1;
-        Ok(())
-    }
+#[star_frame_instruction]
+fn CreateAccount(accounts: &mut CreateAccountAccounts) -> Result<()> {
+    accounts.counter.data_mut()?.byte = 1;
+    Ok(())
 }
 
 #[derive(AccountSet)]
 pub struct TransferAccounts {
-    #[validate(funder)]
-    pub admin: Signer<Mut<SystemAccount>>,
+    pub admin: Mut<Signer>,
     pub account: Mut<SystemAccount>,
     pub system_program: Program<System>,
 }
 
 #[derive(InstructionArgs, BorshDeserialize)]
 pub struct Transfer {
-    #[ix_args(&run)]
+    #[ix_args(run)]
     amount: u64,
 }
 
-impl StarFrameInstruction for Transfer {
-    type ReturnType = ();
-    type Accounts<'b, 'c> = TransferAccounts;
-
-    fn process(
-        accounts: &mut Self::Accounts<'_, '_>,
-        amount: &u64,
-        ctx: &mut Context,
-    ) -> Result<Self::ReturnType> {
-        System::cpi(
-            &star_frame::program::system::Transfer { lamports: *amount },
-            star_frame::program::system::TransferCpiAccounts {
-                funder: ***accounts.admin,
-                recipient: **accounts.account,
-            },
-            ctx,
-        )?
-        .invoke()?;
-        Ok(())
-    }
+#[star_frame_instruction]
+fn Transfer(accounts: &mut TransferAccounts, lamports: u64) -> Result<()> {
+    System::cpi(
+        star_frame::program::system::Transfer { lamports },
+        star_frame::program::system::TransferCpiAccounts {
+            funder: *accounts.admin.account_info(),
+            recipient: *accounts.account.account_info(),
+        },
+        None,
+    )
+    .invoke()?;
+    Ok(())
 }
 
 #[derive(AccountSet)]
@@ -138,17 +94,9 @@ pub struct UncheckedAccountsAccounts {
 #[derive(InstructionArgs, BorshDeserialize)]
 pub struct UncheckedAccounts;
 
-impl StarFrameInstruction for UncheckedAccounts {
-    type ReturnType = ();
-    type Accounts<'b, 'c> = UncheckedAccountsAccounts;
-
-    fn process(
-        _accounts: &mut Self::Accounts<'_, '_>,
-        _amount: Self::RunArg<'_>,
-        _ctx: &mut Context,
-    ) -> Result<Self::ReturnType> {
-        Ok(())
-    }
+#[star_frame_instruction]
+fn UncheckedAccounts(_accounts: &mut UncheckedAccountsAccounts) -> Result<()> {
+    Ok(())
 }
 
 #[derive(AccountSet)]
@@ -168,15 +116,7 @@ pub struct AccountsAccounts {
 #[derive(InstructionArgs, BorshDeserialize)]
 pub struct Accounts;
 
-impl StarFrameInstruction for Accounts {
-    type ReturnType = ();
-    type Accounts<'b, 'c> = AccountsAccounts;
-
-    fn process(
-        _accounts: &mut Self::Accounts<'_, '_>,
-        _amount: Self::RunArg<'_>,
-        _ctx: &mut Context,
-    ) -> Result<Self::ReturnType> {
-        Ok(())
-    }
+#[star_frame_instruction]
+fn Accounts(_accounts: &mut AccountsAccounts) -> Result<()> {
+    Ok(())
 }
