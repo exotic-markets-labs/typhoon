@@ -73,6 +73,15 @@ impl From<Error> for ProgramError {
     }
 }
 
+impl core::fmt::Debug for Error {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("Error")
+            .field("error", &self.error)
+            .field("account_name", &self.account_name)
+            .finish()
+    }
+}
+
 #[macro_export]
 macro_rules! impl_error_logger {
     ($error:ident) => {
