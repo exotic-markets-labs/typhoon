@@ -5,13 +5,13 @@ edition.workspace = true
 publish.workspace = true
 
 [lib]
-crate-type = ["cdylib", "lib"]
+crate-type = ["cdylib"]
 
 [features]
 no_entrypoint = []
 idl = ["star_frame/idl"]
 
 [dependencies]
+star_frame = { version = "0.25.1", features = ["aggressive_inline"] }
 borsh = "1.5"
 bytemuck = "1.23"
-star_frame = "0.23.1"

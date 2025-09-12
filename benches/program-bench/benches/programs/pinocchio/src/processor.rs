@@ -1,4 +1,5 @@
 use {
+    core::ptr,
     pinocchio::{
         account_info::AccountInfo,
         msg,
@@ -8,6 +9,8 @@ use {
     },
     pinocchio_system::instructions::{Allocate, Assign, CreateAccount, Transfer},
 };
+
+const ACCOUNT_DISCRIMINATOR: [u8; 8] = [206, 156, 59, 188, 18, 79, 240, 232];
 
 #[inline(always)]
 pub fn process_ping() -> ProgramResult {
@@ -65,6 +68,7 @@ pub fn process_create_account(accounts: &[AccountInfo]) -> ProgramResult {
         .invoke()?;
     }
     let mut data = to.try_borrow_mut_data()?;
+    data[0..8].copy_from_slice(&ACCOUNT_DISCRIMINATOR);
     data[8] = 1;
 
     Ok(())
@@ -97,6 +101,11 @@ pub fn process_accounts(accounts: &[AccountInfo]) -> ProgramResult {
         }
 
         if account.data_len() < 9 {
+            return Err(ProgramError::InvalidAccountData);
+        }
+        if unsafe { ptr::read_unaligned::<u64>(account.data_ptr() as *const u64) }
+            != u64::from_le_bytes(ACCOUNT_DISCRIMINATOR)
+        {
             return Err(ProgramError::InvalidAccountData);
         }
     }

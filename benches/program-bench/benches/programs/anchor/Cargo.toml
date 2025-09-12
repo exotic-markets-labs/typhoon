@@ -5,7 +5,7 @@ edition.workspace = true
 publish.workspace = true
 
 [lib]
-crate-type = ["cdylib", "lib"]
+crate-type = ["cdylib"]
 
 [features]
 default = []
@@ -19,9 +19,7 @@ custom-heap = []
 custom-panic = []
 
 [lints.rust]
-unexpected_cfgs = { level = "warn", check-cfg = [
-    'cfg(target_os, values("solana"))',
-] }
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }
 
 [dependencies]
 anchor-lang = "0.31.1"

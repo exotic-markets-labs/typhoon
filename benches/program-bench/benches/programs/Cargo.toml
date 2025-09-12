@@ -5,3 +5,7 @@ resolver = "2"
 [workspace.package]
 edition = "2021"
 publish = false
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
