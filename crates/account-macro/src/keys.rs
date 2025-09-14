@@ -78,6 +78,14 @@ impl PrimaryKeys {
                 pub fn derive_with_bump<'a>(#parameters_list_with_lifetime, bump: &'a [u8]) -> [instruction::Seed<'a>; #n_seeds_with_bump] {
                     seeds!(Self::BASE_SEED, #seeds, bump)
                 }
+
+                pub fn pda<'a>(&'a self) -> (Pubkey, u8) {
+                    find_program_address(&[Self::BASE_SEED, #self_seeds], &crate::ID)
+                }
+
+                pub fn pda_from_keys<'a>(#parameters_list_with_lifetime) -> (Pubkey, u8) {
+                    find_program_address(&[Self::BASE_SEED, #seeds], &crate::ID)
+                }
             }
         }
     }
