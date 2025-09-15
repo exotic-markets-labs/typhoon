@@ -4,14 +4,15 @@ use {
         process_unchecked_accounts,
     },
     pinocchio::{
-        account_info::AccountInfo, entrypoint, nostd_panic_handler, program_error::ProgramError,
-        pubkey::Pubkey, ProgramResult,
+        account_info::AccountInfo, no_allocator, nostd_panic_handler, program_entrypoint,
+        program_error::ProgramError, pubkey::Pubkey, ProgramResult,
     },
 };
 
 nostd_panic_handler!();
+no_allocator!();
 
-entrypoint!(process_instruction);
+program_entrypoint!(process_instruction);
 
 #[inline(always)]
 pub fn process_instruction(

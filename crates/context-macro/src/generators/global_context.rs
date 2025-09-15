@@ -3,9 +3,9 @@ use {
         generators::account::{AccountGenerator, AccountType, InitContext, PdaContext},
         ParsingContext,
     },
-    hashbrown::HashSet,
     proc_macro2::TokenStream,
     quote::{format_ident, quote},
+    std::collections::HashSet,
     syn::{parse_quote, Ident, ItemStruct},
     typhoon_syn::{
         account_meta::AccountMeta,
