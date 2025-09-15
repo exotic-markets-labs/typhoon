@@ -33,8 +33,14 @@ where
 
         // Set discriminator
         {
-            let mut data = self.try_borrow_mut_data()?;
-            data[..T::DISCRIMINATOR.len()].copy_from_slice(T::DISCRIMINATOR);
+            let data = self.data_ptr();
+            unsafe {
+                core::ptr::copy_nonoverlapping(
+                    T::DISCRIMINATOR.as_ptr(),
+                    data,
+                    T::DISCRIMINATOR.len(),
+                );
+            }
         }
 
         Ok(Mut::from_raw_info(self))

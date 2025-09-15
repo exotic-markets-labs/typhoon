@@ -53,7 +53,7 @@ pub struct InitContext {
         init_if_needed,
         payer = payer,
         seeded = [payer.key()],
-        bump = counter_data.data()?.bump
+        bump = counter_data.data()?.bump,
         has_one = payer
     )]
     pub counter_data: Mut<Account<CounterData>>,

@@ -25,6 +25,7 @@ codama-korok-plugins = "0.5"
 codama-korok-visitors = "0.5"
 codama-stores = "0.5"
 codama-syn-helpers = "0.5"
+hashbrown = "0.16"
 trybuild = "1.0"
 typhoon = { version = "0.1.0-alpha.15", path = "crates/lib" }
 typhoon-accounts = { version = "0.1.0-alpha.15", path = "crates/accounts" }
