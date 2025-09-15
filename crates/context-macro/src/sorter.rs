@@ -1,5 +1,5 @@
 use {
-    crate::{accounts::Account, context::Context, visitor::ContextVisitor},
+    crate::{accounts::Account, context::ParsingContext, visitor::ContextVisitor},
     std::collections::HashMap,
     typhoon_syn::constraints::{
         ConstraintAssociatedToken, ConstraintBump, ConstraintHasOne, ConstraintPayer,
@@ -7,7 +7,7 @@ use {
     },
 };
 
-struct DependencyLinker {
+pub struct DependencyLinker {
     dependencies: Vec<String>,
 }
 
@@ -68,7 +68,7 @@ impl ContextVisitor for DependencyLinker {
     }
 }
 
-pub fn sort_accounts(context: &mut Context) -> Result<(), syn::Error> {
+pub fn sort_accounts(context: &mut ParsingContext) -> Result<(), syn::Error> {
     let account_dependencies = context
         .accounts
         .iter()

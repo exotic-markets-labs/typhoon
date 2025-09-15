@@ -4,13 +4,13 @@ use {
     typhoon_syn::arguments::Arguments,
 };
 
-pub struct Context {
+pub struct ParsingContext {
     pub item_struct: ItemStruct,
     pub accounts: Vec<Account>,
     pub args: Option<Arguments>,
 }
 
-impl Parse for Context {
+impl Parse for ParsingContext {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let mut item: Item = input.parse()?;
         LifetimeInjector.visit_item_mut(&mut item);
@@ -32,7 +32,7 @@ impl Parse for Context {
                     .map(Account::try_from)
                     .collect::<Result<Vec<Account>, syn::Error>>()?;
 
-                Ok(Context {
+                Ok(ParsingContext {
                     item_struct,
                     accounts,
                     args,

@@ -5,3 +5,7 @@ args = ["test-sbf"]
 [tasks.fmt]
 command = "cargo"
 args = ["fmt", "--all"]
+
+[tasks.update]
+command = "cargo"
+args = ["update"]

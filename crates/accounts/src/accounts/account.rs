@@ -1,7 +1,7 @@
 use {
     crate::{
         discriminator_matches, internal::unlikely, utils::fast_32_byte_eq, Discriminator,
-        FromAccountInfo, FromRaw, Owner, ReadableAccount, RefFromBytes,
+        FromAccountInfo, FromRaw, Mut, Owner, ReadableAccount, RefFromBytes,
     },
     core::marker::PhantomData,
     pinocchio::{
@@ -17,6 +17,37 @@ where
 {
     pub(crate) info: &'a AccountInfo,
     pub(crate) _phantom: PhantomData<T>,
+}
+
+impl<'a, T> Account<'a, T>
+where
+    T: Discriminator + RefFromBytes,
+{
+    pub fn data_unchecked(&self) -> Result<&T, Error> {
+        let dis_len = T::DISCRIMINATOR.len();
+        let total_len = dis_len + core::mem::size_of::<T>();
+
+        if self.info.data_len() < total_len {
+            return Err(ProgramError::InvalidAccountData.into());
+        }
+
+        let data_ptr = unsafe { self.info.data_ptr().add(dis_len) };
+
+        if data_ptr.align_offset(core::mem::align_of::<T>()) != 0 {
+            return Err(ProgramError::InvalidAccountData.into());
+        }
+
+        Ok(unsafe { &*(data_ptr as *const T) })
+    }
+}
+
+impl<'a, T> Mut<Account<'a, T>>
+where
+    T: Discriminator + RefFromBytes,
+{
+    pub fn data_unchecked(&self) -> Result<&T, Error> {
+        self.0.data_unchecked()
+    }
 }
 
 impl<'a, T> FromAccountInfo<'a> for Account<'a, T>
