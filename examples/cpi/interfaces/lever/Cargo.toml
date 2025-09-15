@@ -3,6 +3,9 @@ name = "lever-interface"
 version = "0.1.0"
 edition.workspace = true
 
+[lib]
+crate-type = ["rlib"]
+
 [features]
 cpi = ["dep:typhoon-instruction-builder"]
 client = [
