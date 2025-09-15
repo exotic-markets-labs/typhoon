@@ -114,7 +114,7 @@ impl AccountGenerator<'_> {
                     let inner_ty = format_ident!("{}", self.account.inner_ty);
                     quote!(#inner_ty::derive(#keys))
                 } else {
-                    quote!([#keys])
+                    quote!(#keys)
                 };
                 Ok(quote! {
                     let (_, #pda_bump) = find_program_address(&#seeds_token, &#program_id);
@@ -130,7 +130,11 @@ impl AccountGenerator<'_> {
                 "No seeds specified for the current PDA."
             );
         };
-        Ok(quote!(#seed_keys))
+
+        match seed_keys {
+            SeedsExpr::Punctuated(punctuated) => Ok(quote!([#punctuated])),
+            SeedsExpr::Single(expr) => Ok(quote!(#expr)),
+        }
     }
 
     fn get_signer_init(&self, ctx: &PdaContext) -> Result<TokenStream, syn::Error> {
