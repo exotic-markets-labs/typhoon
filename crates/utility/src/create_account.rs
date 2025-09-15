@@ -1,6 +1,10 @@
 use {
     pinocchio::{
-        account_info::AccountInfo, instruction::Signer, pubkey::Pubkey, sysvars::rent::Rent,
+        account_info::AccountInfo,
+        hint::unlikely,
+        instruction::Signer,
+        pubkey::{pubkey_eq, Pubkey},
+        sysvars::rent::Rent,
     },
     pinocchio_system::instructions::{Allocate, Assign, CreateAccount, Transfer},
     typhoon_accounts::WritableAccount,
@@ -27,7 +31,7 @@ pub fn create_or_assign(
         }
         .invoke_signed(seeds.unwrap_or_default())?;
     } else {
-        if payer.key() == account.key() {
+        if unlikely(pubkey_eq(payer.key(), account.key())) {
             return Err(ErrorCode::TryingToInitPayerAsProgramAccount.into());
         }
 

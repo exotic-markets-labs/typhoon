@@ -1,11 +1,13 @@
 use {
     super::Mut,
     crate::{
-        discriminator_matches, internal::unlikely, utils::fast_32_byte_eq, Discriminator,
-        FromAccountInfo, Owner, ReadableAccount, WritableAccount,
+        discriminator_matches, Discriminator, FromAccountInfo, Owner, ReadableAccount,
+        WritableAccount,
     },
     core::cell::RefCell,
-    pinocchio::{account_info::AccountInfo, program_error::ProgramError},
+    pinocchio::{
+        account_info::AccountInfo, hint::unlikely, program_error::ProgramError, pubkey::pubkey_eq,
+    },
     typhoon_errors::{Error, ErrorCode},
 };
 
@@ -40,12 +42,12 @@ where
         }
 
         // Verify account ownership - checked after discriminator for better branch prediction
-        if unlikely(!fast_32_byte_eq(info.owner(), &T::OWNER)) {
+        if unlikely(!pubkey_eq(info.owner(), &T::OWNER)) {
             return Err(ErrorCode::AccountOwnedByWrongProgram.into());
         }
 
         // Handle special case: zero-lamport system accounts (least common case)
-        if unlikely(fast_32_byte_eq(info.owner(), &pinocchio_system::ID)) {
+        if unlikely(pubkey_eq(info.owner(), &pinocchio_system::ID)) {
             // Only perform additional lamports check for system accounts
             if *info.try_borrow_lamports()? == 0 {
                 return Err(ProgramError::UninitializedAccount.into());

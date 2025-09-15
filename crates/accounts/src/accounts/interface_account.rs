@@ -1,11 +1,12 @@
 use {
     crate::{
-        discriminator_matches, internal::unlikely, Discriminator, FromAccountInfo, FromRaw, Mut,
-        Owners, ReadableAccount, RefFromBytes,
+        discriminator_matches, Discriminator, FromAccountInfo, FromRaw, Mut, Owners,
+        ReadableAccount, RefFromBytes,
     },
     core::marker::PhantomData,
     pinocchio::{
         account_info::{AccountInfo, Ref},
+        hint::unlikely,
         program_error::ProgramError,
     },
     typhoon_errors::{Error, ErrorCode},

@@ -13,9 +13,7 @@ use {
 
 mod accounts;
 mod discriminator;
-mod internal;
 mod programs;
-mod utils;
 
 pub trait FromAccountInfo<'a>: Sized {
     fn try_from_info(info: &'a AccountInfo) -> Result<Self, Error>;

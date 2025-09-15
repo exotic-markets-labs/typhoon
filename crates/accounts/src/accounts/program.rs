@@ -1,9 +1,11 @@
 use {
-    crate::{utils::fast_32_byte_eq, FromAccountInfo, ProgramId, ReadableAccount},
+    crate::{FromAccountInfo, ProgramId, ReadableAccount},
     core::marker::PhantomData,
     pinocchio::{
         account_info::{AccountInfo, Ref},
+        hint::unlikely,
         program_error::ProgramError,
+        pubkey::pubkey_eq,
     },
     typhoon_errors::{Error, ErrorCode},
 };
@@ -24,7 +26,7 @@ where
     #[inline]
     fn try_from_info(info: &'a AccountInfo) -> Result<Self, Error> {
         // Optimized program ID check using fast memory comparison
-        if !fast_32_byte_eq(info.key(), &T::ID) {
+        if unlikely(!pubkey_eq(info.key(), &T::ID)) {
             return Err(ProgramError::IncorrectProgramId.into());
         }
 
