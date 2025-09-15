@@ -114,7 +114,7 @@ impl AccountGenerator<'_> {
                     let inner_ty = format_ident!("{}", self.account.inner_ty);
                     quote!(#inner_ty::derive(#keys))
                 } else {
-                    quote!([keys])
+                    quote!([#keys])
                 };
                 Ok(quote! {
                     let (_, #pda_bump) = find_program_address(&#seeds_token, &#program_id);
