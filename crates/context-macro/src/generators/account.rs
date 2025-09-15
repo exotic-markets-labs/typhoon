@@ -117,7 +117,7 @@ impl AccountGenerator<'_> {
                     keys
                 };
                 Ok(quote! {
-                    let (_, #pda_bump) = find_program_address(&#seeds_token, &#program_id);
+                    let (_, #pda_bump) = find_program_address(&[#seeds_token], &#program_id);
                 })
             }
         }
