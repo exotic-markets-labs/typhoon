@@ -41,7 +41,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
       - name: Install Solana CLI
         run: |
-          sh -c "$(curl -sSfL https://release.anza.xyz/v2.3.8/install)"
+          sh -c "$(curl -sSfL https://release.anza.xyz/v2.2.14/install)"
           echo "/home/runner/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
       - name: Build benchmark programs
         run: |
@@ -99,7 +99,7 @@ jobs:
           version: "0.37.23"
       - name: Install Solana CLI
         run: |
-          sh -c "$(curl -sSfL https://release.anza.xyz/v2.3.8/install)"
+          sh -c "$(curl -sSfL https://release.anza.xyz/v2.2.14/install)"
           echo "/home/runner/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
       - name: Tests
         run: cargo make test
