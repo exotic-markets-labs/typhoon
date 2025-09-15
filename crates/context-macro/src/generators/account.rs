@@ -99,8 +99,17 @@ impl AccountGenerator<'_> {
                     let var_name = format_ident!("{}_state", self.account.name);
                     quote!(#var_name.seeds_with_bump(&[#pda_bump]))
                 } else {
-                    let keys = self.extract_seed_keys(ctx)?;
-                    quote!([#keys, &[#pda_bump]])
+                    let Some(ref seed_keys) = ctx.keys else {
+                        error!(
+                            &self.account.name,
+                            "No seeds specified for the current PDA."
+                        );
+                    };
+
+                    match seed_keys {
+                        SeedsExpr::Punctuated(punctuated) => quote!([#punctuated, &[#pda_bump]]),
+                        SeedsExpr::Single(expr) => quote!(#expr(&[#pda_bump])),
+                    }
                 };
 
                 Ok(quote! {
@@ -109,31 +118,26 @@ impl AccountGenerator<'_> {
                 })
             }
             _ => {
-                let keys = self.extract_seed_keys(ctx)?;
+                let Some(ref seed_keys) = ctx.keys else {
+                    error!(
+                        &self.account.name,
+                        "No seeds specified for the current PDA."
+                    );
+                };
+
                 let seeds_token = if ctx.is_seeded {
                     let inner_ty = format_ident!("{}", self.account.inner_ty);
-                    quote!(#inner_ty::derive(#keys))
+                    quote!(#inner_ty::derive(#seed_keys))
                 } else {
-                    quote!(#keys)
+                    match seed_keys {
+                        SeedsExpr::Punctuated(punctuated) => quote!([#punctuated]),
+                        SeedsExpr::Single(expr) => quote!(#expr),
+                    }
                 };
                 Ok(quote! {
                     let (_, #pda_bump) = find_program_address(&#seeds_token, &#program_id);
                 })
             }
-        }
-    }
-
-    fn extract_seed_keys(&self, ctx: &PdaContext) -> Result<TokenStream, syn::Error> {
-        let Some(ref seed_keys) = ctx.keys else {
-            error!(
-                &self.account.name,
-                "No seeds specified for the current PDA."
-            );
-        };
-
-        match seed_keys {
-            SeedsExpr::Punctuated(punctuated) => Ok(quote!([#punctuated])),
-            SeedsExpr::Single(expr) => Ok(quote!(#expr)),
         }
     }
 
@@ -269,9 +273,9 @@ impl AccountGenerator<'_> {
 
         match self.account_ty {
             AccountType::TokenAccount {
-                is_ata,
                 ref mint,
                 ref owner,
+                ..
             } => {
                 if let Some(mint) = mint {
                     token.extend(quote! {
@@ -281,21 +285,11 @@ impl AccountGenerator<'_> {
                     });
                 }
 
-                if let Some(owner) = owner {
-                    if is_ata {
-                        token.extend(quote! {
-                            if #var_name.authority() != #owner.key() {
-                                return Err(ErrorCode::TokenConstraintViolated.into());
-                            }
-                        });
-                    } else {
-                        token.extend(quote! {
-                            if #var_name.owner() != #owner.key() {
-                                return Err(ErrorCode::TokenConstraintViolated.into());
-                            }
-                        });
+                token.extend(quote! {
+                    if #var_name.owner() != #owner.key() {
+                        return Err(ErrorCode::TokenConstraintViolated.into());
                     }
-                }
+                });
             }
             AccountType::Mint { .. } => {}
             AccountType::Other { ref targets, .. } => {
