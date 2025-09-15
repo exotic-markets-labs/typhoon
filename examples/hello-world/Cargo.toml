@@ -8,7 +8,7 @@ publish = false
 logging = []
 
 [lib]
-crate-type = ["cdylib", "lib"]
+crate-type = ["cdylib"]
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = [

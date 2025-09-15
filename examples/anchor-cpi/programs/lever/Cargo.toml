@@ -6,7 +6,7 @@ edition = "2021"
 publish = false
 
 [lib]
-crate-type = ["cdylib", "lib"]
+crate-type = ["cdylib"]
 name = "lever"
 
 [features]
