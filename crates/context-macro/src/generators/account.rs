@@ -83,8 +83,14 @@ impl AccountGenerator<'_> {
         programs
     }
 
-    fn get_pda(&self, ctx: &PdaContext, find: bool) -> Result<TokenStream, syn::Error> {
+    fn get_pda(
+        &self,
+        ctx: &PdaContext,
+        find: bool,
+        define_key: bool,
+    ) -> Result<TokenStream, syn::Error> {
         let name = &self.account.name;
+        let pda_key = format_ident!("{}_key", name);
         let pda_bump = format_ident!("{}_bump", name);
         let program_id = ctx
             .program_id
@@ -92,9 +98,8 @@ impl AccountGenerator<'_> {
             .map(|p| quote!(#p))
             .unwrap_or(quote!(program_id));
 
-        match ctx.bump {
+        match &ctx.bump {
             Some(ref bump) if !find => {
-                let pda_key = format_ident!("{}_key", name);
                 let seeds_token = if ctx.is_seeded {
                     let var_name = format_ident!("{}_state", self.account.name);
                     quote!(#var_name.seeds_with_bump(&[#pda_bump]))
@@ -134,9 +139,17 @@ impl AccountGenerator<'_> {
                         SeedsExpr::Single(expr) => quote!(#expr),
                     }
                 };
-                Ok(quote! {
-                    let (_, #pda_bump) = find_program_address(&#seeds_token, &#program_id);
-                })
+
+                let key_token = if define_key {
+                    quote! {
+                        let (#pda_key, #pda_bump) = find_program_address(&#seeds_token, &#program_id);
+                    }
+                } else {
+                    quote! {
+                        let (_, #pda_bump) = find_program_address(&#seeds_token, &#program_id);
+                    }
+                };
+                Ok(key_token)
             }
         }
     }
@@ -262,7 +275,7 @@ impl AccountGenerator<'_> {
         }
 
         if let Some(ref pda_ctx) = self.pda {
-            let pda = self.get_pda(pda_ctx, false)?;
+            let pda = self.get_pda(pda_ctx, false, true)?;
             token.extend(pda);
             token.extend(quote! {
                 if #name.key() != &#pda_key {
@@ -346,7 +359,7 @@ impl AccountGenerator<'_> {
             };
             let init_token = self.get_init_token(init_ctx, signers)?;
             let init_account_token = if let Some(ref pda_ctx) = self.pda {
-                let pda_token = self.get_pda(pda_ctx, init_ctx.is_init_if_needed)?;
+                let pda_token = self.get_pda(pda_ctx, init_ctx.is_init_if_needed, false)?;
                 let seeds_token = self.get_signer_init(pda_ctx)?;
                 quote! {
                     #pda_token
