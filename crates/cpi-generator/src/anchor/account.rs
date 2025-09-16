@@ -306,7 +306,7 @@ mod tests {
                 pub enum TestEnum {
                     Variant1,
                     Variant2 {
-                        pub field1: u64,
+                        field1: u64,
                     },
                     Variant3(bool, u64)
                 }
