@@ -78,6 +78,10 @@ impl PrimaryKeys {
                 pub fn derive_with_bump<'a>(#parameters_list_with_lifetime, bump: &'a [u8]) -> [instruction::Seed<'a>; #n_seeds_with_bump] {
                     seeds!(Self::BASE_SEED, #seeds, bump)
                 }
+
+                pub fn signer_seeds_with_bump<'a>(#parameters_list_with_lifetime, bump: &'a [u8]) -> [instruction::Seed<'a>; #n_seeds_with_bump] {
+                    seeds!(Self::BASE_SEED, #seeds, bump)
+                }
             }
         }
     }
