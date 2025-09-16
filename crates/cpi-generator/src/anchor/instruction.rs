@@ -1,6 +1,6 @@
 use {
-    crate::anchor::{gen_docs, gen_type, gen_type_ref},
-    anchor_lang_idl_spec::{Idl, IdlField, IdlInstructionAccountItem, IdlType},
+    crate::anchor::{gen_docs, gen_type_ref},
+    anchor_lang_idl_spec::{Idl, IdlField, IdlInstructionAccountItem},
     five8_const::decode_32_const,
     heck::ToUpperCamelCase,
     proc_macro2::{Span, TokenStream},
@@ -15,7 +15,6 @@ pub fn gen_instructions(idl: &Idl) -> TokenStream {
         let ident = Ident::new(&name, Span::call_site());
         let (metas, accounts) = gen_account_instruction(&instruction.accounts);
         let docs = gen_docs(&instruction.docs);
-        let program_result = gen_instruction_result(&instruction.returns);
 
         let account_metas = gen_account_metas(&metas);
         let discriminator = &instruction.discriminator;
@@ -32,11 +31,11 @@ pub fn gen_instructions(idl: &Idl) -> TokenStream {
 
             impl #ident<'_> {
                 #[inline(always)]
-                pub fn invoke(&self) -> #program_result {
+                pub fn invoke(&self) -> ProgramResult {
                     self.invoke_signed(&[])
                 }
 
-                pub fn invoke_signed(&self, seeds: &[instruction::CpiSigner]) -> #program_result {
+                pub fn invoke_signed(&self, seeds: &[instruction::CpiSigner]) -> ProgramResult {
                     #account_metas
                     #instruction_data
 
@@ -108,16 +107,6 @@ fn gen_instruction_data(
     (arg_fields, instruction_data)
 }
 
-fn gen_instruction_result(returns: &Option<IdlType>) -> TokenStream {
-    match returns {
-        Some(ty) => {
-            let result_ty = gen_type(ty);
-            quote!(ProgramResult<#result_ty>)
-        }
-        None => quote!(ProgramResult),
-    }
-}
-
 fn gen_account_instruction(
     accounts: &[IdlInstructionAccountItem],
 ) -> (Vec<TokenStream>, Vec<syn::Ident>) {
@@ -159,7 +148,10 @@ fn gen_account_metas(metas: &[TokenStream]) -> TokenStream {
 
 #[cfg(test)]
 mod tests {
-    use {super::*, anchor_lang_idl_spec::IdlInstructionAccount};
+    use {
+        super::*,
+        anchor_lang_idl_spec::{IdlInstructionAccount, IdlType},
+    };
 
     #[test]
     fn test_gen_instruction_data() {
@@ -258,16 +250,5 @@ mod tests {
         };
 
         assert_eq!(result.to_string(), expected.to_string());
-    }
-
-    #[test]
-    fn test_gen_instruction_result() {
-        let result_none = gen_instruction_result(&None);
-        let expected_none = quote!(ProgramResult);
-        assert_eq!(result_none.to_string(), expected_none.to_string());
-
-        let result_some = gen_instruction_result(&Some(IdlType::Bool));
-        let expected_some = quote!(ProgramResult<bool>);
-        assert_eq!(result_some.to_string(), expected_some.to_string());
     }
 }
