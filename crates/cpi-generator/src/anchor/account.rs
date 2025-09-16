@@ -103,7 +103,7 @@ fn gen_enum(ident: &Ident, variants: &[IdlEnumVariant]) -> proc_macro2::TokenStr
 
                         quote! {
                             #docs
-                            pub #ident: #ty,
+                            #ident: #ty,
                         }
                     });
                     quote! {
