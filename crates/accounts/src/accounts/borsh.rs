@@ -25,19 +25,13 @@ where
 {
     #[inline(always)]
     fn try_from_info(info: &'a AccountInfo) -> Result<Self, Error> {
-        // Borrow account data once for all validation checks and deserialization
-        let account_data = info.try_borrow_data()?;
-
         // Check data length first - this is the cheapest check and most likely to fail
-        if unlikely(account_data.len() < T::DISCRIMINATOR.len()) {
+        if unlikely(info.data_len() < T::DISCRIMINATOR.len()) {
             return Err(ProgramError::AccountDataTooSmall.into());
         }
 
-        // Split data once for validation and deserialization
-        let (discriminator, mut data) = account_data.split_at(T::DISCRIMINATOR.len());
-
         // Validate discriminator using optimized comparison for small discriminators
-        if unlikely(!discriminator_matches::<T>(discriminator)) {
+        if unlikely(!discriminator_matches::<T>(info)) {
             return Err(ErrorCode::AccountDiscriminatorMismatch.into());
         }
 
@@ -55,7 +49,9 @@ where
         }
 
         // Deserialize the state data (this is the most expensive operation, done last)
-        let state = T::deserialize(&mut data).map_err(|_| ProgramError::BorshIoError)?;
+        let state =
+            T::deserialize(&mut &unsafe { info.borrow_data_unchecked() }[T::DISCRIMINATOR.len()..])
+                .map_err(|_| ProgramError::BorshIoError)?;
 
         Ok(BorshAccount {
             info,

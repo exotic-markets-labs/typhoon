@@ -58,15 +58,13 @@ where
 {
     #[inline(always)]
     fn try_from_info(info: &'a AccountInfo) -> Result<Self, Error> {
-        let account_data = info.try_borrow_data()?;
-
         // Check data length first - this is the cheapest check and most likely to fail
-        if unlikely(account_data.len() < T::DISCRIMINATOR.len()) {
+        if unlikely(info.data_len() < T::DISCRIMINATOR.len()) {
             return Err(ProgramError::AccountDataTooSmall.into());
         }
 
         // Validate discriminator using optimized comparison for small discriminators
-        if unlikely(!discriminator_matches::<T>(&account_data)) {
+        if unlikely(!discriminator_matches::<T>(info)) {
             return Err(ErrorCode::AccountDiscriminatorMismatch.into());
         }
 
