@@ -85,6 +85,7 @@ impl AccountGenerator<'_> {
 
     fn get_pda(&self, ctx: &PdaContext, find: bool) -> Result<TokenStream, syn::Error> {
         let name = &self.account.name;
+        let pda_key = format_ident!("{}_key", name);
         let pda_bump = format_ident!("{}_bump", name);
         let program_id = ctx
             .program_id
@@ -94,7 +95,6 @@ impl AccountGenerator<'_> {
 
         match ctx.bump {
             Some(ref bump) if !find => {
-                let pda_key = format_ident!("{}_key", name);
                 let seeds_token = if ctx.is_seeded {
                     let var_name = format_ident!("{}_state", self.account.name);
                     quote!(#var_name.seeds_with_bump(&[#pda_bump]))
@@ -135,7 +135,7 @@ impl AccountGenerator<'_> {
                     }
                 };
                 Ok(quote! {
-                    let (_, #pda_bump) = find_program_address(&#seeds_token, &#program_id);
+                    let (#pda_key, #pda_bump) = find_program_address(&#seeds_token, &#program_id);
                 })
             }
         }
