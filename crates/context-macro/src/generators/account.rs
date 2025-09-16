@@ -151,7 +151,7 @@ impl AccountGenerator<'_> {
         let seeds = if ctx.is_seeded {
             let account_ty = format_ident!("{}", self.account.inner_ty);
             quote! {
-                let seeds = #account_ty::derive_with_bump(#punctuated_keys, &bump);
+                let seeds = #account_ty::derive_signer_seeds_with_bump(#punctuated_keys, &bump);
                 let signer = instruction::CpiSigner::from(&seeds);
             }
         } else {
