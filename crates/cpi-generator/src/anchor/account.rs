@@ -103,7 +103,7 @@ fn gen_enum(ident: &Ident, variants: &[IdlEnumVariant]) -> proc_macro2::TokenStr
 
                         quote! {
                             #docs
-                            pub #ident: #ty,
+                            #ident: #ty,
                         }
                     });
                     quote! {
@@ -306,7 +306,7 @@ mod tests {
                 pub enum TestEnum {
                     Variant1,
                     Variant2 {
-                        pub field1: u64,
+                        field1: u64,
                     },
                     Variant3(bool, u64)
                 }
