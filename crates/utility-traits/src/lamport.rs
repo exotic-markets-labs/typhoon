@@ -38,3 +38,4 @@ pub trait LamportsChecked: WritableAccount + SignerAccount {
 }
 
 impl LamportsChecked for Mut<Signer<'_, SystemAccount<'_>>> {}
+impl LamportsChecked for Mut<Signer<'_>> {}
