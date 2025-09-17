@@ -1,7 +1,7 @@
 use {
     super::Mut,
     crate::{
-        discriminator_matches, Discriminator, FromAccountInfo, Owner, ReadableAccount,
+        discriminator_matches, Discriminator, FromAccountInfo, Owner, ReadableAccount, Signer,
         WritableAccount,
     },
     core::cell::RefCell,
@@ -107,6 +107,25 @@ where
     #[inline(always)]
     fn mut_data<'a>(&'a self) -> Result<Self::DataMut<'a>, Error> {
         self.0
+            .data
+            .try_borrow_mut()
+            .map_err(|_| ProgramError::AccountBorrowFailed.into())
+    }
+}
+
+impl<T> WritableAccount for Mut<Signer<'_, BorshAccount<'_, T>>>
+where
+    T: Discriminator,
+{
+    type DataMut<'a>
+        = core::cell::RefMut<'a, T>
+    where
+        Self: 'a;
+
+    #[inline(always)]
+    fn mut_data<'a>(&'a self) -> Result<Self::DataMut<'a>, Error> {
+        self.0
+            .acc
             .data
             .try_borrow_mut()
             .map_err(|_| ProgramError::AccountBorrowFailed.into())
