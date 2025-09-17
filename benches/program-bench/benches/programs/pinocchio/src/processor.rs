@@ -39,7 +39,7 @@ pub fn process_create_account(accounts: &[AccountInfo]) -> ProgramResult {
             space: 9,
             to,
         }
-        .invoke();
+        .invoke()?;
     } else {
         let required_lamports = rent
             .minimum_balance(9)

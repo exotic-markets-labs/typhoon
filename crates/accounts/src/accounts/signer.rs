@@ -1,48 +1,68 @@
 use {
-    crate::{FromAccountInfo, ReadableAccount, SignerAccount},
-    pinocchio::account_info::{AccountInfo, Ref},
+    crate::{FromAccountInfo, ReadableAccount, SignerAccount, UncheckedAccount},
+    core::marker::PhantomData,
+    pinocchio::account_info::AccountInfo,
     typhoon_errors::{Error, ErrorCode},
 };
 
-pub struct Signer<'a> {
-    info: &'a AccountInfo,
+pub struct Signer<'a, T = UncheckedAccount<'a>>
+where
+    T: ReadableAccount,
+{
+    pub(crate) acc: T,
+    _phantom: PhantomData<&'a T>,
 }
 
-impl<'a> FromAccountInfo<'a> for Signer<'a> {
+impl<'a, T> FromAccountInfo<'a> for Signer<'a, T>
+where
+    T: ReadableAccount + FromAccountInfo<'a>,
+{
     #[inline(always)]
     fn try_from_info(info: &'a AccountInfo) -> Result<Self, Error> {
         if !info.is_signer() {
             return Err(ErrorCode::AccountNotSigner.into());
         }
 
-        Ok(Signer { info })
+        Ok(Signer {
+            acc: T::try_from_info(info)?,
+            _phantom: PhantomData,
+        })
     }
 }
 
-impl<'a> From<Signer<'a>> for &'a AccountInfo {
+impl<'a, T> From<Signer<'a, T>> for &'a AccountInfo
+where
+    T: ReadableAccount + Into<&'a AccountInfo>,
+{
     #[inline(always)]
-    fn from(value: Signer<'a>) -> Self {
-        value.info
+    fn from(value: Signer<'a, T>) -> Self {
+        value.acc.into()
     }
 }
 
-impl AsRef<AccountInfo> for Signer<'_> {
+impl<T> AsRef<AccountInfo> for Signer<'_, T>
+where
+    T: ReadableAccount,
+{
     #[inline(always)]
     fn as_ref(&self) -> &AccountInfo {
-        self.info
+        self.acc.as_ref()
     }
 }
 
-impl SignerAccount for Signer<'_> {}
+impl<T> SignerAccount for Signer<'_, T> where T: ReadableAccount {}
 
-impl ReadableAccount for Signer<'_> {
+impl<T> ReadableAccount for Signer<'_, T>
+where
+    T: ReadableAccount,
+{
     type Data<'a>
-        = Ref<'a, [u8]>
+        = T::Data<'a>
     where
         Self: 'a;
 
     #[inline(always)]
     fn data<'a>(&'a self) -> Result<Self::Data<'a>, Error> {
-        self.info.try_borrow_data().map_err(Into::into)
+        self.acc.data()
     }
 }

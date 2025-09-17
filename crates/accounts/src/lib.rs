@@ -78,7 +78,7 @@ mod sealed {
     pub trait Sealed {}
 
     impl<T> Sealed for Mut<T> where T: ReadableAccount + AsRef<AccountInfo> {}
-    impl Sealed for Signer<'_> {}
+    impl<T> Sealed for Signer<'_, T> where T: ReadableAccount {}
 }
 
 pub trait ProgramId {
