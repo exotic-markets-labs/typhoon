@@ -15,6 +15,7 @@ where
 {
     type D: Discriminator;
 
+    #[inline(always)]
     fn create(
         self,
         rent: &Rent,
