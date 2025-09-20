@@ -14,7 +14,12 @@ proc-macro = true
 prettyplease.workspace = true
 proc-macro2.workspace = true
 quote.workspace = true
-syn = { workspace = true, features = ["visit", "visit-mut", "full"] }
+syn = { workspace = true, features = [
+    "visit",
+    "visit-mut",
+    "full",
+    "extra-traits",
+] }
 typhoon-syn.workspace = true
 
 [dev-dependencies]

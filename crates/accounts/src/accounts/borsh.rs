@@ -84,6 +84,7 @@ impl<T> ReadableAccount for BorshAccount<'_, T>
 where
     T: Discriminator,
 {
+    type DataUnchecked = [u8];
     type Data<'a>
         = core::cell::Ref<'a, T>
     where
@@ -92,6 +93,11 @@ where
     #[inline(always)]
     fn data<'a>(&'a self) -> Result<Self::Data<'a>, Error> {
         Ok(self.data.borrow())
+    }
+
+    #[inline]
+    fn data_unchecked(&self) -> Result<&Self::DataUnchecked, Error> {
+        Ok(unsafe { self.info.borrow_data_unchecked() })
     }
 }
 

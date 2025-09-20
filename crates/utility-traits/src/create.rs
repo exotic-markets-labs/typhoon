@@ -1,25 +1,20 @@
 use {
     pinocchio::{account_info::AccountInfo, instruction, pubkey::Pubkey, sysvars::rent::Rent},
-    typhoon_accounts::{Account, Discriminator, Mut, RefFromBytes, SystemAccount, WritableAccount},
+    typhoon_accounts::{
+        Account, Discriminator, FromRaw, Mut, ReadableAccount, RefFromBytes, Signer, SignerCheck,
+        SystemAccount, UncheckedAccount, WritableAccount,
+    },
     typhoon_errors::Error,
     typhoon_utility::create_or_assign,
 };
 
-pub trait CreateAccountCpi<'a, T: Discriminator + RefFromBytes> {
-    fn create(
-        self,
-        rent: &Rent,
-        payer: &impl WritableAccount,
-        owner: &Pubkey,
-        space: usize,
-        seeds: Option<&[instruction::Signer]>,
-    ) -> Result<Mut<Account<'a, T>>, Error>;
-}
-
-impl<'a, T> CreateAccountCpi<'a, T> for &'a AccountInfo
+pub trait CreateAccountCpi<'a, T>
 where
-    T: Discriminator + RefFromBytes,
+    Self: Sized + Into<&'a AccountInfo>,
+    T: ReadableAccount + FromRaw<'a>,
 {
+    type D: Discriminator;
+
     #[inline(always)]
     fn create(
         self,
@@ -28,46 +23,43 @@ where
         owner: &Pubkey,
         space: usize,
         seeds: Option<&[instruction::Signer]>,
-    ) -> Result<Mut<Account<'a, T>>, Error> {
-        create_or_assign(self, rent, payer, owner, space, seeds)?;
+    ) -> Result<Mut<T>, Error> {
+        let info = self.into();
+        create_or_assign(info, rent, payer, owner, space, seeds)?;
 
-        // Set discriminator
         {
-            let data = self.data_ptr();
+            let data = info.data_ptr();
             unsafe {
                 core::ptr::copy_nonoverlapping(
-                    T::DISCRIMINATOR.as_ptr(),
+                    Self::D::DISCRIMINATOR.as_ptr(),
                     data,
-                    T::DISCRIMINATOR.len(),
+                    Self::D::DISCRIMINATOR.len(),
                 );
             }
         }
 
-        Ok(Mut::from_raw_info(self))
+        Ok(Mut::from_raw_info(info))
     }
 }
 
-impl<'a, T> CreateAccountCpi<'a, T> for Mut<SystemAccount<'a>>
-where
-    T: Discriminator + RefFromBytes,
-{
-    #[inline(always)]
-    fn create(
-        self,
-        rent: &Rent,
-        payer: &impl WritableAccount,
-        owner: &Pubkey,
-        space: usize,
-        seeds: Option<&[instruction::Signer]>,
-    ) -> Result<Mut<Account<'a, T>>, Error> {
-        create_or_assign(self.as_ref(), rent, payer, owner, space, seeds)?;
-
-        // Set discriminator
+macro_rules! impl_trait {
+    ($origin: ty) => {
+        impl<'a, T, C> CreateAccountCpi<'a, Signer<'a, Account<'a, T>, C>> for $origin
+        where
+            T: Discriminator + RefFromBytes,
+            C: SignerCheck,
         {
-            let mut data = self.as_ref().try_borrow_mut_data()?;
-            data[..T::DISCRIMINATOR.len()].copy_from_slice(T::DISCRIMINATOR);
+            type D = T;
         }
-
-        Ok(Mut::from_raw_info(self.into()))
-    }
+        impl<'a, T> CreateAccountCpi<'a, Account<'a, T>> for $origin
+        where
+            T: Discriminator + RefFromBytes,
+        {
+            type D = T;
+        }
+    };
 }
+
+impl_trait!(&'a AccountInfo);
+impl_trait!(SystemAccount<'a>);
+impl_trait!(UncheckedAccount<'a>);

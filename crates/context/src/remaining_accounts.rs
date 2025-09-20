@@ -4,13 +4,15 @@ use {
     typhoon_errors::Error,
 };
 
-impl<'b> HandlerContext<'_, 'b, '_> for &'b [AccountInfo] {
+pub struct Remaining<'a>(pub &'a [AccountInfo]);
+
+impl<'b> HandlerContext<'_, 'b, '_> for Remaining<'b> {
     #[inline(always)]
     fn from_entrypoint(
         _program_id: &Pubkey,
         accounts: &mut &'b [AccountInfo],
         _instruction_data: &mut &[u8],
     ) -> Result<Self, Error> {
-        Ok(accounts)
+        Ok(Remaining(accounts))
     }
 }

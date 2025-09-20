@@ -28,15 +28,19 @@ fn lever_integration_test() {
     let power_pk = power_kp.pubkey();
 
     let ix1 = lever_interface::InitializeInstruction {
-        power: power_pk,
-        user: admin_pk,
-        system_program: solana_system_interface::program::ID,
+        _ctx: lever_interface::InitializeLeverContext {
+            power: power_pk,
+            user: admin_pk,
+            system_program: solana_system_interface::program::ID,
+        },
     }
     .into_instruction();
 
     let ix2 = hand_interface::PullLeverInstruction {
-        power: power_pk,
-        lever_program: lever_interface::ID.into(),
+        ctx: hand_interface::PullLeverContext {
+            power: power_pk,
+            lever_program: lever_interface::ID.into(),
+        },
     }
     .into_instruction();
 
@@ -50,8 +54,10 @@ fn lever_integration_test() {
     assert!(logs.contains(&"Program log: The power is now on.".to_string()));
 
     let ix = hand_interface::PullLeverInstruction {
-        power: power_pk,
-        lever_program: lever_interface::ID.into(),
+        ctx: hand_interface::PullLeverContext {
+            power: power_pk,
+            lever_program: lever_interface::ID.into(),
+        },
     }
     .into_instruction();
 
@@ -65,8 +71,10 @@ fn lever_integration_test() {
     assert!(logs.contains(&"Program log: The power is now off!".to_string()));
 
     let ix = hand_interface::CheckPowerInstruction {
-        power: power_pk,
-        lever_program: lever_interface::ID.into(),
+        ctx: hand_interface::PullLeverContext {
+            power: power_pk,
+            lever_program: lever_interface::ID.into(),
+        },
     }
     .into_instruction();
     let _ = Transaction::new_signed_with_payer(

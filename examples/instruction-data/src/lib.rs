@@ -45,7 +45,7 @@ pub struct InitContext {
         payer = payer,
         space = Buffer::SPACE
     )]
-    pub buffer: Mut<Account<Buffer>>,
+    pub buffer: Mut<SignerNoCheck<Account<Buffer>>>,
     pub system: Program<System>,
 }
 

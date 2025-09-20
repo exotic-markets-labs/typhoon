@@ -45,7 +45,7 @@ pub struct InitializeLever {
         init,
         payer = user
     )]
-    pub power: Mut<Account<PowerStatus>>,
+    pub power: Mut<SignerNoCheck<Account<PowerStatus>>>,
     pub user: Mut<Signer>,
     pub system_program: Program<System>,
 }

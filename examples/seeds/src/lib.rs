@@ -24,7 +24,7 @@ fn pda_seeds<'a>() -> [&'a [u8]; 1] {
 }
 
 #[context]
-pub struct InitContext {
+pub struct Init {
     pub payer: Mut<Signer>,
     pub authority: Option<Signer>,
     #[constraint(
@@ -39,7 +39,7 @@ pub struct InitContext {
 }
 
 #[context]
-pub struct IncrementContext {
+pub struct Increment {
     pub admin: Signer,
     #[constraint(
         has_one = admin @ SeedsError::InvalidOwner,
@@ -51,7 +51,7 @@ pub struct IncrementContext {
     pub counter: Mut<Account<Counter>>,
 }
 
-pub fn initialize(ctx: InitContext) -> ProgramResult {
+pub fn initialize(ctx: Init) -> ProgramResult {
     assert!(ctx.authority.is_none());
 
     *ctx.counter.mut_data()? = Counter {
@@ -68,7 +68,7 @@ pub fn initialize(ctx: InitContext) -> ProgramResult {
     Ok(())
 }
 
-pub fn increment(ctx: IncrementContext) -> ProgramResult {
+pub fn increment(ctx: Increment) -> ProgramResult {
     ctx.counter.mut_data()?.count += 1;
 
     Ok(())

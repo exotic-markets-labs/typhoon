@@ -48,10 +48,14 @@ fn integration_test() {
 
     let amount = LAMPORTS_PER_SOL;
     let ix = TransferSolWithCpiInstruction {
-        arg_0: amount.into(),
-        payer: admin_pk,
-        recipient: recipient_pk,
-        system: solana_system_interface::program::ID,
+        amount: amount.into(),
+        ctx: TransferContext {
+            payer: admin_pk,
+            recipient: recipient_pk,
+        },
+        system_context: SystemContextContext {
+            system: solana_system_interface::program::ID,
+        },
     }
     .into_instruction();
 
@@ -81,9 +85,11 @@ fn integration_test() {
 
     let amount = LAMPORTS_PER_SOL;
     let ix = TransferSolWithProgramInstruction {
-        arg_0: amount.into(),
-        payer: program_acc_pk,
-        recipient: admin_pk,
+        amount: amount.into(),
+        ctx: TransferContext {
+            payer: program_acc_pk,
+            recipient: admin_pk,
+        },
     }
     .into_instruction();
     let hash = svm.latest_blockhash();

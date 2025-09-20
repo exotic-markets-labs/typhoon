@@ -2,7 +2,7 @@ use {
     pinocchio::{account_info::AccountInfo, pubkey::Pubkey},
     pinocchio_system::instructions::{Allocate, Assign, Transfer},
     typhoon_accounts::{
-        Mut, Signer as SignerAccount, SystemAccount, UncheckedAccount, WritableAccount,
+        Mut, Signer as SignerAccount, SignerCheck, SystemAccount, UncheckedAccount, WritableAccount,
     },
     typhoon_errors::Error,
 };
@@ -43,5 +43,5 @@ where
     }
 }
 
-impl<'a> SystemCpi<'a> for Mut<SignerAccount<'a, SystemAccount<'a>>> {}
-impl<'a> SystemCpi<'a> for Mut<SignerAccount<'a, UncheckedAccount<'a>>> {}
+impl<'a, C: SignerCheck> SystemCpi<'a> for Mut<SignerAccount<'a, SystemAccount<'a>, C>> {}
+impl<'a, C: SignerCheck> SystemCpi<'a> for Mut<SignerAccount<'a, UncheckedAccount<'a>, C>> {}

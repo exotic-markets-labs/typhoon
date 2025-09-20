@@ -50,18 +50,20 @@ fn integration_test() {
     let minted_amount = 100000;
     svm.send_transaction(Transaction::new_signed_with_payer(
         &[MintFromEscrowInstruction {
-            arg_0: MintFromEscrowArgs {
-                decimals: 6,
-                amount: minted_amount,
+            ctx: MintFromEscrowContextContext {
+                args: MintFromEscrowArgs {
+                    decimals: 6,
+                    amount: minted_amount,
+                },
+                payer: payer_pk,
+                owner: recipient_pk,
+                mint: mint_pk,
+                escrow: escrow_pk,
+                token_account: account_pk,
+                token_program: TOKEN_ID,
+                ata_program: spl_associated_token_account_client::program::ID,
+                system_program: solana_system_interface::program::ID,
             },
-            payer: payer_pk,
-            owner: recipient_pk,
-            mint: mint_pk,
-            escrow: escrow_pk,
-            token_account: account_pk,
-            token_program: TOKEN_ID,
-            ata_program: spl_associated_token_account_client::program::ID,
-            system_program: solana_system_interface::program::ID,
         }
         .into_instruction()],
         Some(&payer_pk),

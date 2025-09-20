@@ -1,9 +1,12 @@
 use {
-    crate::{accounts::Account, context::ParsingContext, visitor::ContextVisitor},
+    crate::{context::ParsingContext, visitor::ContextVisitor},
     std::collections::HashMap,
-    typhoon_syn::constraints::{
-        ConstraintAssociatedToken, ConstraintBump, ConstraintHasOne, ConstraintPayer,
-        ConstraintToken,
+    typhoon_syn::{
+        constraints::{
+            ConstraintAssociatedToken, ConstraintBump, ConstraintHasOne, ConstraintPayer,
+            ConstraintToken,
+        },
+        Account,
     },
 };
 

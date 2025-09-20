@@ -41,10 +41,12 @@ fn integration_test() {
     let (counter_pk, _) = Pubkey::find_program_address(&[b"counter"], &ID);
 
     let ix = InitializeInstruction {
-        payer: admin_pk,
-        authority: None,
-        counter: counter_pk,
-        system: solana_system_interface::program::ID,
+        ctx: InitContext {
+            payer: admin_pk,
+            authority: None,
+            counter: counter_pk,
+            system: solana_system_interface::program::ID,
+        },
     }
     .into_instruction();
     let hash = svm.latest_blockhash();
@@ -52,8 +54,10 @@ fn integration_test() {
     svm.send_transaction(tx).unwrap();
 
     let ix = IncrementInstruction {
-        admin: admin_pk,
-        counter: counter_pk,
+        ctx: IncrementContext {
+            admin: admin_pk,
+            counter: counter_pk,
+        },
     }
     .into_instruction();
     let hash = svm.latest_blockhash();
@@ -65,8 +69,10 @@ fn integration_test() {
     assert_eq!(counter_account.count, 1);
 
     let ix = IncrementInstruction {
-        admin: random_kp.pubkey(),
-        counter: counter_pk,
+        ctx: IncrementContext {
+            admin: random_kp.pubkey(),
+            counter: counter_pk,
+        },
     }
     .into_instruction();
     let hash = svm.latest_blockhash();

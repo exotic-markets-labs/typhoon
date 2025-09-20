@@ -42,10 +42,12 @@ fn integration_test() {
     let init_args = InitArgs { value: 42.into() };
     let tx = Transaction::new_signed_with_payer(
         &[InitializeInstruction {
-            arg_0: init_args,
-            payer: admin_pk,
-            buffer: buffer_a_pk,
-            system: solana_system_interface::program::ID,
+            ctx: InitContextContext {
+                args: init_args,
+                payer: admin_pk,
+                buffer: buffer_a_pk,
+                system: solana_system_interface::program::ID,
+            },
         }
         .into_instruction()],
         Some(&admin_pk),
@@ -59,10 +61,12 @@ fn integration_test() {
 
     let tx = Transaction::new_signed_with_payer(
         &[InitializeInstruction {
-            arg_0: init_args,
-            payer: admin_pk,
-            buffer: buffer_b_pk,
-            system: solana_system_interface::program::ID,
+            ctx: InitContextContext {
+                args: init_args,
+                payer: admin_pk,
+                buffer: buffer_b_pk,
+                system: solana_system_interface::program::ID,
+            },
         }
         .into_instruction()],
         Some(&admin_pk),
@@ -81,9 +85,11 @@ fn integration_test() {
     let more_args = 42_u64;
     let tx = Transaction::new_signed_with_payer(
         &[SetValueInstruction {
-            arg_0: ix_a_args,
-            arg_1: more_args.into(),
-            buffer: buffer_a_pk,
+            ctx: SetValueContextContext {
+                buffer: buffer_a_pk,
+                args: ix_a_args,
+            },
+            more_args: more_args.into(),
         }
         .into_instruction()],
         Some(&admin_pk),
@@ -103,9 +109,11 @@ fn integration_test() {
     let more_args = 69_u64;
     let tx = Transaction::new_signed_with_payer(
         &[SetValueInstruction {
-            arg_0: ix_b_args,
-            arg_1: more_args.into(),
-            buffer: buffer_b_pk,
+            ctx: SetValueContextContext {
+                buffer: buffer_b_pk,
+                args: ix_b_args,
+            },
+            more_args: more_args.into(),
         }
         .into_instruction()],
         Some(&admin_pk),
@@ -128,10 +136,14 @@ fn integration_test() {
     };
     let tx = Transaction::new_signed_with_payer(
         &[SetAndAddValuesInstruction {
-            arg_0: ix_a_args,
-            arg_1: ix_b_args,
-            buffer: buffer_a_pk,
-            buffer_1: buffer_b_pk,
+            ctx_a: SetValueContextContext {
+                buffer: buffer_a_pk,
+                args: ix_a_args,
+            },
+            ctx_b: SetValueContextContext {
+                args: ix_b_args,
+                buffer: buffer_b_pk,
+            },
         }
         .into_instruction()],
         Some(&admin_pk),

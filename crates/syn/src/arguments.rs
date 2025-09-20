@@ -3,6 +3,7 @@ use syn::{
     parse2, Attribute, Ident, Token, Type,
 };
 
+#[derive(Clone)]
 pub struct Argument {
     pub name: Ident,
     pub ty: Type,

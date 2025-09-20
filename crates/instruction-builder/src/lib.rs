@@ -1,31 +1,31 @@
 use {
     crate::{
         generator::{ClientGenerator, CpiGenerator, Generator},
-        instruction::Instruction,
         resolver::Resolver,
     },
     cargo_manifest::{Dependency, Manifest},
+    hashbrown::{HashMap, HashSet},
     heck::ToKebabCase,
     proc_macro2::{Span, TokenStream},
-    quote::ToTokens,
+    quote::{format_ident, quote, ToTokens},
     std::path::Path,
     syn::{
         parse::{Parse, Parser},
         parse_macro_input,
         punctuated::Punctuated,
         visit::Visit,
-        Ident, Token,
+        Ident, Item, Token,
     },
+    typhoon_syn::{Argument, Arguments, Context, Instruction, InstructionArg},
 };
 
 mod generator;
-mod instruction;
 mod mod_path;
 mod resolver;
 
 #[proc_macro]
 pub fn generate_instructions_client(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let instructions = parse_macro_input!(input as Instructions);
+    let instructions = parse_macro_input!(input as GeneratorContext);
 
     instructions
         .generate::<ClientGenerator>()
@@ -35,7 +35,7 @@ pub fn generate_instructions_client(input: proc_macro::TokenStream) -> proc_macr
 
 #[proc_macro]
 pub fn generate_cpi_client(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let instructions = parse_macro_input!(input as Instructions);
+    let instructions = parse_macro_input!(input as GeneratorContext);
 
     instructions
         .generate::<CpiGenerator>()
@@ -44,7 +44,7 @@ pub fn generate_cpi_client(input: proc_macro::TokenStream) -> proc_macro::TokenS
 }
 
 #[derive(Default)]
-struct InstructionsList(Vec<(usize, String)>);
+struct InstructionsList(pub Vec<(usize, Ident)>);
 
 impl Visit<'_> for InstructionsList {
     fn visit_item_macro(&mut self, i: &syn::ItemMacro) {
@@ -58,29 +58,107 @@ impl Visit<'_> for InstructionsList {
             self.0 = instructions
                 .iter()
                 .enumerate()
-                .map(|(i, n)| (i, n.to_string()))
+                .map(|(i, n)| (i, n.clone()))
                 .collect()
         };
     }
 }
 
-impl From<InstructionsList> for Vec<(usize, String)> {
+impl From<InstructionsList> for Vec<(usize, Ident)> {
     fn from(value: InstructionsList) -> Self {
         value.0
     }
 }
 
-struct Instructions {
-    ix: Vec<(usize, Instruction)>,
+#[derive(Default)]
+struct GeneratorContext {
+    pub instructions: HashMap<usize, Instruction>,
+    pub context: HashMap<String, Context>,
+    pub arg_structs: HashMap<String, Vec<Argument>>,
 }
 
-impl Instructions {
+impl GeneratorContext {
+    pub fn from_resolver(
+        ix_list: InstructionsList,
+        resolver: Resolver,
+        filter: Option<HashSet<Ident>>,
+    ) -> Self {
+        let mut gen = GeneratorContext::default();
+        let (mut instructions_map, mut contexts_map) = Self::parse_items(&resolver.items);
+
+        for (index, ident) in ix_list.0 {
+            if let Some(ref filter_set) = filter {
+                if !filter_set.contains(&ident) {
+                    continue;
+                }
+            }
+
+            if let Some(instruction) = instructions_map.remove(&ident) {
+                gen.instructions.insert(index, instruction);
+            }
+        }
+
+        for ix in gen.instructions.values() {
+            for (_, arg_value) in &ix.args {
+                if let InstructionArg::Context(ctx_name) = arg_value {
+                    let ctx_name = ctx_name.to_string();
+                    if let Some(context) = contexts_map.remove(&ctx_name) {
+                        if let Some(Arguments::Values(ref args)) = context.arguments {
+                            gen.arg_structs
+                                .entry(format!("{}Args", context.name))
+                                .or_insert_with(|| args.to_vec());
+                        }
+
+                        gen.context.insert(ctx_name, context);
+                    }
+                }
+            }
+        }
+        gen
+    }
+
+    fn parse_items(items: &[Item]) -> (HashMap<Ident, Instruction>, HashMap<String, Context>) {
+        let mut instructions = HashMap::new();
+        let mut contexts = HashMap::new();
+
+        for item in items {
+            match item {
+                Item::Fn(item_fn) => {
+                    if let Ok(ix) = Instruction::try_from(item_fn) {
+                        instructions.insert(ix.name.clone(), ix);
+                    }
+                }
+                Item::Struct(item_struct) => {
+                    if let Ok(ctx) = Context::try_from(item_struct) {
+                        contexts.insert(ctx.name.to_string(), ctx);
+                    }
+                }
+                _ => continue,
+            }
+        }
+
+        (instructions, contexts)
+    }
+
     pub fn generate<T: Generator>(&self) -> TokenStream {
-        T::generate_token(&self.ix)
+        let extra_token: Vec<TokenStream> = self.arg_structs.iter().map(|(name, v)| {
+            let struct_name = format_ident!("{name}");
+            let fields = v
+            .iter()
+            .map(|Argument { name, ty }: &Argument| quote!(pub #name: #ty));
+       quote! {
+            #[derive(Debug, PartialEq, bytemuck::AnyBitPattern, bytemuck::NoUninit, Copy, Clone)]
+            #[repr(C)]
+            pub struct #struct_name {
+                #(#fields),*
+            }
+        }
+        }).collect();
+        T::generate_token(&self.instructions, &self.context, quote!(#(#extra_token)*))
     }
 }
 
-impl Parse for Instructions {
+impl Parse for GeneratorContext {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let krate: Ident = input.parse()?;
         let crate_name = krate.to_string();
@@ -101,7 +179,6 @@ impl Parse for Instructions {
 
         let mut ix_list = InstructionsList::default();
         ix_list.visit_file(&file);
-        let ix = ix_list.0.iter();
 
         let mut resolver = Resolver::new(path, true);
         resolver.visit_file(&file);
@@ -110,24 +187,11 @@ impl Parse for Instructions {
             input.parse::<Token![,]>()?;
             let content;
             let _ = syn::bracketed!(content in input);
-            let instructions = content
-                .parse_terminated(Ident::parse, Token![,])?
-                .iter()
-                .map(|i| i.to_string())
-                .collect::<Vec<_>>();
-
-            Ok(Self {
-                ix: ix
-                    .filter(|(_, n)| instructions.contains(n))
-                    .map(|(i, n)| Ok((*i, resolver.get_instruction(n)?)))
-                    .collect::<syn::Result<_>>()?,
-            })
+            let idents = content.parse_terminated(Ident::parse, Token![,])?;
+            let instructions = HashSet::from_iter(idents);
+            Ok(Self::from_resolver(ix_list, resolver, Some(instructions)))
         } else {
-            Ok(Self {
-                ix: ix
-                    .map(|(i, n)| Ok((*i, resolver.get_instruction(n)?)))
-                    .collect::<syn::Result<_>>()?,
-            })
+            Ok(Self::from_resolver(ix_list, resolver, None))
         }
     }
 }

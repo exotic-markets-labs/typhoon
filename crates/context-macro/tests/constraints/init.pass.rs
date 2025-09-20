@@ -48,7 +48,7 @@ pub struct InitContext {
         payer = payer,
         space = Counter::SPACE,
     )]
-    pub counter: Mut<Account<Counter>>,
+    pub counter: Mut<SignerNoCheck<Account<Counter>>>,
     #[constraint(
         init_if_needed,
         payer = payer,
@@ -56,13 +56,13 @@ pub struct InitContext {
         bump = counter_data.data()?.bump,
         has_one = payer
     )]
-    pub counter_data: Mut<Account<CounterData>>,
+    pub counter_data: Mut<Signer<Account<CounterData>>>,
     pub mint: Mut<Account<Mint>>,
     #[constraint(
         token::mint = mint,
         token::owner = payer
     )]
-    pub token_acc: Mut<Account<TokenAccount>>,
+    pub token_acc: Mut<InterfaceAccount<TokenAccount>>,
     pub program: Program<System>,
 }
 
