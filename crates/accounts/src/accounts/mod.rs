@@ -12,6 +12,12 @@ mod unchecked;
 #[cfg(feature = "borsh")]
 pub use borsh::*;
 pub use {
-    account::*, interface::*, interface_account::*, mutable::*, program::*, signer::*, system::*,
+    account::*,
+    interface::*,
+    interface_account::*,
+    mutable::*,
+    program::*,
+    signer::{Signer, SignerCheck, SignerNoCheck},
+    system::*,
     unchecked::*,
 };

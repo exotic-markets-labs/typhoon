@@ -1,6 +1,8 @@
 use {
     pinocchio::program_error::ProgramError,
-    typhoon_accounts::{Mut, Signer, SignerAccount, SystemAccount, WritableAccount},
+    typhoon_accounts::{
+        Mut, Signer, SignerAccount, SignerCheck, SystemAccount, UncheckedAccount, WritableAccount,
+    },
     typhoon_errors::Error,
 };
 
@@ -37,5 +39,5 @@ pub trait LamportsChecked: WritableAccount + SignerAccount {
     }
 }
 
-impl LamportsChecked for Mut<Signer<'_, SystemAccount<'_>>> {}
-impl LamportsChecked for Mut<Signer<'_>> {}
+impl<C: SignerCheck> LamportsChecked for Mut<Signer<'_, SystemAccount<'_>, C>> {}
+impl<C: SignerCheck> LamportsChecked for Mut<Signer<'_, UncheckedAccount<'_>, C>> {}

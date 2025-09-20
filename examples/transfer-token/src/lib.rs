@@ -41,7 +41,7 @@ pub struct MintFromEscrowContext {
         mint::authority = escrow.key(),
         mint::freeze_authority = owner.key()
     )]
-    pub mint: Mut<InterfaceAccount<Mint>>,
+    pub mint: Mut<SignerNoCheck<InterfaceAccount<Mint>>>,
     #[constraint(
         init,
         payer = payer,

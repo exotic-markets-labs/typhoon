@@ -9,7 +9,8 @@ impl VisitMut for LifetimeInjector {
 
     fn visit_type_path_mut(&mut self, i: &mut syn::TypePath) {
         if let Some(seg) = i.path.segments.last_mut() {
-            if seg.ident == "Mut" || seg.ident == "Option" {
+            let ident = seg.ident.to_string();
+            if ident.starts_with("Mut") || ident == "Option" {
                 if let PathArguments::AngleBracketed(ref mut angle_args) = seg.arguments {
                     if let Some(first_arg) = angle_args.args.first_mut() {
                         self.visit_generic_argument_mut(first_arg);
@@ -26,6 +27,10 @@ impl VisitMut for LifetimeInjector {
                     seg.arguments = PathArguments::AngleBracketed(parse_quote!(<'info>));
                 }
                 PathArguments::Parenthesized(_) => {}
+            }
+
+            if ident.starts_with("Signer") {
+                self.visit_path_arguments_mut(&mut seg.arguments);
             }
         }
     }

@@ -1,5 +1,5 @@
 use {
-    crate::{instruction::Instruction, mod_path::ModContext, read_and_parse_file},
+    crate::{mod_path::ModContext, read_and_parse_file},
     std::path::Path,
     syn::{visit::Visit, Item, ItemMod, Visibility},
 };
@@ -8,7 +8,7 @@ pub struct Resolver<'a> {
     path: &'a Path,
     root: bool,
     mod_context: ModContext,
-    items: Vec<Item>,
+    pub items: Vec<Item>,
 }
 
 impl<'a> Resolver<'a> {
@@ -19,10 +19,6 @@ impl<'a> Resolver<'a> {
             mod_context: Default::default(),
             items: Vec::new(),
         }
-    }
-
-    pub fn get_instruction(&self, name: &str) -> syn::Result<Instruction> {
-        Instruction::parse_with_context(&self.items, name)
     }
 }
 

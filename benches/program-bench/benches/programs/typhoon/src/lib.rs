@@ -54,7 +54,7 @@ pub struct CreateAccountContext {
         init,
         payer = admin
     )]
-    pub account: Mut<Account<Data>>,
+    pub account: Mut<SignerNoCheck<Account<Data>>>,
     pub system_program: Program<System>,
 }
 

@@ -2,7 +2,7 @@ use {
     super::{Account, SystemAccount, UncheckedAccount},
     crate::{
         Discriminator, FromAccountInfo, FromRaw, InterfaceAccount, ReadableAccount, RefFromBytes,
-        Signer, SignerAccount, WritableAccount,
+        Signer, SignerAccount, SignerCheck, WritableAccount,
     },
     pinocchio::{
         account_info::{AccountInfo, RefMut},
@@ -51,6 +51,7 @@ impl<T> ReadableAccount for Mut<T>
 where
     T: ReadableAccount,
 {
+    type DataUnchecked = T::DataUnchecked;
     type Data<'a>
         = T::Data<'a>
     where
@@ -59,6 +60,11 @@ where
     #[inline(always)]
     fn data<'a>(&'a self) -> Result<Self::Data<'a>, Error> {
         self.0.data()
+    }
+
+    #[inline]
+    fn data_unchecked(&self) -> Result<&Self::DataUnchecked, Error> {
+        self.0.data_unchecked()
     }
 }
 
@@ -83,7 +89,7 @@ impl_writable!(UncheckedAccount);
 
 macro_rules! impl_writable_signer {
     ($name: ident) => {
-        impl WritableAccount for Mut<Signer<'_, $name<'_>>> {
+        impl<C: SignerCheck> WritableAccount for Mut<Signer<'_, $name<'_>, C>> {
             type DataMut<'a>
                 = RefMut<'a, [u8]>
             where
@@ -99,31 +105,35 @@ macro_rules! impl_writable_signer {
 impl_writable_signer!(SystemAccount);
 impl_writable_signer!(UncheckedAccount);
 
-impl<T> WritableAccount for Mut<Signer<'_, Account<'_, T>>>
+impl<T, C> WritableAccount for Mut<Signer<'_, Account<'_, T>, C>>
 where
+    C: SignerCheck,
     T: Discriminator + RefFromBytes,
 {
     type DataMut<'a>
-        = RefMut<'a, [u8]>
+        = RefMut<'a, T>
     where
         Self: 'a;
     #[inline(always)]
     fn mut_data<'a>(&'a self) -> Result<Self::DataMut<'a>, Error> {
-        self.0.as_ref().try_borrow_mut_data().map_err(Into::into)
+        RefMut::filter_map(self.0.as_ref().try_borrow_mut_data()?, T::read_mut)
+            .map_err(|_| ProgramError::InvalidAccountData.into())
     }
 }
 
-impl<T> WritableAccount for Mut<Signer<'_, InterfaceAccount<'_, T>>>
+impl<T, C> WritableAccount for Mut<Signer<'_, InterfaceAccount<'_, T>, C>>
 where
+    C: SignerCheck,
     T: Discriminator + RefFromBytes,
 {
     type DataMut<'a>
-        = RefMut<'a, [u8]>
+        = RefMut<'a, T>
     where
         Self: 'a;
     #[inline(always)]
     fn mut_data<'a>(&'a self) -> Result<Self::DataMut<'a>, Error> {
-        self.0.as_ref().try_borrow_mut_data().map_err(Into::into)
+        RefMut::filter_map(self.0.as_ref().try_borrow_mut_data()?, T::read_mut)
+            .map_err(|_| ProgramError::InvalidAccountData.into())
     }
 }
 
@@ -153,7 +163,12 @@ impl<T: Discriminator + RefFromBytes> WritableAccount for Mut<InterfaceAccount<'
     }
 }
 
-impl<T> SignerAccount for Mut<Signer<'_, T>> where T: ReadableAccount {}
+impl<T, C> SignerAccount for Mut<Signer<'_, T, C>>
+where
+    T: ReadableAccount,
+    C: SignerCheck,
+{
+}
 
 #[doc(hidden)]
 impl<'a, T> Mut<T>
