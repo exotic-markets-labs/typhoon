@@ -1,12 +1,11 @@
 use {
-    crate::accounts::Account,
     proc_macro2::TokenStream,
     quote::{format_ident, quote},
     syn::{parse_quote, Expr, Ident},
     typhoon_syn::{
-        account_meta::AccountMeta,
         error,
         utils::{ContextExpr, SeedsExpr},
+        Account,
     },
 };
 
@@ -46,18 +45,16 @@ pub struct AccountGenerator<'a> {
     pub account_ty: AccountType,
     pub init: Option<InitContext>,
     pub pda: Option<PdaContext>,
-    pub meta: AccountMeta,
     pub init_state: bool,
 }
 
 impl<'a> AccountGenerator<'a> {
-    pub fn new(account: &'a Account, meta: AccountMeta, account_ty: AccountType) -> Self {
+    pub fn new(account: &'a Account, account_ty: AccountType) -> Self {
         Self {
             account,
             account_ty,
             init: None,
             pda: Default::default(),
-            meta,
             init_state: false,
         }
     }
@@ -81,6 +78,13 @@ impl AccountGenerator<'_> {
             }
         }
         programs
+    }
+
+    pub fn is_init_signer(&self) -> bool {
+        match self.account_ty {
+            AccountType::TokenAccount { is_ata: true, .. } => true,
+            _ => self.pda.is_some() || self.account.meta.is_signer,
+        }
     }
 
     fn get_pda(
@@ -131,7 +135,7 @@ impl AccountGenerator<'_> {
                 };
 
                 let seeds_token = if ctx.is_seeded {
-                    let inner_ty = format_ident!("{}", self.account.inner_ty);
+                    let inner_ty = &self.account.inner_ty;
                     quote!(#inner_ty::derive(#seed_keys))
                 } else {
                     match seed_keys {
@@ -162,7 +166,7 @@ impl AccountGenerator<'_> {
         ))?;
 
         let seeds = if ctx.is_seeded {
-            let account_ty = format_ident!("{}", self.account.inner_ty);
+            let account_ty = &self.account.inner_ty;
             quote! {
                 let seeds = #account_ty::derive_signer_seeds_with_bump(#punctuated_keys, &bump);
                 let signer = instruction::CpiSigner::from(&seeds);
@@ -204,9 +208,8 @@ impl AccountGenerator<'_> {
         signers: TokenStream,
     ) -> Result<TokenStream, syn::Error> {
         let name = &self.account.name;
-        if !self.meta.is_mutable {
-            //TODO add signer when it's ready
-            error!(name, "The account needs to be mutable");
+        if !self.account.meta.is_mutable || !self.is_init_signer() {
+            error!(name, "The account needs to be mutable and signer");
         }
         let payer = ctx.payer.as_ref().ok_or(syn::Error::new_spanned(
             name,
@@ -250,7 +253,7 @@ impl AccountGenerator<'_> {
                 quote!(SplCreateMint::create_mint(#name, &rent, &#payer, &#authority, #decimals, #f_auth_token, #signers)?)
             }
             AccountType::Other { space, .. } => {
-                let account_ty = format_ident!("{}", self.account.inner_ty);
+                let account_ty = &self.account.inner_ty;
                 let default_space = parse_quote!(#account_ty::SPACE);
                 let space = space.as_ref().unwrap_or(&default_space);
                 quote!(CreateAccountCpi::create(#name, &rent, &#payer, &program_id, #space, #signers)?)
@@ -264,7 +267,7 @@ impl AccountGenerator<'_> {
         let mut token = TokenStream::new();
         let name = &self.account.name;
         let name_str = name.to_string();
-        let account_ty = &self.account.ty;
+        let account_ty = self.account.get_ty();
         let var_name = format_ident!("{}_state", name);
         let pda_key = format_ident!("{}_key", name);
 
@@ -342,7 +345,7 @@ impl AccountGenerator<'_> {
     pub fn generate(self) -> Result<TokenStream, syn::Error> {
         let mut token = TokenStream::new();
         let name = &self.account.name;
-        let account_ty = &self.account.ty;
+        let account_ty = self.account.get_ty();
         let pda_bump = format_ident!("{}_bump", name);
 
         let return_ty = if self.needs_return_bump() {
@@ -392,7 +395,7 @@ impl AccountGenerator<'_> {
             self.account_token()?
         };
 
-        if self.meta.is_optional {
+        if self.account.meta.is_optional {
             token.extend(quote! {
                 let #return_ty = if #name.key() == program_id {
                     None

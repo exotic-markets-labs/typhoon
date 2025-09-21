@@ -38,9 +38,11 @@ fn integration_test() {
     let counter_kp = Keypair::new();
     let counter_pk = counter_kp.pubkey();
     let ix = InitializeInstruction {
-        payer: admin_pk,
-        counter: counter_pk,
-        system: solana_system_interface::program::ID,
+        init_context: InitContextContext {
+            payer: admin_pk,
+            counter: counter_pk,
+            system: solana_system_interface::program::ID,
+        },
     }
     .into_instruction();
     let hash = svm.latest_blockhash();
@@ -54,7 +56,9 @@ fn integration_test() {
 
     // Increment the counter
     let ix = IncrementInstruction {
-        counter: counter_pk,
+        ctx: CounterMutContextContext {
+            counter: counter_pk,
+        },
     }
     .into_instruction();
     let hash = svm.latest_blockhash();
@@ -66,8 +70,12 @@ fn integration_test() {
     assert!(counter_account.count == 1);
 
     let ix = CloseInstruction {
-        counter: counter_pk,
-        destination: admin_pk,
+        counter_mut_context: CounterMutContextContext {
+            counter: counter_pk,
+        },
+        destination_context: DestinationContextContext {
+            destination: admin_pk,
+        },
     }
     .into_instruction();
     let hash = svm.latest_blockhash();

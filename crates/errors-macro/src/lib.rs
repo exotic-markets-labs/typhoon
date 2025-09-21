@@ -2,7 +2,7 @@ use {
     proc_macro::TokenStream,
     quote::{quote, ToTokens},
     syn::parse_macro_input,
-    typhoon_syn::errors::Errors,
+    typhoon_syn::Errors,
 };
 
 /// Derive macro for generating error implementations

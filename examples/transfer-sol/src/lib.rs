@@ -36,7 +36,7 @@ impl From<PodU64> for u64 {
 }
 
 #[context]
-pub struct TransferContext {
+pub struct Transfer {
     pub payer: Mut<Signer>,
     pub recipient: Mut<SystemAccount>,
 }
@@ -48,7 +48,7 @@ pub struct SystemContext {
 
 pub fn transfer_sol_with_cpi(
     Arg(amount): Arg<PodU64>,
-    ctx: TransferContext,
+    ctx: Transfer,
     _: SystemContext,
 ) -> ProgramResult {
     ctx.payer.transfer(&ctx.recipient, (*amount).into())?;
@@ -56,7 +56,7 @@ pub fn transfer_sol_with_cpi(
     Ok(())
 }
 
-pub fn transfer_sol_with_program(Arg(amount): Arg<PodU64>, ctx: TransferContext) -> ProgramResult {
+pub fn transfer_sol_with_program(Arg(amount): Arg<PodU64>, ctx: Transfer) -> ProgramResult {
     ctx.payer.send(&ctx.recipient, (*amount).into())?;
 
     Ok(())

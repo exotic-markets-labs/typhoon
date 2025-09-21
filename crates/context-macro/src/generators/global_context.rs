@@ -8,10 +8,8 @@ use {
     std::collections::HashSet,
     syn::{parse_quote, Ident, ItemStruct},
     typhoon_syn::{
-        account_meta::AccountMeta,
-        arguments::{Argument, Arguments},
         constraints::{Constraint, ConstraintAssociatedToken, ConstraintMint, ConstraintToken},
-        error,
+        error, Argument, Arguments,
     },
 };
 
@@ -85,9 +83,8 @@ impl<'a> GlobalContext<'a> {
         let mut states = HashSet::new();
 
         //TODO optimize sorting etc..
-
         for account in &context.accounts {
-            let account_ty = match account.inner_ty.as_str() {
+            let account_ty = match account.inner_ty.to_string().as_str() {
                 "TokenAccount" => AccountType::TokenAccount {
                     is_ata: false,
                     mint: None,
@@ -103,12 +100,7 @@ impl<'a> GlobalContext<'a> {
                     targets: vec![],
                 },
             };
-            let meta = AccountMeta {
-                is_optional: account.is_optional,
-                is_mutable: account.ty.ident.to_string().starts_with("Mut"),
-                is_signer: account.inner_ty == "Signer",
-            };
-            let mut generator = AccountGenerator::new(account, meta, account_ty);
+            let mut generator = AccountGenerator::new(account, account_ty);
             let name = &account.name;
 
             for constraint in &account.constraints.0 {

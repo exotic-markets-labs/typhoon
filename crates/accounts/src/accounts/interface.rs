@@ -49,6 +49,7 @@ impl<T> AsRef<AccountInfo> for Interface<'_, T> {
 }
 
 impl<T> ReadableAccount for Interface<'_, T> {
+    type DataUnchecked = [u8];
     type Data<'a>
         = Ref<'a, [u8]>
     where
@@ -57,5 +58,10 @@ impl<T> ReadableAccount for Interface<'_, T> {
     #[inline(always)]
     fn data<'a>(&'a self) -> Result<Self::Data<'a>, Error> {
         self.info.try_borrow_data().map_err(Into::into)
+    }
+
+    #[inline]
+    fn data_unchecked(&self) -> Result<&Self::DataUnchecked, Error> {
+        Ok(unsafe { self.info.borrow_data_unchecked() })
     }
 }

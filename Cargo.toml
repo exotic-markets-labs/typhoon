@@ -15,20 +15,35 @@ anchor-lang-idl-spec = "0.1"
 borsh = { version = "1.5", default-features = false }
 bytemuck = "1.23"
 cargo-manifest = "0.19"
-five8_const = "1.0"
 cargo_metadata = "0.22.0"
 codama = "0.5"
 codama-attributes = "0.5"
-codama-nodes = "0.5"
-codama-koroks = "0.5"
 codama-korok-plugins = "0.5"
 codama-korok-visitors = "0.5"
+codama-koroks = "0.5"
+codama-nodes = "0.5"
 codama-stores = "0.5"
 codama-syn-helpers = "0.5"
+five8_const = "1.0"
+hashbrown = "0.16"
+heck = "0.5"
+paste = "1.0"
+pinocchio = "0.9"
+pinocchio-associated-token-account = "0.2"
+pinocchio-log = "0.5"
+pinocchio-pubkey = "0.3"
+pinocchio-system = "0.3"
+pinocchio-token = "0.4"
+prettyplease = "0.2"
+proc-macro2 = "1.0"
+quote = "1.0"
+serde_json = "1.0"
+sha2 = "0.10"
+syn = "2.0"
 trybuild = "1.0"
 typhoon = { version = "0.1.0-alpha.15", path = "crates/lib" }
-typhoon-accounts = { version = "0.1.0-alpha.15", path = "crates/accounts" }
 typhoon-account-macro = { version = "0.1.0-alpha.15", path = "crates/account-macro" }
+typhoon-accounts = { version = "0.1.0-alpha.15", path = "crates/accounts" }
 typhoon-context = { version = "0.1.0-alpha.15", path = "crates/context" }
 typhoon-context-macro = { version = "0.1.0-alpha.15", path = "crates/context-macro" }
 typhoon-cpi-generator = { version = "0.1.0-alpha.15", path = "crates/cpi-generator" }
@@ -41,21 +56,7 @@ typhoon-handler-macro = { version = "0.1.0-alpha.15", path = "crates/handler-mac
 typhoon-idl-generator = { version = "0.1.0-alpha.15", path = "crates/idl-generator" }
 typhoon-instruction-builder = { version = "0.1.0-alpha.15", path = "crates/instruction-builder" }
 typhoon-program-id-macro = { version = "0.1.0-alpha.15", path = "crates/program-id-macro" }
+typhoon-syn = { version = "0.1.0-alpha.15", path = "crates/syn" }
 typhoon-token = { version = "0.1.0-alpha.15", path = "crates/token" }
 typhoon-utility = { version = "0.1.0-alpha.15", path = "crates/utility" }
 typhoon-utility-traits = { version = "0.1.0-alpha.15", path = "crates/utility-traits" }
-typhoon-syn = { version = "0.1.0-alpha.15", path = "crates/syn" }
-heck = "0.5"
-paste = "1.0"
-pinocchio = "0.9"
-pinocchio-associated-token-account = "0.2"
-pinocchio-log = "0.5"
-pinocchio-pubkey = "0.3"
-pinocchio-token = "0.4"
-pinocchio-system = "0.3"
-prettyplease = "0.2"
-proc-macro2 = "1.0"
-quote = "1.0"
-serde_json = "1.0"
-sha2 = "0.10"
-syn = "2.0"

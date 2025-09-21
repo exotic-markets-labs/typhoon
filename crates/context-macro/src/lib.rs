@@ -11,9 +11,7 @@ use {
     },
 };
 
-mod accounts;
 mod context;
-mod extractor;
 mod generators;
 mod injector;
 mod remover;

@@ -6,7 +6,7 @@ mod args;
 mod program_id;
 mod remaining_accounts;
 
-pub use {args::*, program_id::*};
+pub use {args::*, program_id::*, remaining_accounts::*};
 use {
     pinocchio::{account_info::AccountInfo, cpi::set_return_data, pubkey::Pubkey},
     typhoon_errors::Error,
