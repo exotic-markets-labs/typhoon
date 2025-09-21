@@ -75,34 +75,36 @@ jobs:
 
   run_examples_tests:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        example: [
+          "anchor-cpi",
+          "counter", 
+          "cpi",
+          "hello-world",
+          "instruction-data",
+          "seeded",
+          "seeds",
+          "transfer-sol",
+          "transfer-token"
+        ]
     defaults:
       run:
-        working-directory: ./examples
+        working-directory: ./examples/${{ matrix.example }}
     steps:
       - uses: actions/checkout@v4
-      - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: |
-            examples/anchor-cpi/ -> target
-            examples/counter/ -> target
-            examples/hello-world/ -> target
-            examples/instruction-data/ -> target
-            examples/seeded/ -> target
-            examples/seeds/ -> target
-            examples/transfer-sol/ -> target
       - name: Rust install
         uses: dtolnay/rust-toolchain@stable
-      - name: Install cargo-make
-        uses: baptiste0928/cargo-install@v3
-        with:
-          crate: cargo-make
-          version: "0.37.23"
+      - name: Setup cache
+        uses: Swatinem/rust-cache@v2
       - name: Install Solana CLI
         run: |
           sh -c "$(curl -sSfL https://release.anza.xyz/v2.2.14/install)"
           echo "/home/runner/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
-      - name: Tests
-        run: cargo make test
+      - name: Build program
+        run: cargo build-sbf
+      - name: Test program
+        run: cargo test
 
   run_basic_tests:
     runs-on: ubuntu-latest

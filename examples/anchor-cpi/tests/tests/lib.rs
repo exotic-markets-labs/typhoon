@@ -35,12 +35,12 @@ fn anchor_cpi_test() {
     // Add lever program to SVM
     let lever_id = pubkey!("E64FVeubGC4NPNF2UBJYX4AkrVowf74fRJD9q6YhwstN");
     let lever_bytes = read_program("lever");
-    svm.add_program(lever_id, &lever_bytes);
+    svm.add_program(lever_id, &lever_bytes).unwrap();
 
     // Add hand program to SVM
     let hand_id = pubkey!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
     let hand_bytes = read_program("hand");
-    svm.add_program(hand_id, &hand_bytes);
+    svm.add_program(hand_id, &hand_bytes).unwrap();
 
     let power_kp = Keypair::new();
 

@@ -32,7 +32,7 @@ fn integration_test() {
 
     let program_bytes = read_program();
 
-    svm.add_program(ID, &program_bytes);
+    svm.add_program(ID, &program_bytes).unwrap();
 
     // Create the counter
     let counter_kp = Keypair::new();
@@ -82,7 +82,5 @@ fn integration_test() {
     let tx = Transaction::new_signed_with_payer(&[ix], Some(&admin_pk), &[&admin_kp], hash);
     svm.send_transaction(tx).unwrap();
 
-    let raw_account = svm.get_account(&counter_pk).unwrap();
-    assert_eq!(raw_account.owner, solana_system_interface::program::ID);
-    assert_eq!(raw_account.lamports, 0);
+    assert!(svm.get_account(&counter_pk).is_none());
 }
