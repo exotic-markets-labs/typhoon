@@ -80,16 +80,6 @@ jobs:
         working-directory: ./examples
     steps:
       - uses: actions/checkout@v4
-      - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: |
-            examples/anchor-cpi/ -> target
-            examples/counter/ -> target
-            examples/hello-world/ -> target
-            examples/instruction-data/ -> target
-            examples/seeded/ -> target
-            examples/seeds/ -> target
-            examples/transfer-sol/ -> target
       - name: Rust install
         uses: dtolnay/rust-toolchain@stable
       - name: Install cargo-make

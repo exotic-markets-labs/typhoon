@@ -21,8 +21,10 @@ fn lever_integration_test() {
     let lever_program_bytes = read_program("lever");
     let hand_program_bytes = read_program("hand");
 
-    svm.add_program(lever_interface::ID.into(), &lever_program_bytes);
-    svm.add_program(hand_interface::ID.into(), &hand_program_bytes);
+    svm.add_program(lever_interface::ID, &lever_program_bytes)
+        .unwrap();
+    svm.add_program(hand_interface::ID, &hand_program_bytes)
+        .unwrap();
 
     let power_kp = Keypair::new();
     let power_pk = power_kp.pubkey();

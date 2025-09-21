@@ -19,12 +19,16 @@ unexpected_cfgs = { level = "warn", check-cfg = [
 typhoon = { path = "../../crates/lib" }
 
 [dev-dependencies]
-litesvm = "0.6.1"
-solana-instruction = "2.2.1"
-solana-keypair = "2.2.1"
-solana-native-token = "2.2.1"
-solana-pubkey = "2.2.1"
-solana-signer = "2.2.1"
+litesvm = "0.7"
+solana-instruction = "2.3"
+solana-keypair = "2.2"
+solana-native-token = "2.3"
+solana-pubkey = "2.3"
+solana-signer = "2.2"
 solana-system-interface = "1.0.0"
-solana-transaction = "2.2.1"
+solana-transaction = "2.2"
 typhoon-instruction-builder = { path = "../../crates/instruction-builder" }
+
+[profile.release]
+lto = true
+codegen-units = 1

@@ -35,7 +35,7 @@ fn integration_test() {
 
     let program_bytes = read_program();
 
-    svm.add_program(ID, &program_bytes);
+    svm.add_program(ID, &program_bytes).unwrap();
 
     // Create the counter
     let (counter_pk, _) = Pubkey::find_program_address(&[b"counter"], &ID);

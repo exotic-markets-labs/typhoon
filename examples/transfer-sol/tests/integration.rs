@@ -37,7 +37,7 @@ fn integration_test() {
 
     let program_bytes = read_program();
 
-    svm.add_program(ID, &program_bytes);
+    svm.add_program(ID, &program_bytes).unwrap();
 
     let admin_balance = svm.get_balance(&admin_pk).unwrap_or_default();
     let recipient_balance = svm.get_balance(&recipient_pk).unwrap_or_default();
