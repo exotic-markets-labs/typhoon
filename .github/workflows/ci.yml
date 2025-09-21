@@ -75,13 +75,28 @@ jobs:
 
   run_examples_tests:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        example: [
+          "anchor-cpi",
+          "counter", 
+          "cpi",
+          "hello-world",
+          "instruction-data",
+          "seeded",
+          "seeds",
+          "transfer-sol",
+          "transfer-token"
+        ]
     defaults:
       run:
-        working-directory: ./examples
+        working-directory: ./examples/${{ matrix.example }}
     steps:
       - uses: actions/checkout@v4
       - name: Rust install
         uses: dtolnay/rust-toolchain@stable
+      - name: Setup cache
+        uses: Swatinem/rust-cache@v2
       - name: Install cargo-make
         uses: baptiste0928/cargo-install@v3
         with:
