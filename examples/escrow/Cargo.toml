@@ -1,0 +1,33 @@
+[workspace]
+members = ["programs/*", "interfaces/*"]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+
+[workspace.lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = [
+    'cfg(target_os, values("solana"))',
+] }
+
+
+[workspace.dependencies]
+bytemuck = "1.23"
+escrow-interface = { path = "interfaces/escrow" }
+litesvm = "0.7"
+typhoon = { path = "../../crates/lib" }
+typhoon-token = { path = "../../crates/token" }
+typhoon-instruction-builder = { path = "../../crates/instruction-builder" }
+typhoon-idl-generator = { path = "../../crates/idl-generator" }
+solana-pubkey = "2.3"
+solana-instruction = "2.3"
+solana-keypair = "2.2"
+solana-native-token = "2.3"
+solana-signer = "2.2"
+solana-system-interface = "1.0.0"
+solana-transaction = "2.2"
+
+[profile.release]
+lto = true
+codegen-units = 1

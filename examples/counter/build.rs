@@ -8,7 +8,7 @@ fn main() {
 
     fs::create_dir_all(&idl_dir).unwrap();
 
-    let idl = typhoon_idl_generator::generate(manifest_dir).unwrap();
+    let idl = typhoon_idl_generator::generate(&[Path::new(&manifest_dir)]).unwrap();
 
     fs::write(idl_dir.join("counter.json"), idl).unwrap();
 }

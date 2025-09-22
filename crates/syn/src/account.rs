@@ -1,5 +1,5 @@
 use {
-    crate::constraints::{Constraint, Constraints},
+    crate::{constraints::Constraints, Docs},
     proc_macro2::Span,
     syn::{
         parse_quote,
@@ -16,47 +16,32 @@ pub struct AccountMeta {
 }
 
 #[derive(Clone)]
-pub struct Account {
+pub struct InstructionAccount {
     pub name: Ident,
     pub constraints: Constraints,
     pub meta: AccountMeta,
+    pub docs: Vec<String>,
     ty: Option<PathSegment>,
     pub inner_ty: Ident,
 }
 
-impl Account {
-    pub fn is_init_signer(&self) -> bool {
-        let has_init = self
-            .constraints
-            .0
-            .iter()
-            .any(|c| matches!(c, Constraint::Init(_) | Constraint::InitIfNeeded(_)));
-        let is_pda = self
-            .constraints
-            .0
-            .iter()
-            .any(|c| matches!(c, Constraint::Bump(_) | Constraint::AssociatedToken(_)));
-
-        has_init && !is_pda
-    }
-}
-
-impl Account {
+impl InstructionAccount {
     pub fn get_ty(&self) -> PathSegment {
         let inner_ty = &self.inner_ty;
         self.ty.clone().unwrap_or(parse_quote!(#inner_ty<'info>))
     }
 }
 
-impl TryFrom<&Field> for Account {
+impl TryFrom<&Field> for InstructionAccount {
     type Error = syn::Error;
 
     fn try_from(value: &Field) -> Result<Self, Self::Error> {
-        let mut acc = Account {
+        let mut acc = InstructionAccount {
             name: value
                 .ident
                 .clone()
                 .ok_or(syn::Error::new_spanned(value, "The field need to be named"))?,
+            docs: Docs::from(value.attrs.as_slice()).into_vec(),
             constraints: Constraints::try_from(value.attrs.as_slice())?,
             meta: AccountMeta::default(),
             ty: None,
@@ -68,7 +53,7 @@ impl TryFrom<&Field> for Account {
     }
 }
 
-impl Visit<'_> for Account {
+impl Visit<'_> for InstructionAccount {
     fn visit_path_segment(&mut self, i: &syn::PathSegment) {
         let ty = i.ident.to_string();
 
@@ -104,28 +89,28 @@ mod tests {
     #[test]
     fn test_instruction_parse_with_context() {
         let field: syn::Field = parse_quote!(pub random2: Option<Mut<Account<Random2>>>);
-        let account = Account::try_from(&field).unwrap();
+        let account = InstructionAccount::try_from(&field).unwrap();
         assert_eq!(account.inner_ty, "Random2");
         assert!(account.meta.is_mutable);
         assert!(account.meta.is_optional);
         assert!(!account.meta.is_signer);
 
         let field: syn::Field = parse_quote!(pub random2: SignerNoCheck<'info, Account<Random2>>);
-        let account = Account::try_from(&field).unwrap();
+        let account = InstructionAccount::try_from(&field).unwrap();
         assert_eq!(account.inner_ty, "Random2");
         assert!(!account.meta.is_mutable);
         assert!(!account.meta.is_optional);
         assert!(account.meta.is_signer);
 
         let field: syn::Field = parse_quote!(pub random2: InterfaceAccount<TokenAccount>);
-        let account = Account::try_from(&field).unwrap();
+        let account = InstructionAccount::try_from(&field).unwrap();
         assert_eq!(account.inner_ty, "TokenAccount");
         assert!(!account.meta.is_mutable);
         assert!(!account.meta.is_optional);
         assert!(!account.meta.is_signer);
 
         let field: syn::Field = parse_quote!(pub random2: UncheckedAccount);
-        let account = Account::try_from(&field).unwrap();
+        let account = InstructionAccount::try_from(&field).unwrap();
         assert_eq!(account.inner_ty, "UncheckedAccount");
         assert!(!account.meta.is_mutable);
         assert!(!account.meta.is_optional);

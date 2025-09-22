@@ -5,7 +5,7 @@ use {
     typhoon_syn::{
         error,
         utils::{ContextExpr, SeedsExpr},
-        Account,
+        InstructionAccount,
     },
 };
 
@@ -41,7 +41,7 @@ pub struct PdaContext {
 }
 
 pub struct AccountGenerator<'a> {
-    pub account: &'a Account,
+    pub account: &'a InstructionAccount,
     pub account_ty: AccountType,
     pub init: Option<InitContext>,
     pub pda: Option<PdaContext>,
@@ -49,7 +49,7 @@ pub struct AccountGenerator<'a> {
 }
 
 impl<'a> AccountGenerator<'a> {
-    pub fn new(account: &'a Account, account_ty: AccountType) -> Self {
+    pub fn new(account: &'a InstructionAccount, account_ty: AccountType) -> Self {
         Self {
             account,
             account_ty,

@@ -4,7 +4,7 @@ use {
     proc_macro2::TokenStream,
     quote::{format_ident, quote},
     syn::{parse_quote, Ident, Type},
-    typhoon_syn::{Account, Arguments, Context, InstructionArg},
+    typhoon_syn::{Arguments, Context, InstructionAccount, InstructionArg, InstructionReturnData},
 };
 
 pub struct CpiGenerator;
@@ -74,7 +74,7 @@ fn generate_arg((name, ty): (&Ident, &Type)) -> (TokenStream, TokenStream) {
 }
 
 fn generate_accounts(
-    accounts: &[Account],
+    accounts: &[InstructionAccount],
 ) -> (Vec<TokenStream>, Vec<TokenStream>, Vec<TokenStream>) {
     let len = accounts.len();
     let mut account_fields = Vec::with_capacity(len);
@@ -131,7 +131,7 @@ impl Generator for CpiGenerator {
             let instruction_name =
                 format_ident!("{}Cpi", ix.name.to_string().to_upper_camel_case());
             let dis = *discriminator as u8;
-            let (result_ty, return_data) = if let Some(ref ty) = ix.return_data {
+            let (result_ty, return_data) = if let InstructionReturnData { ty: Some(ref ty), .. } = ix.return_data {
                 (
                     Some(quote!(<#ty>)),
                     quote! {
@@ -148,7 +148,7 @@ impl Generator for CpiGenerator {
             let mut  has_optional = false;
             let (fields, assigns): (Vec<_>, Vec<_>) = ix.args.iter().map(|(arg_name,v)| {
                 match v {
-                    InstructionArg::Type(ty) => {
+                    InstructionArg::Type { ty, .. } => {
                         let (field, bytes) = generate_arg((arg_name, ty));
 
                         data_len.push(quote!(core::mem::size_of::<#ty>()));

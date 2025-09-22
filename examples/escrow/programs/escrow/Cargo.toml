@@ -1,0 +1,22 @@
+[package]
+name = "escrow"
+version.workspace = true
+edition.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[features]
+logging = []
+
+[lints]
+workspace = true
+
+[dependencies]
+bytemuck.workspace = true
+typhoon.workspace = true
+typhoon-token.workspace = true
+escrow-interface.workspace = true
+
+[build-dependencies]
+typhoon-idl-generator.workspace = true

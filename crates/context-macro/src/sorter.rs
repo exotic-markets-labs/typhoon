@@ -6,7 +6,7 @@ use {
             ConstraintAssociatedToken, ConstraintBump, ConstraintHasOne, ConstraintPayer,
             ConstraintToken,
         },
-        Account,
+        InstructionAccount,
     },
 };
 
@@ -25,7 +25,7 @@ impl DependencyLinker {
         self.dependencies.push(ident.to_string());
     }
 
-    fn extract_dependencies(account: &Account) -> Result<Vec<String>, syn::Error> {
+    fn extract_dependencies(account: &InstructionAccount) -> Result<Vec<String>, syn::Error> {
         let mut linker = Self::new();
         linker.visit_account(account)?;
         Ok(linker.dependencies)

@@ -153,10 +153,10 @@ impl ToTokens for TokenGenerator {
 
         let doc = prettyplease::unparse(
             &syn::parse2::<syn::File>(quote! {
-                #bumps_struct
-                #args_struct
+                // #bumps_struct
+                // #args_struct
 
-                #impl_context
+                // #impl_context
             })
             .unwrap(),
         );

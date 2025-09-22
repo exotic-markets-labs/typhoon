@@ -1,19 +1,24 @@
 use {
-    crate::helpers::PathHelper,
+    crate::{helpers::PathHelper, Encoding},
     heck::ToSnakeCase,
     quote::format_ident,
-    syn::{FnArg, Ident, Pat, Type},
+    syn::{parse::Parser, punctuated::Punctuated, FnArg, Ident, Pat, Type},
 };
 
+pub struct InstructionReturnData {
+    pub ty: Option<Type>,
+    pub encoding: Encoding,
+}
+
 pub enum InstructionArg {
-    Type(Type),
+    Type { ty: Type, encoding: Encoding },
     Context(Ident),
 }
 
 pub struct Instruction {
     pub name: Ident,
     pub args: Vec<(Ident, InstructionArg)>,
-    pub return_data: Option<Type>,
+    pub return_data: InstructionReturnData,
 }
 
 impl TryFrom<&syn::ItemFn> for Instruction {
@@ -49,7 +54,21 @@ impl TryFrom<&syn::ItemFn> for Instruction {
                     .unwrap_or(format_ident!("{}", name.to_string().to_snake_case()));
 
                 if name == "Arg" || name == "BorshArg" {
-                    Some(Ok((arg_name, InstructionArg::Type(ty?))))
+                    Some(Ok((
+                        arg_name,
+                        InstructionArg::Type {
+                            ty: ty?,
+                            encoding: Encoding::Bytemuck,
+                        },
+                    )))
+                } else if name == "BorshArg" {
+                    Some(Ok((
+                        arg_name,
+                        InstructionArg::Type {
+                            ty: ty?,
+                            encoding: Encoding::Borsh,
+                        },
+                    )))
                 } else {
                     //TODO when it will be extractor
                     // let Some(Type::Path(path)) = ty else {
@@ -64,7 +83,10 @@ impl TryFrom<&syn::ItemFn> for Instruction {
         Ok(Instruction {
             name: value.sig.ident.clone(),
             args,
-            return_data,
+            return_data: InstructionReturnData {
+                ty: return_data,
+                encoding: Encoding::Bytemuck,
+            },
         })
     }
 }
@@ -77,5 +99,24 @@ fn extract_name(pat: &Pat) -> Option<Ident> {
             extract_name(pat)
         }
         _ => None,
+    }
+}
+
+#[derive(Default)]
+pub struct InstructionsList(pub Vec<(usize, Ident)>);
+
+impl TryFrom<&syn::ItemMacro> for InstructionsList {
+    type Error = syn::Error;
+
+    fn try_from(value: &syn::ItemMacro) -> syn::Result<Self> {
+        let instructions = Punctuated::<Ident, syn::Token![,]>::parse_terminated
+            .parse2(value.mac.tokens.clone())?;
+        Ok(Self(
+            instructions
+                .iter()
+                .enumerate()
+                .map(|(i, n)| (i, n.clone()))
+                .collect(),
+        ))
     }
 }
