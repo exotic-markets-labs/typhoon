@@ -301,11 +301,13 @@ impl AccountGenerator<'_> {
                     });
                 }
 
-                token.extend(quote! {
-                    if #var_name.owner() != #owner.key() {
-                        return Err(ErrorCode::TokenConstraintViolated.into());
-                    }
-                });
+                if let Some(owner) = owner {
+                    token.extend(quote! {
+                        if #var_name.owner() != #owner.key() {
+                            return Err(ErrorCode::TokenConstraintViolated.into());
+                        }
+                    });
+                }
             }
             AccountType::Mint { .. } => {}
             AccountType::Other { ref targets, .. } => {
