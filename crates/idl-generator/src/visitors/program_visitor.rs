@@ -1,13 +1,15 @@
-use codama::KorokVisitor;
-use hashbrown::HashMap;
-use syn::Item;
-use typhoon_syn::{Context, Instruction, InstructionsList};
-
-use crate::helpers::AttributesHelper;
+use {
+    crate::helpers::AttributesHelper,
+    codama::KorokVisitor,
+    hashbrown::HashMap,
+    syn::{Ident, Item},
+    typhoon_syn::{Context, Instruction, InstructionsList},
+};
 
 #[derive(Default)]
 pub struct ProgramVisitor {
     pub instruction_list: InstructionsList,
+    pub errors_name: String,
     pub instructions: HashMap<String, Instruction>,
     pub contexts: HashMap<String, Context>,
 }
@@ -37,6 +39,11 @@ impl KorokVisitor for ProgramVisitor {
                 if item_macro.mac.path.is_ident("handlers") {
                     self.instruction_list = InstructionsList::try_from(item_macro)?;
                 };
+
+                if item_macro.mac.path.is_ident("impl_error_logger") {
+                    let macro_body: Ident = item_macro.mac.parse_body()?;
+                    self.errors_name = macro_body.to_string();
+                }
             }
             Item::Fn(item_fn) => {
                 if let Ok(ix) = Instruction::try_from(item_fn) {

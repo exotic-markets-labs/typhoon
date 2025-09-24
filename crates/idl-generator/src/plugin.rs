@@ -1,13 +1,14 @@
 use {
     crate::visitors::{
-        get_type_node, ApplyInstructionVisitor, ProgramVisitor, SetProgramIdVisitor,
+        get_type_node, ApplyInstructionVisitor, ProgramVisitor, SetAccountVisitor,
+        SetDefinedTypesVisitor, SetErrorsVisitor, SetProgramIdVisitor,
     },
     codama::{
         CamelCaseString, CodamaResult, CombineModulesVisitor, ComposeVisitor,
         ConstantDiscriminatorNode, ConstantValueNode, DefinedTypeLinkNode, DiscriminatorNode, Docs,
-        InstructionArgumentNode, InstructionNode, InstructionOptionalAccountStrategy,
-        NumberFormat::U8, NumberTypeNode, NumberValueNode, SetProgramMetadataVisitor,
-        StructFieldTypeNode, StructTypeNode, TypeNode,
+        InstructionAccountNode, InstructionArgumentNode, InstructionNode,
+        InstructionOptionalAccountStrategy, IsAccountSigner, NumberFormat::U8, NumberTypeNode,
+        NumberValueNode, SetProgramMetadataVisitor, StructFieldTypeNode, StructTypeNode, TypeNode,
     },
     codama_korok_plugins::KorokPlugin,
     codama_korok_visitors::KorokVisitable,
@@ -33,18 +34,9 @@ impl KorokPlugin for TyphoonPlugin {
 
         let mut default_visitor = ComposeVisitor::new()
             .with(ApplyInstructionVisitor::new(ixs))
-            // .with(FilterItemsVisitor::new(
-            //     move |item| item.has_attribute("account"),
-            //     ComposeVisitor::new()
-            //         .with(SetBorshTypesVisitor::new())
-            //         .with(SetLinkTypesVisitor::new())
-            //         .with(CombineTypesVisitor::new())
-            //         .with(UniformVisitor::new(|mut k, visitor| {
-            //             visitor.visit_children(&mut k)?;
-            //             apply_account(k);
-            //             Ok(())
-            //         })),
-            // ))
+            .with(SetAccountVisitor::new())
+            .with(SetDefinedTypesVisitor::new())
+            .with(SetErrorsVisitor::new(program_visitor.errors_name))
             .with(SetProgramIdVisitor::new())
             .with(SetProgramMetadataVisitor::new())
             .with(CombineModulesVisitor::new());
@@ -64,7 +56,7 @@ fn resolve_instructions(
             .instructions
             .get(&name)
             .ok_or(syn::Error::new_spanned(ix, "BORDEL"))?;
-        let accounts = Vec::new();
+        let mut accounts = Vec::new();
         let mut arguments = Vec::new();
 
         for (arg_name, arg_value) in &ix.args {
@@ -74,6 +66,21 @@ fn resolve_instructions(
                         .contexts
                         .get(&ctx.to_string())
                         .ok_or(syn::Error::new_spanned(&ctx, ""))?;
+
+                    for account in &context.accounts {
+                        accounts.push(InstructionAccountNode {
+                            default_value: None,
+                            docs: Docs::from(account.docs.clone()),
+                            is_optional: account.meta.is_optional,
+                            is_signer: if account.meta.is_optional && account.meta.is_signer {
+                                IsAccountSigner::Either
+                            } else {
+                                account.meta.is_signer.into()
+                            },
+                            is_writable: account.meta.is_mutable,
+                            name: CamelCaseString::new(account.name.to_string()),
+                        });
+                    }
 
                     if let Some(args) = &context.arguments {
                         arguments.push(InstructionArgumentNode {

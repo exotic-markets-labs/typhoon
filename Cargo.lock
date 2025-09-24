@@ -5043,6 +5043,7 @@ dependencies = [
 name = "typhoon-idl-generator"
 version = "0.1.0-alpha.15"
 dependencies = [
+ "base64 0.22.1",
  "codama",
  "codama-attributes",
  "codama-korok-plugins",

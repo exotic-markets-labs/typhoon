@@ -1,7 +1,9 @@
-use codama::{InstructionNode, KorokVisitor, Node};
-use codama_koroks::UnsupportedItemKorok;
-use hashbrown::HashMap;
-use syn::Item;
+use {
+    codama::{InstructionNode, KorokVisitor, Node},
+    codama_koroks::UnsupportedItemKorok,
+    hashbrown::HashMap,
+    syn::Item,
+};
 
 pub struct ApplyInstructionVisitor {
     pub instructions: HashMap<String, InstructionNode>,

@@ -1,10 +1,12 @@
-use codama::{CodamaResult, KorokVisitor};
-use codama_nodes::{
-    ArrayTypeNode, BooleanTypeNode, FixedCountNode, MapTypeNode, NumberFormat::*, NumberTypeNode,
-    OptionTypeNode, PrefixedCountNode, PublicKeyTypeNode, SetTypeNode, SizePrefixTypeNode,
-    StringTypeNode, TypeNode,
+use {
+    codama::{CodamaResult, KorokVisitor},
+    codama_nodes::{
+        ArrayTypeNode, BooleanTypeNode, FixedCountNode, MapTypeNode, NumberFormat::*,
+        NumberTypeNode, OptionTypeNode, PrefixedCountNode, PublicKeyTypeNode, SetTypeNode,
+        SizePrefixTypeNode, StringTypeNode, TypeNode,
+    },
+    codama_syn_helpers::extensions::*,
 };
-use codama_syn_helpers::extensions::*;
 
 #[derive(Default)]
 pub struct SetBorshTypesVisitor;

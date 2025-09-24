@@ -8,6 +8,7 @@ authors.workspace = true
 repository.workspace = true
 
 [dependencies]
+base64.workspace = true
 codama.workspace = true
 codama-attributes.workspace = true
 codama-nodes.workspace = true

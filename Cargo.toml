@@ -12,6 +12,7 @@ repository = "https://github.com/rust-lang/rust-analyzer"
 
 [workspace.dependencies]
 anchor-lang-idl-spec = "0.1"
+base64 = "0.22"
 borsh = { version = "1.5", default-features = false }
 bytemuck = "1.23"
 cargo-manifest = "0.19"

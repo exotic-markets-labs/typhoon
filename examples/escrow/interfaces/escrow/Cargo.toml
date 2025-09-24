@@ -23,4 +23,4 @@ solana-pubkey = { workspace = true, optional = true }
 solana-instruction = { workspace = true, optional = true }
 
 [package.metadata.typhoon.builder-dependencies]
-hand = { path = "../../programs/hand" }
+escrow = { path = "../../programs/escrow" }
