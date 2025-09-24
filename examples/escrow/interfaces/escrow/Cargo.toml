@@ -1,0 +1,26 @@
+[package]
+name = "escrow-interface"
+version.workspace = true
+edition.workspace = true
+
+[lib]
+crate-type = ["rlib"]
+
+[features]
+client = [
+    "std",
+    "dep:typhoon-instruction-builder",
+    "dep:solana-pubkey",
+    "dep:solana-instruction",
+]
+std = []
+
+[dependencies]
+bytemuck = { workspace = true, features = ["derive"] }
+typhoon.workspace = true
+typhoon-instruction-builder = { workspace = true, optional = true }
+solana-pubkey = { workspace = true, optional = true }
+solana-instruction = { workspace = true, optional = true }
+
+[package.metadata.typhoon.builder-dependencies]
+escrow = { path = "../../programs/escrow" }

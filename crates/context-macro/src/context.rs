@@ -1,12 +1,12 @@
 use {
     crate::{injector::LifetimeInjector, remover::AttributeRemover},
     syn::{parse::Parse, spanned::Spanned, visit_mut::VisitMut, Item, ItemStruct},
-    typhoon_syn::{constraints::CONSTRAINT_IDENT_STR, Account, Arguments},
+    typhoon_syn::{constraints::CONSTRAINT_IDENT_STR, Arguments, InstructionAccount},
 };
 
 pub struct ParsingContext {
     pub item_struct: ItemStruct,
-    pub accounts: Vec<Account>,
+    pub accounts: Vec<InstructionAccount>,
     pub args: Option<Arguments>,
 }
 
@@ -24,10 +24,10 @@ impl Parse for ParsingContext {
                     .map(Arguments::try_from)
                     .transpose()?;
 
-                let accounts: Vec<Account> = item_struct
+                let accounts: Vec<InstructionAccount> = item_struct
                     .fields
                     .iter()
-                    .map(Account::try_from)
+                    .map(InstructionAccount::try_from)
                     .collect::<syn::Result<_>>()?;
 
                 AttributeRemover::new("args").visit_item_struct_mut(&mut item_struct);

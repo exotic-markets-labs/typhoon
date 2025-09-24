@@ -1,7 +1,7 @@
-use typhoon_syn::{constraints::*, Account};
+use typhoon_syn::{constraints::*, InstructionAccount};
 
 pub trait ContextVisitor {
-    fn visit_account(&mut self, account: &Account) -> Result<(), syn::Error> {
+    fn visit_account(&mut self, account: &InstructionAccount) -> Result<(), syn::Error> {
         self.visit_constraints(&account.constraints)
     }
 

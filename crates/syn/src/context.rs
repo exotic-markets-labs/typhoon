@@ -1,11 +1,11 @@
 use {
-    crate::{account::Account, arguments::Arguments},
+    crate::{account::InstructionAccount, arguments::Arguments},
     syn::{Ident, ItemStruct},
 };
 
 pub struct Context {
     pub name: Ident,
-    pub accounts: Vec<Account>,
+    pub accounts: Vec<InstructionAccount>,
     pub arguments: Option<Arguments>,
 }
 
@@ -16,7 +16,7 @@ impl TryFrom<&ItemStruct> for Context {
         let accounts = value
             .fields
             .iter()
-            .map(Account::try_from)
+            .map(InstructionAccount::try_from)
             .collect::<Result<_, _>>()?;
 
         let arguments = value

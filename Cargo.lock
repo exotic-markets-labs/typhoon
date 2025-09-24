@@ -5043,6 +5043,7 @@ dependencies = [
 name = "typhoon-idl-generator"
 version = "0.1.0-alpha.15"
 dependencies = [
+ "base64 0.22.1",
  "codama",
  "codama-attributes",
  "codama-korok-plugins",
@@ -5052,9 +5053,11 @@ dependencies = [
  "codama-stores",
  "codama-syn-helpers",
  "five8_const 1.0.0",
+ "hashbrown 0.16.0",
  "quote",
  "syn 2.0.106",
  "typhoon-discriminator",
+ "typhoon-syn",
 ]
 
 [[package]]

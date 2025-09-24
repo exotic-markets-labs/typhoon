@@ -1,0 +1,32 @@
+[package]
+name = "escrow"
+version.workspace = true
+edition.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[features]
+logging = []
+
+[lints]
+workspace = true
+
+[dependencies]
+bytemuck.workspace = true
+typhoon.workspace = true
+typhoon-token.workspace = true
+escrow-interface.workspace = true
+
+[build-dependencies]
+typhoon-idl-generator.workspace = true
+
+[dev-dependencies]
+escrow-interface = { workspace = true, features = ["client"] }
+litesvm = "0.7"
+litesvm-token = "0.7"
+solana-keypair = "2.2"
+solana-native-token = "2.3"
+solana-signer = "2.2"
+solana-transaction = "2.2"
+spl-associated-token-account-client = "2.0.0"

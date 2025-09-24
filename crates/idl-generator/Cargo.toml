@@ -8,6 +8,7 @@ authors.workspace = true
 repository.workspace = true
 
 [dependencies]
+base64.workspace = true
 codama.workspace = true
 codama-attributes.workspace = true
 codama-nodes.workspace = true
@@ -17,7 +18,9 @@ codama-korok-visitors.workspace = true
 codama-stores.workspace = true
 codama-syn-helpers.workspace = true
 five8_const.workspace = true
+hashbrown.workspace = true
 typhoon-discriminator.workspace = true
+typhoon-syn.workspace = true
 syn = { workspace = true, features = ["full", "visit"] }
 
 [dev-dependencies]

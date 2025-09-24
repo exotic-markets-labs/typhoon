@@ -4,7 +4,7 @@ use {
     proc_macro2::TokenStream,
     quote::{format_ident, quote},
     syn::{parse_quote, Ident, Type},
-    typhoon_syn::{Account, Arguments, Context, Instruction, InstructionArg},
+    typhoon_syn::{Arguments, Context, Instruction, InstructionAccount, InstructionArg},
 };
 
 pub struct ClientGenerator;
@@ -51,7 +51,7 @@ fn generate_arg((name, ty): (&Ident, &Type)) -> (TokenStream, TokenStream) {
     )
 }
 
-fn generate_accounts(accounts: &[Account]) -> (Vec<TokenStream>, Vec<TokenStream>) {
+fn generate_accounts(accounts: &[InstructionAccount]) -> (Vec<TokenStream>, Vec<TokenStream>) {
     accounts
         .iter()
         .map(|acc| {
@@ -106,7 +106,7 @@ impl Generator for ClientGenerator {
                 .args
                 .iter()
                 .map(|(arg_name, arg_v)| match arg_v {
-                    InstructionArg::Type(ty) => {
+                    InstructionArg::Type { ty, .. } => {
                         data_len.push(quote!(core::mem::size_of::<#ty>()));
                         generate_arg((arg_name, ty))
                     }

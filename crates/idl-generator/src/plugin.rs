@@ -1,24 +1,20 @@
 use {
-    crate::{
-        helpers::ItemHelper,
-        visitors::{
-            CacheByImplsVisitor, CacheInstructionIdents, ContextVisitor, DoubleVisitor,
-            InstructionVisitor, SetDefinedTypesVisitor, SetProgramIdVisitor,
-        },
+    crate::visitors::{
+        get_type_node, ApplyInstructionVisitor, ProgramVisitor, SetAccountVisitor,
+        SetDefinedTypesVisitor, SetErrorsVisitor, SetProgramIdVisitor,
     },
     codama::{
-        AccountNode, CodamaResult, CombineModulesVisitor, CombineTypesVisitor, ComposeVisitor,
-        FilterItemsVisitor, KorokMut, KorokTrait, KorokVisitor, NestedTypeNode, Node,
-        SetBorshTypesVisitor, SetLinkTypesVisitor, SetProgramMetadataVisitor, StructTypeNode,
-        UniformVisitor,
+        CamelCaseString, CodamaResult, CombineModulesVisitor, ComposeVisitor,
+        ConstantDiscriminatorNode, ConstantValueNode, DefinedTypeLinkNode, DiscriminatorNode, Docs,
+        InstructionAccountNode, InstructionArgumentNode, InstructionNode,
+        InstructionOptionalAccountStrategy, IsAccountSigner, NumberFormat::U8, NumberTypeNode,
+        NumberValueNode, SetProgramMetadataVisitor, StructFieldTypeNode, StructTypeNode, TypeNode,
     },
     codama_korok_plugins::KorokPlugin,
     codama_korok_visitors::KorokVisitable,
-    std::{
-        collections::{HashMap, HashSet},
-        rc::Rc,
-    },
-    typhoon_discriminator::DiscriminatorBuilder,
+    hashbrown::HashMap,
+    syn::{Error, Type},
+    typhoon_syn::{Arguments, InstructionArg},
 };
 
 pub struct TyphoonPlugin;
@@ -31,44 +27,16 @@ impl KorokPlugin for TyphoonPlugin {
     ) -> CodamaResult<()> {
         next(visitable)?;
 
-        let mut cache_accounts = HashSet::new();
-        let mut cache_instructions = Rc::new(HashMap::new());
+        let mut program_visitor = ProgramVisitor::new();
+        visitable.accept(&mut program_visitor)?;
 
-        {
-            let mut first_visitor = ComposeVisitor::new()
-                .with(CacheByImplsVisitor::new(&["Owner"], &mut cache_accounts))
-                .with(CacheInstructionIdents::new(
-                    Rc::get_mut(&mut cache_instructions).unwrap(),
-                ));
-            visitable.accept(&mut first_visitor)?;
-        }
+        let ixs = resolve_instructions(&program_visitor)?;
 
-        let cache_instructions_cloned = cache_instructions.clone();
         let mut default_visitor = ComposeVisitor::new()
-            .with(FilterItemsVisitor::new(
-                move |item| item.has_attribute("account"),
-                ComposeVisitor::new()
-                    .with(SetBorshTypesVisitor::new())
-                    .with(SetLinkTypesVisitor::new())
-                    .with(CombineTypesVisitor::new())
-                    .with(UniformVisitor::new(|mut k, visitor| {
-                        visitor.visit_children(&mut k)?;
-                        apply_account(k);
-                        Ok(())
-                    })),
-            ))
-            .with(FilterItemsVisitor::new(
-                move |item| {
-                    item.name()
-                        .map(|n| cache_instructions_cloned.contains_key(&n))
-                        .unwrap_or_default()
-                        || item.has_attribute("context")
-                },
-                ComposeVisitor::new()
-                    .with(ContextVisitor::new())
-                    .with(InstructionVisitor::new(&cache_instructions)),
-            ))
-            .with(DoubleVisitor::new(SetDefinedTypesVisitor::new()))
+            .with(ApplyInstructionVisitor::new(ixs))
+            .with(SetAccountVisitor::new())
+            .with(SetDefinedTypesVisitor::new())
+            .with(SetErrorsVisitor::new(program_visitor.errors_name))
             .with(SetProgramIdVisitor::new())
             .with(SetProgramMetadataVisitor::new())
             .with(CombineModulesVisitor::new());
@@ -78,26 +46,120 @@ impl KorokPlugin for TyphoonPlugin {
     }
 }
 
-fn apply_account(mut korok: KorokMut) {
-    let Some(Node::DefinedType(ref def_ty)) = korok.node() else {
-        return;
-    };
+fn resolve_instructions(
+    program: &ProgramVisitor,
+) -> CodamaResult<HashMap<String, InstructionNode>> {
+    let mut result = HashMap::new();
+    for (dis, ix) in &program.instruction_list.0 {
+        let name = ix.to_string();
+        let ix = program
+            .instructions
+            .get(&name)
+            .ok_or(syn::Error::new_spanned(ix, "BORDEL"))?;
+        let mut accounts = Vec::new();
+        let mut arguments = Vec::new();
 
-    let Ok(data) = NestedTypeNode::<StructTypeNode>::try_from(def_ty.r#type.clone()) else {
-        return;
-    };
+        for (arg_name, arg_value) in &ix.args {
+            match arg_value {
+                InstructionArg::Context(ctx) => {
+                    let context = program
+                        .contexts
+                        .get(&ctx.to_string())
+                        .ok_or(syn::Error::new_spanned(&ctx, ""))?;
 
-    let _calculated_dis = DiscriminatorBuilder::new(def_ty.name.as_str()).build();
+                    for account in &context.accounts {
+                        accounts.push(InstructionAccountNode {
+                            default_value: None,
+                            docs: Docs::from(account.docs.clone()),
+                            is_optional: account.meta.is_optional,
+                            is_signer: if account.meta.is_optional && account.meta.is_signer {
+                                IsAccountSigner::Either
+                            } else {
+                                account.meta.is_signer.into()
+                            },
+                            is_writable: account.meta.is_mutable,
+                            name: CamelCaseString::new(account.name.to_string()),
+                        });
+                    }
 
-    // ConstantDiscriminatorNode::new(ConstantValueNode::bytes(), 0);
+                    if let Some(args) = &context.arguments {
+                        arguments.push(InstructionArgumentNode {
+                            name: CamelCaseString::new(format!("{}_args", context.name)),
+                            r#type: match args {
+                                Arguments::Values(arguments) => TypeNode::Struct(StructTypeNode {
+                                    fields: arguments
+                                        .iter()
+                                        .map(|el| {
+                                            Ok(StructFieldTypeNode {
+                                                name: CamelCaseString::new(el.name.to_string()),
+                                                default_value_strategy: None,
+                                                docs: Docs::new(),
+                                                r#type: extract_type(&el.ty)?,
+                                                default_value: None,
+                                            })
+                                        })
+                                        .collect::<Result<_, syn::Error>>()?,
+                                }),
+                                Arguments::Struct(ident) => {
+                                    TypeNode::Link(DefinedTypeLinkNode::new(ident.to_string()))
+                                }
+                            },
+                            default_value_strategy: None,
+                            docs: Docs::new(),
+                            default_value: None,
+                        });
+                    }
+                }
+                InstructionArg::Type { ty, .. } => {
+                    arguments.push(InstructionArgumentNode {
+                        name: CamelCaseString::new(arg_name.to_string()),
+                        r#type: extract_type(&ty)?,
+                        default_value: None,
+                        default_value_strategy: None,
+                        docs: Docs::new(),
+                    });
+                }
+            }
+        }
 
-    let account = AccountNode {
-        name: def_ty.name.clone(),
-        docs: def_ty.docs.clone(),
-        size: None,
-        pda: None,
-        discriminators: Vec::from([]),
-        data,
-    };
-    korok.set_node(Some(Node::Account(account)));
+        result.insert(
+            name,
+            InstructionNode {
+                discriminators: vec![DiscriminatorNode::Constant(ConstantDiscriminatorNode::new(
+                    ConstantValueNode::new(
+                        NumberTypeNode::le(U8),
+                        NumberValueNode::new(*dis as u8),
+                    ),
+                    0,
+                ))],
+                accounts,
+                arguments,
+                name: CamelCaseString::new(ix.name.to_string()),
+                optional_account_strategy: InstructionOptionalAccountStrategy::ProgramId,
+                ..Default::default()
+            },
+        );
+    }
+
+    Ok(result)
+}
+
+fn extract_type(ty: &Type) -> Result<TypeNode, syn::Error> {
+    if let Some(ty_node) = get_type_node(&ty) {
+        Ok(ty_node)
+    } else {
+        let Type::Path(ty_path) = ty else {
+            return Err(Error::new_spanned(ty, "Invalid defined type."));
+        };
+
+        let seg = ty_path
+            .path
+            .segments
+            .last()
+            .ok_or(Error::new_spanned(ty, "Invalid defined path type."))?;
+
+        Ok(TypeNode::Link(DefinedTypeLinkNode::new(
+            seg.ident.to_string(),
+        )))
+    }
 }

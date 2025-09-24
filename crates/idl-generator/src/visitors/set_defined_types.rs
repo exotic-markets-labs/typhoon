@@ -1,10 +1,11 @@
 use {
     codama::{
         CamelCaseString, CombineTypesVisitor, ComposeVisitor, DefinedTypeLinkNode, KorokVisitor,
-        LinkNode, Node, SetBorshTypesVisitor, TypeNode,
+        Node, RegisteredTypeNode, SetBorshTypesVisitor, SetLinkTypesVisitor, StructFieldTypeNode,
+        TypeNode,
     },
     codama_koroks::{FieldKorok, StructKorok, UnsupportedItemKorok},
-    std::collections::HashSet,
+    hashbrown::HashSet,
 };
 
 pub struct SetDefinedTypesVisitor {
@@ -25,6 +26,7 @@ impl SetDefinedTypesVisitor {
             visitor: Box::new(
                 ComposeVisitor::new()
                     .with(SetBorshTypesVisitor::new())
+                    .with(SetLinkTypesVisitor::new())
                     .with(CombineTypesVisitor::new()),
             ),
         }
@@ -33,6 +35,8 @@ impl SetDefinedTypesVisitor {
 
 impl KorokVisitor for SetDefinedTypesVisitor {
     fn visit_struct(&mut self, korok: &mut StructKorok) -> codama::CodamaResult<()> {
+        self.visit_fields(&mut korok.fields)?;
+
         if korok.node.is_some() {
             return Ok(());
         }
@@ -46,8 +50,10 @@ impl KorokVisitor for SetDefinedTypesVisitor {
     }
 
     fn visit_field(&mut self, korok: &mut FieldKorok) -> codama::CodamaResult<()> {
-        let Some(Node::Link(LinkNode::DefinedType(DefinedTypeLinkNode { ref name, .. }))) =
-            korok.node
+        let Some(Node::Type(RegisteredTypeNode::StructField(StructFieldTypeNode {
+            r#type: TypeNode::Link(DefinedTypeLinkNode { ref name, .. }),
+            ..
+        }))) = korok.node
         else {
             return Ok(());
         };
