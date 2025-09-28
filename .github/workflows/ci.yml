@@ -41,16 +41,12 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
       - name: Install Solana CLI
         run: |
-          sh -c "$(curl -sSfL https://release.anza.xyz/v2.2.14/install)"
+          sh -c "$(curl -sSfL https://release.anza.xyz/v3.0.4/install)"
           echo "/home/runner/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
-      - name: Build benchmark programs
-        run: |
-          cd benches/program-bench/benches/programs
-          cargo build-sbf
       - name: Run benchmarks
         run: |
-          cd benches/program-bench
-          cargo bench --bench bench
+          chmod +x scripts/run-benchmarks.sh
+          ./scripts/run-benchmarks.sh
       - name: Commit updated benchmark results
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |

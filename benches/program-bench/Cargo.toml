@@ -13,17 +13,17 @@ harness = false
 
 [dependencies]
 sha2 = "0.10"
-litesvm = "0.7"
+litesvm = "0.8"
 serde = "1.0"
-solana-account = "2.2"
-solana-hash = "2.3"
-solana-instruction = "2.3"
-solana-keypair = "2.2"
-solana-native-token = "2.3"
-solana-pubkey = "2.3"
-solana-signer = "2.2"
-solana-system-interface = "1.0.0"
-solana-transaction = "2.2"
+solana-account = "3.0"
+solana-hash = "3.0"
+solana-instruction = "3.0"
+solana-keypair = "3.0"
+solana-native-token = "3.0"
+solana-pubkey = "3.0"
+solana-signer = "3.0"
+solana-system-interface = "2.0"
+solana-transaction = "3.0"
 
 [dev-dependencies]
 serde_json = "1.0"

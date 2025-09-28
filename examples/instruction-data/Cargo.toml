@@ -20,14 +20,14 @@ bytemuck = { version = "1.21.0", features = ["derive"] }
 typhoon = { path = "../../crates/lib" }
 
 [dev-dependencies]
-litesvm = "0.7"
-solana-instruction = "2.3"
-solana-keypair = "2.2"
-solana-native-token = "2.3"
-solana-pubkey = "2.3"
-solana-signer = "2.2"
-solana-system-interface = "1.0.0"
-solana-transaction = "2.2"
+litesvm = "0.8"
+solana-instruction = "3.0"
+solana-keypair = "3.0"
+solana-native-token = "3.0"
+solana-pubkey = "3.0"
+solana-signer = "3.0"
+solana-system-interface = "2.0.0"
+solana-transaction = "3.0"
 typhoon-instruction-builder = { path = "../../crates/instruction-builder" }
 
 [profile.release]
