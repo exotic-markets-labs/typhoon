@@ -61,7 +61,7 @@ fn integration_test() {
                 escrow: escrow_pk,
                 token_account: account_pk,
                 token_program: TOKEN_ID,
-                ata_program: spl_associated_token_account_client::program::ID,
+                ata_program: spl_associated_token_account_interface::program::ID,
                 system_program: solana_system_interface::program::ID,
             },
         }
