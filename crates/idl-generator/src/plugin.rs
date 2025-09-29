@@ -55,7 +55,10 @@ fn resolve_instructions(
         let ix = program
             .instructions
             .get(&name)
-            .ok_or(syn::Error::new_spanned(ix, "BORDEL"))?;
+            .ok_or(syn::Error::new_spanned(
+                ix,
+                "Cannot find the correct Instruction.",
+            ))?;
         let mut accounts = Vec::new();
         let mut arguments = Vec::new();
 
@@ -65,7 +68,7 @@ fn resolve_instructions(
                     let context = program
                         .contexts
                         .get(&ctx.to_string())
-                        .ok_or(syn::Error::new_spanned(&ctx, ""))?;
+                        .ok_or(syn::Error::new_spanned(ctx, ""))?;
 
                     for account in &context.accounts {
                         accounts.push(InstructionAccountNode {
@@ -113,7 +116,7 @@ fn resolve_instructions(
                 InstructionArg::Type { ty, .. } => {
                     arguments.push(InstructionArgumentNode {
                         name: CamelCaseString::new(arg_name.to_string()),
-                        r#type: extract_type(&ty)?,
+                        r#type: extract_type(ty)?,
                         default_value: None,
                         default_value_strategy: None,
                         docs: Docs::new(),
@@ -145,7 +148,7 @@ fn resolve_instructions(
 }
 
 fn extract_type(ty: &Type) -> Result<TypeNode, syn::Error> {
-    if let Some(ty_node) = get_type_node(&ty) {
+    if let Some(ty_node) = get_type_node(ty) {
         Ok(ty_node)
     } else {
         let Type::Path(ty_path) = ty else {

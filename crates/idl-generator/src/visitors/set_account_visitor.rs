@@ -14,6 +14,12 @@ pub struct SetAccountVisitor {
     visitor: Box<dyn KorokVisitor>,
 }
 
+impl Default for SetAccountVisitor {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SetAccountVisitor {
     pub fn new() -> Self {
         Self {

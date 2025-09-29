@@ -14,7 +14,7 @@ use {
     pinocchio_pubkey::declare_id,
     typhoon_account_macro::*,
     typhoon_accounts::*,
-    typhoon_context::HandlerContext,
+    typhoon_context::*,
     typhoon_context_macro::*,
     typhoon_errors::*,
     typhoon_program_id_macro::program_id,

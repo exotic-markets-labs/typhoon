@@ -3,14 +3,18 @@
 use {bytemuck::NoUninit, paste::paste};
 
 mod args;
+mod array;
 mod program_id;
 mod remaining_accounts;
 
-pub use {args::*, program_id::*, remaining_accounts::*};
+pub use {args::*, array::*, program_id::*, remaining_accounts::*};
 use {
     pinocchio::{account_info::AccountInfo, cpi::set_return_data, pubkey::Pubkey},
     typhoon_errors::Error,
 };
+
+/// Marker trait for context types. This trait is used only for identification purposes.
+pub trait Context {}
 
 pub trait HandlerContext<'a, 'b, 'c>: Sized {
     fn from_entrypoint(

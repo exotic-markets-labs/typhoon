@@ -27,5 +27,5 @@ pub fn generate(crates: &[&Path]) -> CodamaResult<String> {
         node.program.accounts.append(&mut program.accounts);
     }
 
-    Ok(node.to_json()?)
+    node.to_json()
 }
