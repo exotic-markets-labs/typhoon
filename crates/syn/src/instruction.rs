@@ -11,7 +11,7 @@ pub struct InstructionReturnData {
 }
 
 pub enum InstructionArg {
-    Type { ty: Type, encoding: Encoding },
+    Type { ty: Box<Type>, encoding: Encoding },
     Context(Ident),
 }
 
@@ -29,56 +29,66 @@ impl TryFrom<&syn::ItemFn> for Instruction {
             .sig
             .output
             .get_element_with_inner()
-            .and_then(|(_, inner)| inner);
+            .and_then(|(_, inner, _)| inner);
 
-        let args = value
-            .sig
-            .inputs
-            .iter()
-            .filter_map(|fn_arg| {
-                let FnArg::Typed(pat_ty) = fn_arg else {
-                    return None;
+        let mut args = Vec::with_capacity(value.sig.inputs.len());
+        for fn_arg in &value.sig.inputs {
+            let FnArg::Typed(pat_ty) = fn_arg else {
+                continue;
+            };
+
+            let Type::Path(ref ty_path) = *pat_ty.ty else {
+                continue;
+            };
+
+            let (name, ty, size) = ty_path
+                .get_element_with_inner()
+                .ok_or(syn::Error::new_spanned(fn_arg, "Invalid FnArg."))?;
+
+            if name == "ProgramIdArg" || name == "Remaining" {
+                continue;
+            }
+
+            let arg_name = extract_name(&pat_ty.pat)
+                .unwrap_or(format_ident!("{}", name.to_string().to_snake_case()));
+
+            if name == "Arg" || name == "BorshArg" {
+                args.push((
+                    arg_name,
+                    InstructionArg::Type {
+                        ty: Box::new(
+                            ty.ok_or(syn::Error::new_spanned(fn_arg, "Invalid argument type."))?,
+                        ),
+                        encoding: Encoding::Bytemuck,
+                    },
+                ));
+            } else if name == "BorshArg" {
+                args.push((
+                    arg_name,
+                    InstructionArg::Type {
+                        ty: Box::new(
+                            ty.ok_or(syn::Error::new_spanned(fn_arg, "Invalid argument type."))?,
+                        ),
+                        encoding: Encoding::Borsh,
+                    },
+                ));
+            } else if name == "Array" {
+                let size = size.ok_or(syn::Error::new_spanned(fn_arg, "Invalid Array type."))?;
+                let ty = ty.ok_or(syn::Error::new_spanned(fn_arg, "Invalid argument type."))?;
+                let Type::Path(path) = ty else {
+                    return Err(syn::Error::new_spanned(&arg_name, "Invalid ty_path."));
                 };
-
-                let Type::Path(ref ty_path) = *pat_ty.ty else {
-                    return None;
-                };
-
-                let (name, ty) = ty_path.get_element_with_inner()?;
-
-                if name == "ProgramIdArg" || name == "Remaining" {
-                    return None;
+                let (name, _, _) = path
+                    .get_element_with_inner()
+                    .ok_or(syn::Error::new_spanned(&path, "Invalid Array inner type."))?;
+                for i in 0..size {
+                    let arg_name = format_ident!("{arg_name}_{i}");
+                    args.push((arg_name, InstructionArg::Context(name.clone())));
                 }
-
-                let arg_name = extract_name(&pat_ty.pat)
-                    .unwrap_or(format_ident!("{}", name.to_string().to_snake_case()));
-
-                if name == "Arg" || name == "BorshArg" {
-                    Some(Ok((
-                        arg_name,
-                        InstructionArg::Type {
-                            ty: ty?,
-                            encoding: Encoding::Bytemuck,
-                        },
-                    )))
-                } else if name == "BorshArg" {
-                    Some(Ok((
-                        arg_name,
-                        InstructionArg::Type {
-                            ty: ty?,
-                            encoding: Encoding::Borsh,
-                        },
-                    )))
-                } else {
-                    //TODO when it will be extractor
-                    // let Some(Type::Path(path)) = ty else {
-                    //     return Some(Err(syn::Error::new_spanned(&arg_name, "Invalid ty_path.")));
-                    // };
-                    // let (name, _) = path.get_element_with_inner()?;
-                    Some(Ok((arg_name, InstructionArg::Context(name.clone()))))
-                }
-            })
-            .collect::<Result<Vec<_>, syn::Error>>()?;
+            } else {
+                args.push((arg_name, InstructionArg::Context(name.clone())));
+            }
+        }
 
         Ok(Instruction {
             name: value.sig.ident.clone(),
@@ -118,5 +128,35 @@ impl TryFrom<&syn::ItemMacro> for InstructionsList {
                 .map(|(i, n)| (i, n.clone()))
                 .collect(),
         ))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use {
+        super::*,
+        syn::{parse_quote, ItemFn},
+    };
+
+    #[test]
+    fn test_instruction_construction() {
+        let fn_raw: ItemFn = parse_quote! {
+            pub fn instruction_1(ctx: Context1, array: Array<Context2, 2>, arg: Arg<u64>) -> ProgramResult {
+                Ok(())
+            }
+        };
+        let ix = Instruction::try_from(&fn_raw).unwrap();
+
+        assert_eq!(ix.name, "instruction_1");
+        assert_eq!(ix.args.len(), 4);
+        assert_eq!(ix.args[0].0, "ctx");
+        assert!(matches!(&ix.args[0].1, InstructionArg::Context(x) if x == "Context1"));
+        assert_eq!(ix.args[1].0, "array_0");
+        assert!(matches!(&ix.args[1].1, InstructionArg::Context(x) if x == "Context2"));
+        assert_eq!(ix.args[2].0, "array_1");
+        assert!(matches!(&ix.args[2].1, InstructionArg::Context(x) if x == "Context2"));
+        assert_eq!(ix.args[3].0, "arg");
+        assert!(ix.return_data.ty.is_none());
+        assert!(matches!(ix.return_data.encoding, Encoding::Bytemuck));
     }
 }

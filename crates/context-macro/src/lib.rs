@@ -149,6 +149,8 @@ impl ToTokens for TokenGenerator {
                     Ok(#name { #(#struct_fields),* })
                 }
             }
+
+            impl #impl_generics Context for #name #ty_generics #where_clause {}
         };
 
         let doc = prettyplease::unparse(
