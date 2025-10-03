@@ -4803,6 +4803,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "typhoon-borsh-macro"
+version = "0.1.0-alpha.15"
+dependencies = [
+ "borsh",
+ "heck",
+ "pinocchio",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.106",
+]
+
+[[package]]
 name = "typhoon-context"
 version = "0.1.0-alpha.15"
 dependencies = [
