@@ -45,6 +45,8 @@ trybuild = "1.0"
 typhoon = { version = "0.1.0-alpha.15", path = "crates/lib" }
 typhoon-account-macro = { version = "0.1.0-alpha.15", path = "crates/account-macro" }
 typhoon-accounts = { version = "0.1.0-alpha.15", path = "crates/accounts" }
+typhoon-borsh = { version = "0.1.0-alpha.15", path = "crates/borsh" }
+typhoon-borsh-macro = { version = "0.1.0-alpha.15", path = "crates/borsh-macro" }
 typhoon-context = { version = "0.1.0-alpha.15", path = "crates/context" }
 typhoon-context-macro = { version = "0.1.0-alpha.15", path = "crates/context-macro" }
 typhoon-cpi-generator = { version = "0.1.0-alpha.15", path = "crates/cpi-generator" }

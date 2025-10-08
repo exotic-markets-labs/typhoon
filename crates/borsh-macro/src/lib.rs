@@ -1,14 +1,22 @@
 use {
-    crate::ty::SupportedType,
+    crate::{remover::AttributeRemover, size::borsh_size_gen, ty::SupportedType},
     proc_macro::TokenStream,
     proc_macro2::TokenStream as TokenStream2,
     quote::{format_ident, quote, ToTokens},
-    syn::{parse::Parse, parse_macro_input, Ident, Item},
+    syn::{fold::Fold, parse::Parse, parse_macro_input, Ident, Item},
 };
 
-#[cfg(debug_assertions)]
+mod remover;
+#[cfg(feature = "test")]
 mod replace;
+mod size;
 mod ty;
+
+#[proc_macro_derive(BorshSize, attributes(max_len, raw_space))]
+pub fn borsh_size_derive(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as Item);
+    borsh_size_gen(&input).into()
+}
 
 #[proc_macro_attribute]
 pub fn borsh(_attr: TokenStream, item: TokenStream) -> TokenStream {
@@ -46,6 +54,15 @@ impl Parse for ParsingContext {
             Item::Enum(ref _item_enum) => {
                 // item_enum.variants*
                 todo!()
+
+                /*
+                   pub enum Repr(u8) {
+                       Unit or full
+                   }
+
+                   impl
+
+                */
             }
             Item::Struct(ref item_struct) => {
                 let fields = item_struct
@@ -99,13 +116,19 @@ impl ToTokens for ParsingContext {
         }
 
         let last_offset = Self::calculate_last_offset(&last_ident);
+        let len_token = borsh_size_gen(&self.raw_item);
 
-        #[cfg(debug_assertions)]
+        let raw_item = AttributeRemover::new()
+            .with_attribute("raw_space")
+            .with_attribute("max_len")
+            .fold_item(self.raw_item.clone());
+
+        #[cfg(feature = "test")]
         let expanded = {
             use {crate::replace::ReplaceName, syn::fold::Fold};
 
             let test_ident = format_ident!("{name}Test");
-            let raw_item = ReplaceName(test_ident).fold_item(self.raw_item.clone());
+            let raw_item = ReplaceName(test_ident).fold_item(raw_item);
             quote! {
                 #[derive(borsh::BorshSerialize, borsh::BorshDeserialize)]
                 #raw_item
@@ -122,6 +145,35 @@ impl ToTokens for ParsingContext {
                         #last_offset
                     }
                 }
+
+                #len_token
+            }
+        };
+
+        #[cfg(not(feature = "test"))]
+        let expanded = {
+            let raw_item = &self.raw_item;
+
+            quote! {
+                #[cfg(not(target_os = "solana"))]
+                #[derive(borsh::BorshSerialize, borsh::BorshDeserialize)]
+                #raw_item
+
+                #[cfg(target_os = "solana")]
+                #[repr(transparent)]
+                pub struct #name([u8]);
+
+                impl #name {
+                    #(#offsets)*
+
+                    #(#read_methods)*
+
+                    pub fn total_len(&self) -> usize {
+                        #last_offset
+                    }
+                }
+
+                #len_token
             }
         };
 

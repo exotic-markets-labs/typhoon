@@ -31,7 +31,7 @@ impl SupportedType {
                 let add_offset = is_inner.then_some(quote!(offset += 1;));
                 (
                     quote! {
-                        let val = self.0[offset] != 0;
+                        let val = <bool as ::typhoon_borsh::BorshAccessor>::convert(&self.0[offset..]);
                         #add_offset
                         val
                     },
@@ -42,7 +42,7 @@ impl SupportedType {
                 let add_offset = is_inner.then_some(quote!(offset += 1;));
                 (
                     quote! {
-                        let val = self.0[offset];
+                        let val = <u8 as ::typhoon_borsh::BorshAccessor>::convert(&self.0[offset..]);
                         #add_offset
                         val
                     },
@@ -53,7 +53,7 @@ impl SupportedType {
                 let add_offset = is_inner.then_some(quote!(offset += 1;));
                 (
                     quote! {
-                       let val = self.0[offset] as i8;
+                       let val = <i8 as ::typhoon_borsh::BorshAccessor>::convert(&self.0[offset..]);
                        #add_offset
                        val
                     },
@@ -64,7 +64,7 @@ impl SupportedType {
                 let add_offset = is_inner.then_some(quote!(offset += 2;));
                 (
                     quote! {
-                        let val = u16::from_le_bytes(self.0[offset..offset + 2].try_into().unwrap());
+                        let val = <u16 as ::typhoon_borsh::BorshAccessor>::convert(&self.0[offset..]);
                         #add_offset
                         val
                     },
@@ -75,7 +75,7 @@ impl SupportedType {
                 let add_offset = is_inner.then_some(quote!(offset += 2;));
                 (
                     quote! {
-                        let val = i16::from_le_bytes(self.0[offset..offset + 2].try_into().unwrap());
+                        let val = <i16 as ::typhoon_borsh::BorshAccessor>::convert(&self.0[offset..]);
                         #add_offset
                         val
                     },
@@ -86,7 +86,7 @@ impl SupportedType {
                 let add_offset = is_inner.then_some(quote!(offset += 4;));
                 (
                     quote! {
-                        let val = u32::from_le_bytes(self.0[offset..offset + 4].try_into().unwrap());
+                        let val = <u32 as ::typhoon_borsh::BorshAccessor>::convert(&self.0[offset..]);
                         #add_offset
                         val
                     },
@@ -97,7 +97,7 @@ impl SupportedType {
                 let add_offset = is_inner.then_some(quote!(offset += 4;));
                 (
                     quote! {
-                        let val = i32::from_le_bytes(self.0[offset..offset + 4].try_into().unwrap());
+                        let val = <i32 as ::typhoon_borsh::BorshAccessor>::convert(&self.0[offset..])>;
                         #add_offset
                         val
                     },
@@ -108,7 +108,7 @@ impl SupportedType {
                 let add_offset = is_inner.then_some(quote!(offset += 8;));
                 (
                     quote! {
-                        let val = u64::from_le_bytes(self.0[offset..offset + 8].try_into().unwrap());
+                        let val = <u64 as ::typhoon_borsh::BorshAccessor>::convert(&self.0[offset..]);
                         #add_offset
                         val
                     },
@@ -119,7 +119,7 @@ impl SupportedType {
                 let add_offset = is_inner.then_some(quote!(offset += 8;));
                 (
                     quote! {
-                        let val = i64::from_le_bytes(self.0[offset..offset + 8].try_into().unwrap());
+                        let val = <i64 as ::typhoon_borsh::BorshAccessor>::convert(&self.0[offset..]);
                         #add_offset
                         val
                     },
@@ -130,7 +130,7 @@ impl SupportedType {
                 let add_offset = is_inner.then_some(quote!(offset += 16;));
                 (
                     quote! {
-                        let val = u128::from_le_bytes(self.0[offset..offset + 16].try_into().unwrap());
+                        let val = <u128 as ::typhoon_borsh::BorshAccessor>::convert(&self.0[offset..]);
                         #add_offset
                         val
                     },
@@ -141,7 +141,7 @@ impl SupportedType {
                 let add_offset = is_inner.then_some(quote!(offset += 16;));
                 (
                     quote! {
-                        let val = i128::from_le_bytes(self.0[offset..offset + 16].try_into().unwrap());
+                        let val = <i128 as ::typhoon_borsh::BorshAccessor>::convert(&self.0[offset..]);
                         #add_offset
                         val
                     },
@@ -165,11 +165,11 @@ impl SupportedType {
                 let add_offset = is_inner.then_some(quote!(offset += 32;));
                 (
                     quote! {
-                        let val = self.0[offset..offset + 32].try_into().unwrap();
+                        let val = <&Pubkey as ::typhoon_borsh::BorshAccessor>::convert(&self.0[offset..]);
                         #add_offset
                         val
                     },
-                    quote!(Pubkey),
+                    quote!(&Pubkey),
                 )
             }
             SupportedType::Option(supported_type) => {
@@ -181,21 +181,12 @@ impl SupportedType {
                 if is_inner {
                     unimplemented!("Nested vec in no alloc env.")
                 }
-                let (block, output_ty) = supported_type.gen_read_expr(true);
+                let (_block, output_ty) = supported_type.gen_read_expr(true);
                 (
                     quote! {
-                        let len = (u32::from_le_bytes(self.0[offset..(offset + 4)].try_into().unwrap()) as usize).min(64);
-                        let mut buffer: [core::mem::MaybeUninit<#output_ty>; 64] = [const { core::mem::MaybeUninit::uninit() }; 64];
-                        offset += 4;
-
-                        for i in 0..len {
-                            let val = { #block };
-                            buffer[i].write(val);
-                        }
-
-                        unsafe { core::slice::from_raw_parts(buffer.as_ptr() as _, len) }
+                        <BorshVector<#output_ty> as ::typhoon_borsh::BorshAccessor>::convert(&self.0[offset..])
                     },
-                    quote!(&[#output_ty]),
+                    quote!(BorshVector<#output_ty>),
                 )
             }
             SupportedType::Array(supported_type, expr) => {

@@ -4766,6 +4766,7 @@ dependencies = [
  "pinocchio-pubkey",
  "typhoon-account-macro",
  "typhoon-accounts",
+ "typhoon-borsh",
  "typhoon-context",
  "typhoon-context-macro",
  "typhoon-cpi-generator-macro",
@@ -4803,12 +4804,19 @@ dependencies = [
 ]
 
 [[package]]
-name = "typhoon-borsh-macro"
+name = "typhoon-borsh"
 version = "0.1.0-alpha.15"
 dependencies = [
  "borsh",
- "heck",
  "pinocchio",
+ "typhoon-borsh-macro",
+]
+
+[[package]]
+name = "typhoon-borsh-macro"
+version = "0.1.0-alpha.15"
+dependencies = [
+ "heck",
  "proc-macro2",
  "quote",
  "syn 2.0.106",

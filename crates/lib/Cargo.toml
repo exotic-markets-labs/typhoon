@@ -13,6 +13,7 @@ borsh = [
     "typhoon-utility/borsh",
     "typhoon-context/borsh",
 ]
+exp-borsh = ["dep:typhoon-borsh"]
 std = ["pinocchio/std"]
 
 [dependencies]
@@ -20,6 +21,7 @@ pinocchio.workspace = true
 pinocchio-pubkey.workspace = true
 typhoon-accounts.workspace = true
 typhoon-account-macro.workspace = true
+typhoon-borsh = { workspace = true, optional = true }
 typhoon-errors.workspace = true
 typhoon-errors-macro.workspace = true
 typhoon-context.workspace = true

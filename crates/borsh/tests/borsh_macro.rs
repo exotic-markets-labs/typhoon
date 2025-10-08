@@ -1,4 +1,9 @@
-use {borsh::BorshSerialize, pinocchio::pubkey::Pubkey, typhoon_borsh_macro::borsh};
+use {
+    borsh::BorshSerialize,
+    pinocchio::pubkey::Pubkey,
+    typhoon_borsh::{BorshSize, BorshVector},
+    typhoon_borsh_macro::borsh,
+};
 
 #[borsh]
 pub struct ChildStruct {
@@ -13,14 +18,17 @@ pub struct ChildStruct {
 pub struct Struct {
     pub element_1: u64,
     pub element_2: u16,
+    #[max_len(20)]
     pub element_3: String,
     pub element_4: u8,
     pub element_5: ChildStruct,
+    #[max_len(5)]
     pub element_6: Vec<u32>,
 }
 
 #[borsh]
 pub struct ComplexType {
+    #[max_len(20, 10)]
     pub element1: Vec<String>,
     pub element2: [u32; 4],
 }
@@ -35,8 +43,12 @@ fn test_complex_type() {
     test_struct.serialize(&mut buffer).unwrap();
     let struct_test: &ComplexType = unsafe { core::mem::transmute(buffer.as_slice()) };
     assert_eq!(struct_test.total_len(), buffer.len());
-    let elements = struct_test.element1();
-    assert_eq!(elements.len(), 2);
+    assert_eq!(struct_test.element1().at(0).unwrap(), "Random");
+    assert_eq!(struct_test.element1().at(1).unwrap(), "Random2");
+    assert_eq!(
+        struct_test.element1().get(..).collect::<Vec<&str>>(),
+        &["Random", "Random2"]
+    );
     assert_eq!(struct_test.element2(), [1, 2, 3, 4]);
 }
 
@@ -76,6 +88,9 @@ fn test_gen() {
     assert_eq!(struct_test.element_5().element_2(), 20);
     assert_eq!(struct_test.element_5().element_3(), -3);
     assert!(struct_test.element_5().element_4());
-    assert_eq!(struct_test.element_5().element_5(), Pubkey::default());
-    assert_eq!(struct_test.element_6(), &[1, 2, 3]);
+    assert_eq!(*struct_test.element_5().element_5(), Pubkey::default());
+    assert_eq!(
+        struct_test.element_6().get(..).collect::<Vec<_>>(),
+        &[1, 2, 3]
+    );
 }

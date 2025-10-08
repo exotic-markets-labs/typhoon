@@ -28,6 +28,8 @@ pub type ProgramResult<T = ()> = Result<T, Error>;
 pub mod prelude {
     #[cfg(not(feature = "std"))]
     pub use pinocchio::nostd_panic_handler;
+    #[cfg(feature = "exp-borsh")]
+    pub use typhoon_borsh::*;
     pub use {
         super::{bytes, instruction, lib::*, macros::*, ProgramResult},
         pinocchio::{
