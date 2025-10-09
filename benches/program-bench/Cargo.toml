@@ -12,10 +12,8 @@ name = "bench"
 harness = false
 
 [dependencies]
-sha2 = "0.10"
 litesvm = "0.8"
 serde = "1.0"
-solana-account = "3.0"
 solana-hash = "3.0"
 solana-instruction = "3.0"
 solana-keypair = "3.0"

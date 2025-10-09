@@ -2383,8 +2383,6 @@ dependencies = [
  "litesvm",
  "serde",
  "serde_json",
- "sha2 0.10.9",
- "solana-account",
  "solana-hash",
  "solana-instruction",
  "solana-keypair",
@@ -4887,7 +4885,6 @@ name = "typhoon-errors-macro"
 version = "0.1.0-alpha.15"
 dependencies = [
  "pinocchio",
- "proc-macro2",
  "quote",
  "syn 2.0.106",
  "typhoon-errors",
@@ -4914,9 +4911,7 @@ dependencies = [
  "codama-korok-visitors",
  "codama-koroks",
  "codama-nodes",
- "codama-stores",
  "codama-syn-helpers",
- "five8_const 1.0.0",
  "hashbrown 0.16.0",
  "quote",
  "syn 2.0.106",
