@@ -8,7 +8,7 @@ version = "0.1.0-alpha.16"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 authors = ["Aursen"]
-repository = "https://github.com/rust-lang/rust-analyzer"
+repository = "https://github.com/exotic-markets-labs/typhoon"
 
 [workspace.dependencies]
 anchor-lang-idl-spec = "0.1"
