@@ -1,6 +1,6 @@
 [workspace]
 members = ["benches/program-bench", "crates/*"]
-exclude = ["examples"]
+exclude = ["examples", "benches/program-bench/benches/programs"]
 resolver = "2"
 
 [workspace.package]
