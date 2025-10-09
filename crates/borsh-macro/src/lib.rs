@@ -266,7 +266,7 @@ fn generate_token(item_struct: &ItemStruct) -> syn::Result<proc_macro2::TokenStr
 
     #[cfg(not(feature = "test"))]
     let expanded = {
-        let raw_item = &self.raw_item;
+        let raw_item = item_struct;
 
         quote! {
             #[cfg(not(target_os = "solana"))]
@@ -287,7 +287,7 @@ fn generate_token(item_struct: &ItemStruct) -> syn::Result<proc_macro2::TokenStr
                 }
             }
 
-            #len_token
+            //TODO put the size here
         }
     };
 
