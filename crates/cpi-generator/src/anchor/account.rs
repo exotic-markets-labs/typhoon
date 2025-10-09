@@ -168,7 +168,7 @@ fn gen_serialization(serialization: &IdlSerialization) -> proc_macro2::TokenStre
             quote!(#[derive(borsh::BorshSerialize, borsh::BorshDeserialize)])
         }
         IdlSerialization::BytemuckUnsafe | IdlSerialization::Bytemuck => {
-            quote!(#[derive(bytemuck::NoUninit, bytemuck::AnyBitPattern, Clone, Copy)])
+            quote!(#[derive(bytemuck::Pod, bytemuck::Zeroable, Clone, Copy)])
         }
         _ => unimplemented!(),
     }
