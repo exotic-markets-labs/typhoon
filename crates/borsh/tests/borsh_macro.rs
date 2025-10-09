@@ -1,9 +1,17 @@
 use {
     borsh::BorshSerialize,
     pinocchio::pubkey::Pubkey,
-    typhoon_borsh::{BorshSize, BorshVector},
+    typhoon_borsh::{max, BorshSize, BorshVector},
     typhoon_borsh_macro::borsh,
 };
+
+#[borsh]
+pub enum RandomState {
+    FirstVar,
+    SecondVar,
+    ThirdVar { data: u64 },
+    FourthVar,
+}
 
 #[borsh]
 pub struct ChildStruct {

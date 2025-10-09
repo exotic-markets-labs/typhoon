@@ -16,15 +16,18 @@ pub fn borsh_size_gen(input: &Item) -> TokenStream {
         Item::Enum(ItemEnum {
             ref ident,
             variants,
+            generics,
             ..
         }) => {
             let variants = variants
                 .into_iter()
                 .map(|Variant { fields, .. }| get_len_expr_from_fields(fields));
+            let generics = add_trait_bounds(generics.clone());
+            let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
             let max = gen_max(variants);
 
             quote! {
-                impl BorshSize for #ident {
+                impl #impl_generics BorshSize for #ident #ty_generics #where_clause {
                     const SIZE: usize = 1 + #max;
                 }
             }
@@ -62,7 +65,7 @@ fn add_trait_bounds(mut generics: Generics) -> Generics {
 fn gen_max<T: Iterator<Item = TokenStream>>(mut iter: T) -> TokenStream {
     if let Some(item) = iter.next() {
         let next_item = gen_max(iter);
-        quote!(space::max(#item, #next_item))
+        quote!(max(#item, #next_item))
     } else {
         quote!(0)
     }
