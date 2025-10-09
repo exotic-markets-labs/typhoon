@@ -58,7 +58,7 @@ publish_crate() {
         echo "Successfully published $crate"
     fi
     # Wait a bit to avoid rate limiting
-    sleep 50
+    sleep 30
 }
 
 # Publish each crate
