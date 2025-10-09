@@ -1,14 +1,14 @@
 [workspace]
 members = ["benches/program-bench", "crates/*"]
-exclude = ["examples"]
+exclude = ["examples", "benches/program-bench/benches/programs"]
 resolver = "2"
 
 [workspace.package]
-version = "0.1.0-alpha.15"
+version = "0.1.0-alpha.16"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 authors = ["Aursen"]
-repository = "https://github.com/rust-lang/rust-analyzer"
+repository = "https://github.com/exotic-markets-labs/typhoon"
 
 [workspace.dependencies]
 anchor-lang-idl-spec = "0.1"
@@ -23,7 +23,6 @@ codama-korok-plugins = "0.5"
 codama-korok-visitors = "0.5"
 codama-koroks = "0.5"
 codama-nodes = "0.5"
-codama-stores = "0.5"
 codama-syn-helpers = "0.5"
 five8_const = "1.0"
 hashbrown = "0.16"
@@ -42,24 +41,24 @@ serde_json = "1.0"
 sha2 = "0.10"
 syn = "2.0"
 trybuild = "1.0"
-typhoon = { version = "0.1.0-alpha.15", path = "crates/lib" }
-typhoon-account-macro = { version = "0.1.0-alpha.15", path = "crates/account-macro" }
-typhoon-accounts = { version = "0.1.0-alpha.15", path = "crates/accounts" }
-typhoon-borsh = { version = "0.1.0-alpha.15", path = "crates/borsh" }
-typhoon-borsh-macro = { version = "0.1.0-alpha.15", path = "crates/borsh-macro" }
-typhoon-context = { version = "0.1.0-alpha.15", path = "crates/context" }
-typhoon-context-macro = { version = "0.1.0-alpha.15", path = "crates/context-macro" }
-typhoon-cpi-generator = { version = "0.1.0-alpha.15", path = "crates/cpi-generator" }
-typhoon-cpi-generator-macro = { version = "0.1.0-alpha.15", path = "crates/cpi-generator-macro" }
-typhoon-discriminator = { version = "0.1.0-alpha.15", path = "crates/discriminator" }
-typhoon-discriminator-macro = { version = "0.1.0-alpha.15", path = "crates/discriminator-macro" }
-typhoon-errors = { version = "0.1.0-alpha.15", path = "crates/errors" }
-typhoon-errors-macro = { version = "0.1.0-alpha.15", path = "crates/errors-macro" }
-typhoon-handler-macro = { version = "0.1.0-alpha.15", path = "crates/handler-macro" }
-typhoon-idl-generator = { version = "0.1.0-alpha.15", path = "crates/idl-generator" }
-typhoon-instruction-builder = { version = "0.1.0-alpha.15", path = "crates/instruction-builder" }
-typhoon-program-id-macro = { version = "0.1.0-alpha.15", path = "crates/program-id-macro" }
-typhoon-syn = { version = "0.1.0-alpha.15", path = "crates/syn" }
-typhoon-token = { version = "0.1.0-alpha.15", path = "crates/token" }
-typhoon-utility = { version = "0.1.0-alpha.15", path = "crates/utility" }
-typhoon-utility-traits = { version = "0.1.0-alpha.15", path = "crates/utility-traits" }
+typhoon = { version = "0.1.0-alpha.16", path = "crates/lib" }
+typhoon-account-macro = { version = "0.1.0-alpha.16", path = "crates/account-macro" }
+typhoon-accounts = { version = "0.1.0-alpha.16", path = "crates/accounts" }
+typhoon-borsh = { version = "0.1.0-alpha.16", path = "crates/borsh" }
+typhoon-borsh-macro = { version = "0.1.0-alpha.16", path = "crates/borsh-macro" }
+typhoon-context = { version = "0.1.0-alpha.16", path = "crates/context" }
+typhoon-context-macro = { version = "0.1.0-alpha.16", path = "crates/context-macro" }
+typhoon-cpi-generator = { version = "0.1.0-alpha.16", path = "crates/cpi-generator" }
+typhoon-cpi-generator-macro = { version = "0.1.0-alpha.16", path = "crates/cpi-generator-macro" }
+typhoon-discriminator = { version = "0.1.0-alpha.16", path = "crates/discriminator" }
+typhoon-discriminator-macro = { version = "0.1.0-alpha.16", path = "crates/discriminator-macro" }
+typhoon-errors = { version = "0.1.0-alpha.16", path = "crates/errors" }
+typhoon-errors-macro = { version = "0.1.0-alpha.16", path = "crates/errors-macro" }
+typhoon-handler-macro = { version = "0.1.0-alpha.16", path = "crates/handler-macro" }
+typhoon-idl-generator = { version = "0.1.0-alpha.16", path = "crates/idl-generator" }
+typhoon-instruction-builder = { version = "0.1.0-alpha.16", path = "crates/instruction-builder" }
+typhoon-program-id-macro = { version = "0.1.0-alpha.16", path = "crates/program-id-macro" }
+typhoon-syn = { version = "0.1.0-alpha.16", path = "crates/syn" }
+typhoon-token = { version = "0.1.0-alpha.16", path = "crates/token" }
+typhoon-utility = { version = "0.1.0-alpha.16", path = "crates/utility" }
+typhoon-utility-traits = { version = "0.1.0-alpha.16", path = "crates/utility-traits" }

@@ -12,7 +12,7 @@ pub fn gen_cpi(idl: &Idl) -> proc_macro2::TokenStream {
 
     quote! {
         pub mod #name {
-            use ::typhoon::prelude::*;
+            use super::*;
 
             #program_id
             #accounts

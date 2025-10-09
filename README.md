@@ -49,7 +49,7 @@ pub struct InitContext {
         init,
         payer = payer,
     )]
-    pub counter: Mut<Account<Counter>>,
+    pub counter: Mut<SignerNoCheck<Account<Counter>>>,
     pub system: Program<System>,
 }
 
