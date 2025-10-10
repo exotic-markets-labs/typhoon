@@ -13,7 +13,7 @@ borsh = [
     "typhoon-utility/borsh",
     "typhoon-context/borsh",
 ]
-exp-borsh = ["dep:typhoon-borsh"]
+exp-borsh = ["dep:typhoon-borsh", "typhoon-cpi-generator-macro/exp-borsh"]
 std = ["pinocchio/std"]
 
 [dependencies]

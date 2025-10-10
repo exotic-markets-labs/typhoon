@@ -11,43 +11,51 @@ use {
     },
 };
 
+pub fn borsh_size_gen_struct(
+    ItemStruct {
+        ref ident,
+        generics,
+        fields,
+        ..
+    }: &ItemStruct,
+) -> TokenStream {
+    let generics = add_trait_bounds(generics.clone());
+    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+    let len_expr = get_len_expr_from_fields(fields);
+
+    quote! {
+        impl #impl_generics BorshSize for #ident #ty_generics #where_clause {
+            const SIZE: usize = #len_expr;
+        }
+    }
+}
+
+pub fn borsh_size_gen_enum(
+    ItemEnum {
+        ref ident,
+        variants,
+        generics,
+        ..
+    }: &ItemEnum,
+) -> TokenStream {
+    let variants = variants
+        .into_iter()
+        .map(|Variant { fields, .. }| get_len_expr_from_fields(fields));
+    let generics = add_trait_bounds(generics.clone());
+    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+    let max = gen_max(variants);
+
+    quote! {
+        impl #impl_generics BorshSize for #ident #ty_generics #where_clause {
+            const SIZE: usize = 1 + #max;
+        }
+    }
+}
+
 pub fn borsh_size_gen(input: &Item) -> TokenStream {
     match input {
-        Item::Enum(ItemEnum {
-            ref ident,
-            variants,
-            generics,
-            ..
-        }) => {
-            let variants = variants
-                .into_iter()
-                .map(|Variant { fields, .. }| get_len_expr_from_fields(fields));
-            let generics = add_trait_bounds(generics.clone());
-            let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
-            let max = gen_max(variants);
-
-            quote! {
-                impl #impl_generics BorshSize for #ident #ty_generics #where_clause {
-                    const SIZE: usize = 1 + #max;
-                }
-            }
-        }
-        Item::Struct(ItemStruct {
-            ref ident,
-            generics,
-            fields,
-            ..
-        }) => {
-            let generics = add_trait_bounds(generics.clone());
-            let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
-            let len_expr = get_len_expr_from_fields(fields);
-
-            quote! {
-                impl #impl_generics BorshSize for #ident #ty_generics #where_clause {
-                    const SIZE: usize = #len_expr;
-                }
-            }
-        }
+        Item::Enum(item) => borsh_size_gen_enum(item),
+        Item::Struct(item) => borsh_size_gen_struct(item),
         _ => unimplemented!("Borsh size is only implemented on struct and enum."),
     }
 }

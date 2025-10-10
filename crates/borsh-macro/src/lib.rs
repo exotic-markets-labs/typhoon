@@ -1,5 +1,10 @@
 use {
-    crate::{remover::AttributeRemover, size::borsh_size_gen, ty::SupportedType},
+    crate::{
+        remover::AttributeRemover,
+        replace::ReplaceName,
+        size::{borsh_size_gen, borsh_size_gen_enum, borsh_size_gen_struct},
+        ty::SupportedType,
+    },
     proc_macro::TokenStream,
     proc_macro2::TokenStream as TokenStream2,
     quote::{format_ident, quote, ToTokens},
@@ -28,18 +33,20 @@ pub fn borsh(_attr: TokenStream, item: TokenStream) -> TokenStream {
     item.to_token_stream().into()
 }
 
-// pub struct
-
-enum ParsingContext {
+enum ParsingItem {
     Struct {
+        item: ItemStruct,
         token: TokenStream2,
-        size: TokenStream2,
     },
     Enum {
-        raw_item: ItemEnum,
+        item: ItemEnum,
         variants: Vec<(Ident, Option<TokenStream2>)>,
-        size: TokenStream2,
     },
+}
+
+struct ParsingContext {
+    item: ParsingItem,
+    gen_size: bool,
 }
 
 impl Parse for ParsingContext {
@@ -47,8 +54,14 @@ impl Parse for ParsingContext {
         let item: Item = input.parse()?;
 
         match item {
-            Item::Enum(ref item_enum) => {
-                let mut inject_lifetime = false;
+            Item::Enum(item_enum) => {
+                if item_enum
+                    .attrs
+                    .iter()
+                    .any(|el| el.path().is_ident("no_size"))
+                {
+                    panic!()
+                }
                 let variants = item_enum
                     .variants
                     .iter()
@@ -61,7 +74,6 @@ impl Parse for ParsingContext {
                                         #named
                                     }
                                 };
-                                inject_lifetime = true;
                                 Some(generate_token(&add_item)?)
                             }
                             syn::Fields::Unnamed(FieldsUnnamed { unnamed, .. })
@@ -71,7 +83,6 @@ impl Parse for ParsingContext {
                                 let add_item = parse_quote! {
                                     pub struct #name(#unnamed);
                                 };
-                                inject_lifetime = true;
                                 Some(generate_token(&add_item)?)
                             }
                             _ => None,
@@ -80,39 +91,27 @@ impl Parse for ParsingContext {
                     })
                     .collect::<syn::Result<_>>()?;
 
-                let mut item_enum = item_enum.clone();
-                if inject_lifetime {
-                    item_enum
-                        .generics
-                        .params
-                        .push(syn::GenericParam::Lifetime(parse_quote!('a)));
-                }
-                let size_token = borsh_size_gen(&Item::Enum(item_enum.clone()));
-
-                let item_enum = AttributeRemover::new()
-                    .with_attribute("raw_space")
-                    .with_attribute("max_len")
-                    .fold_item_enum(item_enum);
-
-                Ok(Self::Enum {
-                    raw_item: item_enum,
-                    variants,
-                    size: size_token,
+                Ok(Self {
+                    gen_size: !item_enum
+                        .attrs
+                        .iter()
+                        .any(|el| el.path().is_ident("no_size")),
+                    item: ParsingItem::Enum {
+                        item: item_enum,
+                        variants,
+                    },
                 })
             }
-            Item::Struct(ref item_struct) => {
-                let size_token = borsh_size_gen(&item);
-
-                let item = AttributeRemover::new()
-                    .with_attribute("raw_space")
-                    .with_attribute("max_len")
-                    .fold_item_struct(item_struct.clone());
-
-                Ok(Self::Struct {
-                    token: generate_token(&item)?,
-                    size: size_token,
-                })
-            }
+            Item::Struct(item_struct) => Ok(Self {
+                gen_size: !item_struct
+                    .attrs
+                    .iter()
+                    .any(|el| el.path().is_ident("no_size")),
+                item: ParsingItem::Struct {
+                    token: generate_token(&item_struct)?,
+                    item: item_struct,
+                },
+            }),
             _ => unimplemented!("Only implemented for enum and struct"),
         }
     }
@@ -120,20 +119,38 @@ impl Parse for ParsingContext {
 
 impl ToTokens for ParsingContext {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let expanded = match self {
-            ParsingContext::Struct { token, size } => {
+        let expanded = match &self.item {
+            ParsingItem::Struct { token, item } => {
+                let borsh_size = self.gen_size.then(|| borsh_size_gen_struct(item));
+
+                let original_item = AttributeRemover::new()
+                    .with_attribute("max_len")
+                    .with_attribute("raw_space")
+                    .with_attribute("no_size")
+                    .fold_item_struct(item.clone());
+
+                let item = if cfg!(feature = "test") {
+                    let item = ReplaceName(format_ident!("{}Test", original_item.ident))
+                        .fold_item_struct(original_item);
+                    quote!(#item)
+                } else {
+                    quote! {
+                        #[cfg(not(target_os = "solana"))]
+                        #original_item
+                    }
+                };
+
                 quote! {
+                    #[derive(borsh::BorshSerialize, borsh::BorshDeserialize)]
+                    #item
+
                     #token
 
-                    #size
+                    #borsh_size
                 }
             }
-            ParsingContext::Enum {
-                raw_item,
-                variants,
-                size,
-            } => {
-                let name = &raw_item.ident;
+            ParsingItem::Enum { item, variants } => {
+                let name = &item.ident;
                 let mut need_lifetime = false;
                 let (variant_names, match_variants, add_structs): (
                     Vec<TokenStream2>,
@@ -159,16 +176,51 @@ impl ToTokens for ParsingContext {
                         }
                     })
                     .collect();
-                let (impl_generics, ty_generics, where_clause) = raw_item.generics.split_for_impl();
+                let mut new_item = item.clone();
+                if need_lifetime {
+                    new_item
+                        .generics
+                        .params
+                        .push(syn::GenericParam::Lifetime(parse_quote!('a)));
+                }
 
-                //Variant name (item) => ItemName
+                let cfg_attr = if cfg!(feature = "test") {
+                    None
+                } else {
+                    Some(quote! { #[cfg(target_os = "solana")] })
+                };
+
+                let raw_item = if cfg!(feature = "test") {
+                    let item = ReplaceName(format_ident!("{}Test", item.ident))
+                        .fold_item_enum(item.clone());
+                    quote!(#item)
+                } else {
+                    quote! {
+                        #[cfg(not(target_os = "solana"))]
+                        #item
+                    }
+                };
+
+                let (impl_generics, ty_generics, where_clause) = new_item.generics.split_for_impl();
+                let borsh_size = self.gen_size.then(|| {
+                    let size = borsh_size_gen_enum(&new_item);
+                    quote! {
+                        #cfg_attr
+                        #size
+                    }
+                });
+
                 quote! {
                     #(#add_structs)*
 
+                    #raw_item
+
+                    #cfg_attr
                     pub enum #name #ty_generics {
                         #(#variant_names),*
                     }
 
+                    #cfg_attr
                     impl #impl_generics #name #ty_generics #where_clause {
                         pub fn total_len(&self) -> usize {
                             let len = match self {
@@ -178,7 +230,7 @@ impl ToTokens for ParsingContext {
                         }
                     }
 
-                    #size
+                    #borsh_size
                 }
             }
         };
@@ -239,55 +291,26 @@ fn generate_token(item_struct: &ItemStruct) -> syn::Result<proc_macro2::TokenStr
 
     let last_offset = calculate_last_offset(&last_ident);
 
-    #[cfg(feature = "test")]
-    let expanded = {
-        use {crate::replace::ReplaceName, syn::fold::Fold};
-
-        let test_ident = format_ident!("{name}Test");
-        let raw_item = ReplaceName(test_ident).fold_item_struct(item_struct.clone());
-        quote! {
-            #[derive(borsh::BorshSerialize, borsh::BorshDeserialize)]
-            #raw_item
-
-            #[repr(transparent)]
-            pub struct #name([u8]);
-
-            impl #name {
-                #(#offsets)*
-
-                #(#read_methods)*
-
-                pub fn total_len(&self) -> usize {
-                    #last_offset
-                }
-            }
-        }
+    let cfg_attr = if cfg!(feature = "test") {
+        None
+    } else {
+        Some(quote! { #[cfg(target_os = "solana")] })
     };
 
-    #[cfg(not(feature = "test"))]
-    let expanded = {
-        let raw_item = item_struct;
+    let expanded = quote! {
+        #cfg_attr
+        #[repr(transparent)]
+        pub struct #name([u8]);
 
-        quote! {
-            #[cfg(not(target_os = "solana"))]
-            #[derive(borsh::BorshSerialize, borsh::BorshDeserialize)]
-            #raw_item
+        #cfg_attr
+        impl #name {
+            #(#offsets)*
 
-            #[cfg(target_os = "solana")]
-            #[repr(transparent)]
-            pub struct #name([u8]);
+            #(#read_methods)*
 
-            impl #name {
-                #(#offsets)*
-
-                #(#read_methods)*
-
-                pub fn total_len(&self) -> usize {
-                    #last_offset
-                }
+            pub fn total_len(&self) -> usize {
+                #last_offset
             }
-
-            //TODO put the size here
         }
     };
 

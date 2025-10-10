@@ -7,6 +7,9 @@ license.workspace = true
 authors.workspace = true
 repository.workspace = true
 
+[features]
+exp-borsh = []
+
 [dependencies]
 anchor-lang-idl-spec.workspace = true
 five8_const.workspace = true

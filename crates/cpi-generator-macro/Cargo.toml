@@ -7,6 +7,9 @@ license.workspace = true
 authors.workspace = true
 repository.workspace = true
 
+[features]
+exp-borsh = ["typhoon-cpi-generator/exp-borsh"]
+
 [lib]
 proc-macro = true
 

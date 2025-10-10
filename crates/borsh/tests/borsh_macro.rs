@@ -14,6 +14,12 @@ pub enum RandomState {
 }
 
 #[borsh]
+#[no_size]
+pub struct NoSizeTest {
+    pub data: u64,
+}
+
+#[borsh]
 pub struct ChildStruct {
     pub element_1: i64,
     pub element_2: i128,
