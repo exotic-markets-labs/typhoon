@@ -27,4 +27,4 @@ unexpected_cfgs = { level = "warn", check-cfg = [
 ] }
 
 [dependencies]
-anchor-lang = "0.31.0"
+anchor-lang = "0.32.1"
