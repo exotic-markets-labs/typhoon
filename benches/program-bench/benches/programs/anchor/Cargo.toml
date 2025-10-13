@@ -19,8 +19,10 @@ custom-heap = []
 custom-panic = []
 
 [lints.rust]
-unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }
+unexpected_cfgs = { level = "warn", check-cfg = [
+    'cfg(target_os, values("solana"))',
+] }
 
 [dependencies]
-anchor-lang = "0.31.1"
+anchor-lang = "0.32.1"
 bytemuck = { version = "1.23", features = ["derive"] }
