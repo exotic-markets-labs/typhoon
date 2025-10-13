@@ -146,7 +146,7 @@ pub fn runner(name: &str) -> BenchResult {
 pub fn main() {
     let pinocchio = runner("pinocchio");
     let anchor = runner("anchor");
-    let typhoon = runner("typhoon");
+    let typhoon = runner("typhoon_bench");
     let star_frame = runner("star_frame");
     let result = generate_markdown([pinocchio, anchor, typhoon, star_frame]);
 

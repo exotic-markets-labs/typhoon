@@ -1,6 +1,6 @@
 [workspace]
-members = ["benches/program-bench", "crates/*"]
-exclude = ["examples", "benches/program-bench/benches/programs"]
+members = ["crates/*"]
+exclude = ["examples", "benches"]
 resolver = "2"
 
 [workspace.package]
@@ -41,7 +41,6 @@ serde_json = "1.0"
 sha2 = "0.10"
 syn = "2.0"
 trybuild = "1.0"
-typhoon = { version = "0.1.0-alpha.16", path = "crates/lib" }
 typhoon-account-macro = { version = "0.1.0-alpha.16", path = "crates/account-macro" }
 typhoon-accounts = { version = "0.1.0-alpha.16", path = "crates/accounts" }
 typhoon-borsh = { version = "0.1.0-alpha.16", path = "crates/borsh" }
