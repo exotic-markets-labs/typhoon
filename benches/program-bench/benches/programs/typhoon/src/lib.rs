@@ -2,7 +2,7 @@
 
 use {
     bytemuck::{AnyBitPattern, NoUninit},
-    typhoon::prelude::*,
+    typhoon_lib::prelude::*,
 };
 
 nostd_panic_handler!();

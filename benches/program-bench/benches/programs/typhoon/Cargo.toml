@@ -17,4 +17,4 @@ unexpected_cfgs = { level = "warn", check-cfg = [
 
 [dependencies]
 bytemuck = { version = "1.23", features = ["derive"] }
-typhoon = { path = "../../../../../crates/lib" }
+typhoon-lib = { path = "../../../../../crates/lib", package = "typhoon" }
