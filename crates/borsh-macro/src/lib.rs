@@ -15,7 +15,6 @@ use {
 };
 
 mod remover;
-#[cfg(feature = "test")]
 mod replace;
 mod size;
 mod ty;
