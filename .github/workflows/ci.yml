@@ -85,23 +85,21 @@ jobs:
           "transfer-sol",
           "transfer-token"
         ]
-    defaults:
-      run:
-        working-directory: ./examples/${{ matrix.example }}
     steps:
       - uses: actions/checkout@v5
       - name: Rust install
         uses: dtolnay/rust-toolchain@stable
       - name: Setup cache
         uses: Swatinem/rust-cache@v2
+      - uses: taiki-e/install-action@just
       - name: Install Solana CLI
         run: |
           sh -c "$(curl -sSfL https://release.anza.xyz/v3.0.4/install)"
           echo "/home/runner/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
       - name: Build program
-        run: cargo build-sbf
+        run: just build ${{ matrix.example }}
       - name: Test program
-        run: cargo test
+        run: just test ${{ matrix.example }}
 
   run_basic_tests:
     runs-on: ubuntu-latest
