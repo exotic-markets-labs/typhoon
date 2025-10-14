@@ -1,4 +1,7 @@
-use {crate::BorshAccessor, core::marker::PhantomData, core::ops::RangeBounds};
+use {
+    crate::BorshAccessor,
+    core::{marker::PhantomData, ops::RangeBounds},
+};
 
 pub struct BorshVector<'a, T>
 where
