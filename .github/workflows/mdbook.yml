@@ -18,7 +18,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install mdBook
         run: cargo install mdbook
       - name: Setup Pages
@@ -27,7 +27,7 @@ jobs:
       - name: Build with mdBook
         run: mdbook build book
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: ./book/book
 
