@@ -154,7 +154,7 @@ impl SupportedType {
                     quote! {
                         let len = u32::from_le_bytes(self.0[offset..offset + 4].try_into().unwrap()) as usize;
                         offset += 4;
-                        let val = str::from_utf8(&self.0[offset..(offset + len)]).unwrap();
+                        let val = core::str::from_utf8(&self.0[offset..(offset + len)]).unwrap();
                         #add_offset
                         val
                     },

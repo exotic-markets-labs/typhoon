@@ -1,4 +1,4 @@
-use {crate::BorshAccessor, core::ops::RangeBounds, std::marker::PhantomData};
+use {crate::BorshAccessor, core::marker::PhantomData, core::ops::RangeBounds};
 
 pub struct BorshVector<'a, T>
 where
@@ -87,13 +87,15 @@ where
 mod tests {
     use super::*;
 
+    extern crate alloc;
+
     #[test]
     fn test_str_vector() {
-        let data = borsh::to_vec(&vec!["j'aime", "les", "pâtes"]).unwrap();
+        let data = borsh::to_vec(&alloc::vec!["j'aime", "les", "pâtes"]).unwrap();
         let vector: BorshVector<'_, &str> = BorshVector::new(&data);
 
         assert_eq!(
-            vector.get(..).collect::<Vec<_>>(),
+            vector.get(..).collect::<alloc::vec::Vec<_>>(),
             &["j'aime", "les", "pâtes"]
         );
 
@@ -105,7 +107,7 @@ mod tests {
 
     #[test]
     fn test_simple_vector() {
-        let data = borsh::to_vec(&vec![1, 2, 3]).unwrap();
+        let data = borsh::to_vec(&alloc::vec![1, 2, 3]).unwrap();
         let vector: BorshVector<'_, u32> = BorshVector::new(&data);
 
         let mut el = 1;
@@ -117,7 +119,7 @@ mod tests {
 
     #[test]
     fn test_complex_vector() {
-        let data = vec![vec![1, 2], vec![2, 3], vec![4, 5]];
+        let data = alloc::vec![alloc::vec![1, 2], alloc::vec![2, 3], alloc::vec![4, 5]];
         let serialized = borsh::to_vec(&data).unwrap();
 
         let vector: BorshVector<'_, BorshVector<'_, u32>> = BorshVector::new(&serialized);

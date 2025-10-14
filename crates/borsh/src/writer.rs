@@ -51,6 +51,8 @@ mod tests {
         borsh::{BorshDeserialize, BorshSerialize},
     };
 
+    extern crate alloc;
+
     #[test]
     fn test_str_writer() {
         let s = "hello";
@@ -69,7 +71,7 @@ mod tests {
         10.serialize(&mut buf.as_mut_slice()).unwrap();
 
         <&str as BorshWriter>::write(&mut buf, "hello2");
-        let result = String::deserialize(&mut buf.as_slice()).unwrap();
+        let result = alloc::string::String::deserialize(&mut buf.as_slice()).unwrap();
         assert_eq!(result, "hello2");
     }
 }

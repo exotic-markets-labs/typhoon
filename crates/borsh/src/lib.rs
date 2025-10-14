@@ -1,3 +1,5 @@
+#![no_std]
+
 mod accessor;
 mod size;
 mod vector;
