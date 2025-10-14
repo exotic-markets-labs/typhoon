@@ -263,6 +263,7 @@ fn generate_token(item_struct: &ItemStruct) -> syn::Result<proc_macro2::TokenStr
         let last_offset = calculate_last_offset(&last_ident);
         let offset_ident = format_ident!("{name}_offset");
         offsets.push(quote! {
+            #[inline]
             pub fn #offset_ident(&self) -> usize {
                 #last_offset
             }
@@ -274,10 +275,11 @@ fn generate_token(item_struct: &ItemStruct) -> syn::Result<proc_macro2::TokenStr
         let read_ident = format_ident!("{name}");
         if !block.is_empty() {
             read_methods.push(quote! {
-               pub fn #read_ident(&self) -> #output_ty {
-                   let mut offset = self.#offset_ident();
-                   #block
-               }
+                #[inline]
+                pub fn #read_ident(&self) -> #output_ty {
+                    let mut offset = self.#offset_ident();
+                    #block
+                }
             });
         }
     }
@@ -301,6 +303,7 @@ fn generate_token(item_struct: &ItemStruct) -> syn::Result<proc_macro2::TokenStr
 
             #(#read_methods)*
 
+            #[inline(always)]
             pub fn total_len(&self) -> usize {
                 #last_offset
             }
