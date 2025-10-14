@@ -211,7 +211,7 @@ impl SupportedType {
                 let name = format_ident!("{name}");
                 (
                     quote! {
-                        let val: &#name = unsafe { core::mem::transmute(&self.0[offset..]) };
+                        let val: &#name = <&#name as ::typhoon_borsh::BorshAccessor>::convert(&self.0[offset..]);
                         #add_offset
                         val
                     },
