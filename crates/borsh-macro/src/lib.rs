@@ -55,13 +55,6 @@ impl Parse for ParsingContext {
 
         match item {
             Item::Enum(item_enum) => {
-                if item_enum
-                    .attrs
-                    .iter()
-                    .any(|el| el.path().is_ident("no_size"))
-                {
-                    panic!()
-                }
                 let variants = item_enum
                     .variants
                     .iter()

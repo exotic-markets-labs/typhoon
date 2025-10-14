@@ -239,7 +239,7 @@ mod tests {
         let result = gen_serialization(&IdlSerialization::Bytemuck).to_string();
         assert_eq!(
             result,
-            quote!(#[derive(bytemuck::NoUninit, bytemuck::AnyBitPattern, Clone, Copy)]).to_string()
+            quote!(#[derive(bytemuck::Pod, bytemuck::Zeroable, Clone, Copy)]).to_string()
         );
     }
 
