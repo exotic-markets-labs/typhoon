@@ -16,7 +16,7 @@ impl<'a> BorshAccessor<'a> for &'a str {
 
     #[inline(always)]
     fn convert(data: &'a [u8]) -> Self {
-        unsafe { str::from_utf8_unchecked(&data[4..]) }
+        unsafe { core::str::from_utf8_unchecked(&data[4..]) }
     }
 }
 
