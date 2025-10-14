@@ -1,8 +1,7 @@
 use {
     borsh::BorshSerialize,
     pinocchio::pubkey::Pubkey,
-    typhoon_borsh::BorshAccessor,
-    typhoon_borsh::{max, BorshSize, BorshVector},
+    typhoon_borsh::{max, BorshAccessor, BorshSize, BorshVector},
     typhoon_borsh_macro::borsh,
 };
 
