@@ -144,30 +144,24 @@ impl ToTokens for ParsingContext {
             ParsingItem::Enum { item, variants } => {
                 let name = &item.ident;
                 let mut need_lifetime = false;
-                let (variant_names, match_variants, add_structs): (
-                    Vec<TokenStream2>,
-                    Vec<TokenStream2>,
-                    Vec<&Option<TokenStream2>>,
-                ) = variants
-                    .iter()
-                    .map(|(var_name, add_struct)| {
-                        if add_struct.is_some() {
-                            let n = format_ident!("{var_name}Variant");
-                            need_lifetime = true;
-                            (
-                                quote!(#var_name(&'a #n)),
-                                quote!(#name::#var_name(item) => item.total_len(),),
-                                add_struct,
-                            )
-                        } else {
-                            (
-                                quote!(#var_name),
-                                quote!(#name::#var_name => 0,),
-                                add_struct,
-                            )
-                        }
-                    })
-                    .collect();
+                let mut variant_names = Vec::with_capacity(variants.len());
+                let mut match_variants = Vec::with_capacity(variants.len());
+                let mut add_structs = Vec::with_capacity(variants.len());
+                for (var_name, add_struct) in variants {
+                    if add_struct.is_some() {
+                        let n = format_ident!("{var_name}Variant");
+                        need_lifetime = true;
+
+                        variant_names.push(quote!(#var_name(&'a #n)));
+                        match_variants.push(quote!(#name::#var_name(item) => item.total_len(),));
+                        add_structs.push(add_struct);
+                    } else {
+                        variant_names.push(quote!(#var_name));
+                        match_variants.push(quote!(#name::#var_name => 0,));
+                        add_structs.push(add_struct);
+                    }
+                }
+
                 let mut new_item = item.clone();
                 if need_lifetime {
                     new_item
