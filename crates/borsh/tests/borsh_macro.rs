@@ -1,6 +1,7 @@
 use {
     borsh::BorshSerialize,
     pinocchio::pubkey::Pubkey,
+    typhoon_borsh::BorshAccessor,
     typhoon_borsh::{max, BorshSize, BorshVector},
     typhoon_borsh_macro::borsh,
 };
@@ -55,7 +56,7 @@ fn test_complex_type() {
         element2: [1, 2, 3, 4],
     };
     test_struct.serialize(&mut buffer).unwrap();
-    let struct_test: &ComplexType = unsafe { core::mem::transmute(buffer.as_slice()) };
+    let struct_test: &ComplexType = <&ComplexType as BorshAccessor>::convert(buffer.as_slice());
     assert_eq!(struct_test.total_len(), buffer.len());
     assert_eq!(struct_test.element1().at(0).unwrap(), "Random");
     assert_eq!(struct_test.element1().at(1).unwrap(), "Random2");
@@ -85,7 +86,7 @@ fn test_gen() {
     };
     test_struct.serialize(&mut buffer).unwrap();
 
-    let struct_test: &Struct = unsafe { core::mem::transmute(buffer.as_slice()) };
+    let struct_test: &Struct = <&Struct as BorshAccessor>::convert(buffer.as_slice());
     assert_eq!(struct_test.element_1_offset(), 0);
     assert_eq!(struct_test.element_2_offset(), 8);
     assert_eq!(struct_test.element_3_offset(), 10);

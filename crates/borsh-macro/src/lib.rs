@@ -305,6 +305,19 @@ fn generate_token(item_struct: &ItemStruct) -> syn::Result<proc_macro2::TokenStr
                 #last_offset
             }
         }
+
+        #cfg_attr
+        impl<'a> BorshAccessor<'a> for &'a #name {
+            #[inline(always)]
+            fn len(data: &'a [u8]) -> usize {
+                Self::convert(data).total_len()
+            }
+
+            #[inline(always)]
+            fn convert(data: &'a [u8]) -> Self {
+                unsafe { core::mem::transmute(data) }
+            }
+        }
     };
 
     Ok(expanded)
