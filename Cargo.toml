@@ -14,9 +14,8 @@ repository = "https://github.com/exotic-markets-labs/typhoon"
 anchor-lang-idl-spec = "0.1"
 base64 = "0.22"
 borsh = { version = "1.5", default-features = false }
-bytemuck = "1.23"
+bytemuck = "1.24"
 cargo-manifest = "0.19"
-cargo_metadata = "0.22.0"
 codama = "0.5"
 codama-attributes = "0.5"
 codama-korok-plugins = "0.5"
@@ -30,7 +29,6 @@ heck = "0.5"
 paste = "1.0"
 pinocchio = "0.9"
 pinocchio-associated-token-account = "0.2"
-pinocchio-log = "0.5"
 pinocchio-pubkey = "0.3"
 pinocchio-system = "0.3"
 pinocchio-token = "0.4"
@@ -50,12 +48,9 @@ typhoon-context-macro = { version = "0.1.0-alpha.16", path = "crates/context-mac
 typhoon-cpi-generator = { version = "0.1.0-alpha.16", path = "crates/cpi-generator" }
 typhoon-cpi-generator-macro = { version = "0.1.0-alpha.16", path = "crates/cpi-generator-macro" }
 typhoon-discriminator = { version = "0.1.0-alpha.16", path = "crates/discriminator" }
-typhoon-discriminator-macro = { version = "0.1.0-alpha.16", path = "crates/discriminator-macro" }
 typhoon-errors = { version = "0.1.0-alpha.16", path = "crates/errors" }
 typhoon-errors-macro = { version = "0.1.0-alpha.16", path = "crates/errors-macro" }
 typhoon-handler-macro = { version = "0.1.0-alpha.16", path = "crates/handler-macro" }
-typhoon-idl-generator = { version = "0.1.0-alpha.16", path = "crates/idl-generator" }
-typhoon-instruction-builder = { version = "0.1.0-alpha.16", path = "crates/instruction-builder" }
 typhoon-program-id-macro = { version = "0.1.0-alpha.16", path = "crates/program-id-macro" }
 typhoon-syn = { version = "0.1.0-alpha.16", path = "crates/syn" }
 typhoon-token = { version = "0.1.0-alpha.16", path = "crates/token" }
