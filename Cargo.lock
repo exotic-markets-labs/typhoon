@@ -772,6 +772,7 @@ dependencies = [
  "bytemuck",
  "paste",
  "pinocchio",
+ "typhoon-accounts",
  "typhoon-errors",
 ]
 

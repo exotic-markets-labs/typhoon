@@ -15,4 +15,5 @@ borsh = { workspace = true, optional = true }
 bytemuck.workspace = true
 paste.workspace = true
 pinocchio.workspace = true
+typhoon-accounts.workspace = true
 typhoon-errors.workspace = true
