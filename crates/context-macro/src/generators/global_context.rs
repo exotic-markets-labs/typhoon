@@ -254,7 +254,7 @@ impl<'a> GlobalContext<'a> {
                                 }
                                 ConstraintMint::Decimals(expr) => *decimals = Some(expr.to_owned()),
                                 ConstraintMint::FreezeAuthority(expr) => {
-                                    *freeze_authority = Box::new(Some(expr.to_owned()))
+                                    **freeze_authority = Some(expr.to_owned())
                                 }
                             }
                         } else {
