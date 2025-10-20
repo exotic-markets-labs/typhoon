@@ -4,10 +4,11 @@ use {bytemuck::NoUninit, paste::paste};
 
 mod args;
 mod array;
+mod iterator;
 mod program_id;
 mod remaining_accounts;
 
-pub use {args::*, array::*, program_id::*, remaining_accounts::*};
+pub use {args::*, array::*, iterator::*, program_id::*, remaining_accounts::*};
 use {
     pinocchio::{account_info::AccountInfo, cpi::set_return_data, pubkey::Pubkey},
     typhoon_errors::Error,
