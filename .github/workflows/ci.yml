@@ -80,6 +80,7 @@ jobs:
           "cpi",
           "hello-world",
           "instruction-data",
+          "misc",
           "seeded",
           "seeds",
           "transfer-sol",
