@@ -1,0 +1,27 @@
+[package]
+name = "misc"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[features]
+logging = []
+
+[lib]
+crate-type = ["cdylib"]
+
+[lints]
+workspace = true
+
+[dependencies]
+misc-interface.workspace = true
+typhoon.workspace = true
+
+[dev-dependencies]
+solana-pubkey.workspace = true
+solana-instruction.workspace = true
+solana-transaction.workspace = true
+solana-native-token.workspace = true
+solana-keypair.workspace = true
+misc-interface = { workspace = true, features = ["client"] }
+litesvm.workspace = true

@@ -45,7 +45,7 @@ impl TryFrom<&syn::ItemFn> for Instruction {
                 .get_element_with_inner()
                 .ok_or(syn::Error::new_spanned(fn_arg, "Invalid FnArg."))?;
 
-            if name == "ProgramIdArg" || name == "Remaining" {
+            if name == "ProgramIdArg" || name == "Remaining" || name == "AccountIter" {
                 continue;
             }
 

@@ -1,0 +1,20 @@
+[package]
+name = "misc-interface"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["rlib"]
+
+[features]
+client = ["dep:solana-pubkey", "dep:solana-instruction", "dep:typhoon-instruction-builder"]
+
+[dependencies]
+typhoon.workspace = true
+solana-pubkey = { workspace = true, optional = true }
+solana-instruction = { workspace = true, optional = true }
+typhoon-instruction-builder = { workspace = true, optional = true }
+
+[package.metadata.typhoon.builder-dependencies]
+misc = { path = "../program" }
