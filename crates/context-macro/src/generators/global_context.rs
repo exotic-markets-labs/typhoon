@@ -116,7 +116,8 @@ impl<'a> GlobalContext<'a> {
                     }
                     Constraint::Payer(constraint_payer) => {
                         if let Some(init_ctx) = &mut generator.init {
-                            if matches!(generator.account_ty, AccountType::Other { .. }) {
+                            if !matches!(generator.account_ty, AccountType::TokenAccount { is_ata,.. } if is_ata)
+                            {
                                 need_rent = true;
                             }
                             init_ctx.payer = Some(constraint_payer.target.to_owned());

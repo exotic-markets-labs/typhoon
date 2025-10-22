@@ -40,6 +40,25 @@ pub enum Constraint {
     InitIfNeeded(ConstraintInitIfNeeded),
 }
 
+impl Constraint {
+    fn sort_order(&self) -> u8 {
+        match self {
+            Self::Init(_) => 0,
+            Self::InitIfNeeded(_) => 1,
+            Self::Space(_) => 2,
+            Self::Seeded(_) => 3,
+            Self::Seeds(_) => 4,
+            Self::Bump(_) => 5,
+            Self::Program(_) => 6,
+            Self::HasOne(_) => 7,
+            Self::Token(_) => 8,
+            Self::Mint(_) => 9,
+            Self::AssociatedToken(_) => 10,
+            Self::Payer(_) => 11,
+        }
+    }
+}
+
 #[derive(Clone, Default)]
 pub struct Constraints(pub Vec<Constraint>);
 
@@ -47,14 +66,16 @@ impl TryFrom<&[syn::Attribute]> for Constraints {
     type Error = syn::Error;
 
     fn try_from(value: &[syn::Attribute]) -> Result<Self, Self::Error> {
-        let constraints = value
+        let mut constraints = value
             .iter()
             .filter(|attr| attr.path().is_ident(CONSTRAINT_IDENT_STR))
             .map(|attr| attr.parse_args_with(parse_constraints))
             .collect::<Result<Vec<Vec<Constraint>>, syn::Error>>()?
             .into_iter()
             .flatten()
-            .collect();
+            .collect::<Vec<_>>();
+
+        constraints.sort_by_key(|c| c.sort_order());
 
         Ok(Constraints(constraints))
     }
