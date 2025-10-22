@@ -284,7 +284,7 @@ impl AccountGenerator<'_> {
             let pda = self.get_pda(pda_ctx, false, true)?;
             token.extend(pda);
             token.extend(quote! {
-                if #name.key() != &#pda_key {
+                if pinocchio::hint::unlikely(!pinocchio::pubkey::pubkey_eq(#name.key(), &#pda_key)) {
                     return Err(Error::new(ProgramError::InvalidSeeds).with_account(#name_str));
                 }
             });
@@ -298,7 +298,7 @@ impl AccountGenerator<'_> {
             } => {
                 if let Some(mint) = mint {
                     token.extend(quote! {
-                        if #var_name.mint() != #mint.key() {
+                        if pinocchio::hint::unlikely(!pinocchio::pubkey::pubkey_eq(#var_name.mint(), #mint.key())) {
                             return Err(ErrorCode::TokenConstraintViolated.into());
                         }
                     });
@@ -306,7 +306,7 @@ impl AccountGenerator<'_> {
 
                 if let Some(owner) = owner {
                     token.extend(quote! {
-                        if #var_name.owner() != #owner.key() {
+                        if pinocchio::hint::unlikely(!pinocchio::pubkey::pubkey_eq(#var_name.owner(), #owner.key())) {
                             return Err(ErrorCode::TokenConstraintViolated.into());
                         }
                     });
@@ -320,7 +320,7 @@ impl AccountGenerator<'_> {
                     let error = error.as_ref().unwrap_or(&basic_error);
 
                     quote! {
-                        if &#var_name.#target != #target.key() {
+                        if pinocchio::hint::unlikely(!pinocchio::pubkey::pubkey_eq(&#var_name.#target, #target.key())) {
                             return Err(#error.into());
                         }
                     }
