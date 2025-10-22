@@ -1,18 +1,16 @@
 use {
     quote::{format_ident, quote, ToTokens},
-    syn::{parse::Parse, Expr, Ident},
+    syn::{
+        fold::{fold_expr, Fold},
+        parse::Parse,
+        parse_quote, Expr, Ident,
+    },
 };
 
 #[derive(Clone)]
 pub struct ContextExpr {
-    name: Option<Ident>,
+    pub names: Vec<Ident>,
     expr: Expr,
-}
-
-impl ContextExpr {
-    pub fn name(&self) -> Option<&Ident> {
-        self.name.as_ref()
-    }
 }
 
 impl Parse for ContextExpr {
@@ -26,116 +24,51 @@ impl Parse for ContextExpr {
 impl ToTokens for ContextExpr {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         let expr = &self.expr;
-        if let Some(name) = &self.name {
-            let state_name = format_ident!("{name}_state");
-            quote!(#state_name #expr).to_tokens(tokens);
-        } else {
-            quote!(#expr).to_tokens(tokens);
-        }
+        quote!(#expr).to_tokens(tokens)
     }
 }
 
 impl From<Expr> for ContextExpr {
     fn from(value: Expr) -> Self {
-        Self::from_expr(&value).unwrap_or(ContextExpr {
-            name: None,
-            expr: value,
-        })
+        let mut names = Names::default();
+        let expr = names.fold_expr(value);
+        ContextExpr {
+            names: names.0,
+            expr,
+        }
     }
 }
 
-impl ContextExpr {
-    fn from_expr(expr: &Expr) -> Result<ContextExpr, syn::Error> {
-        match expr {
-            Expr::MethodCall(method_call) => {
-                let name = Self::extract_name(method_call.receiver.as_ref())?;
-                let expr = Self::create_method_call_expr(method_call);
-                Ok(ContextExpr {
-                    name: Some(name),
-                    expr,
-                })
-            }
-            Expr::Field(field_expr) => {
-                let name = Self::extract_name(field_expr.base.as_ref())?;
-                let expr = Self::create_field_expr(field_expr);
-                Ok(ContextExpr {
-                    name: Some(name),
-                    expr,
-                })
-            }
-            _ => Err(syn::Error::new_spanned(expr, "Unsupported expression type")),
-        }
-    }
+#[derive(Default)]
+pub struct Names(Vec<Ident>);
 
-    fn extract_name(expr: &Expr) -> Result<Ident, syn::Error> {
-        let try_expr = match expr {
-            Expr::Try(ref try_expr) => try_expr,
-            _ => return Err(syn::Error::new_spanned(expr, "Expected try expression")),
+impl Fold for Names {
+    fn fold_expr(&mut self, i: syn::Expr) -> syn::Expr {
+        let Expr::Try(ref try_expr) = i else {
+            return fold_expr(self, i);
         };
 
-        let inner_method_call = match try_expr.expr.as_ref() {
-            Expr::MethodCall(ref inner) => inner,
-            _ => {
-                return Err(syn::Error::new_spanned(
-                    &try_expr.expr,
-                    "Expected method call after try operator",
-                ))
-            }
+        let Expr::MethodCall(ref method_call) = try_expr.expr.as_ref() else {
+            return fold_expr(self, i);
         };
 
-        if inner_method_call.method != syn::Ident::new("data", inner_method_call.method.span()) {
-            return Err(syn::Error::new_spanned(
-                &inner_method_call.method,
-                "Expected 'data' method call",
-            ));
+        if method_call.method != "data" {
+            return fold_expr(self, i);
         }
 
-        Self::extract_name_from_receiver(&inner_method_call.receiver)
-    }
+        let Expr::Path(name) = method_call.receiver.as_ref() else {
+            return fold_expr(self, i);
+        };
 
-    fn extract_name_from_receiver(receiver: &Expr) -> Result<Ident, syn::Error> {
-        match receiver {
-            Expr::Path(path_expr) => Ok(path_expr.path.segments.first().unwrap().ident.clone()),
-            _ => Err(syn::Error::new_spanned(
-                receiver,
-                "Expected path expression for method receiver",
-            )),
-        }
-    }
+        let Some(name_ident) = name.path.get_ident().cloned() else {
+            return fold_expr(self, i);
+        };
 
-    fn create_method_call_expr(method_call: &syn::ExprMethodCall) -> Expr {
-        Expr::MethodCall(syn::ExprMethodCall {
-            attrs: method_call.attrs.clone(),
-            receiver: Box::new(Expr::Path(syn::ExprPath {
-                attrs: vec![],
-                qself: None,
-                path: syn::Path {
-                    leading_colon: None,
-                    segments: syn::punctuated::Punctuated::new(),
-                },
-            })),
-            dot_token: method_call.dot_token,
-            method: method_call.method.clone(),
-            turbofish: method_call.turbofish.clone(),
-            paren_token: method_call.paren_token,
-            args: method_call.args.clone(),
-        })
-    }
+        let ident = format_ident!("{}_state", name_ident);
 
-    fn create_field_expr(field_expr: &syn::ExprField) -> Expr {
-        Expr::Field(syn::ExprField {
-            attrs: field_expr.attrs.clone(),
-            base: Box::new(Expr::Path(syn::ExprPath {
-                attrs: vec![],
-                qself: None,
-                path: syn::Path {
-                    leading_colon: None,
-                    segments: syn::punctuated::Punctuated::new(),
-                },
-            })),
-            dot_token: field_expr.dot_token,
-            member: field_expr.member.clone(),
-        })
+        self.0.push(name_ident);
+
+        parse_quote!(#ident)
     }
 }
 
@@ -156,6 +89,7 @@ mod from_expr_tests {
         let inner_expr = context_expr.to_token_stream();
         let expected_expr = quote!(counter_state.bump());
         assert_eq!(expected_expr.to_string(), inner_expr.to_string());
+        assert_eq!(context_expr.names.len(), 1);
     }
 
     #[test]
@@ -167,6 +101,7 @@ mod from_expr_tests {
         let inner_expr = context_expr.to_token_stream().to_string();
         let expected_expr = quote!(counter_state.bump);
         assert_eq!(expected_expr.to_string(), inner_expr.to_string());
+        assert_eq!(context_expr.names.len(), 1);
     }
 
     #[test]
@@ -174,7 +109,7 @@ mod from_expr_tests {
         let expr: Expr = parse_quote!(counter.random()?.bump);
         let context_expr = ContextExpr::from(expr);
 
-        assert_eq!(context_expr.name, None);
+        assert!(context_expr.names.is_empty());
 
         let inner_expr = context_expr.to_token_stream().to_string();
         let expected_expr = quote!(counter.random()?.bump);

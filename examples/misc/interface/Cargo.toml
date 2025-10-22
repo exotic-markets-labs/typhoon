@@ -11,6 +11,7 @@ crate-type = ["rlib"]
 client = ["dep:solana-pubkey", "dep:solana-instruction", "dep:typhoon-instruction-builder"]
 
 [dependencies]
+bytemuck = { workspace = true, features = ["derive"] }
 typhoon.workspace = true
 solana-pubkey = { workspace = true, optional = true }
 solana-instruction = { workspace = true, optional = true }
