@@ -7,8 +7,15 @@ use {
 
 program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
-nostd_panic_handler!();
-no_allocator!();
+// nostd_panic_handler!();
+// no_allocator!();
+
+// TODO make it better later
+#[cfg(target_arch = "bpf")]
+#[panic_handler]
+fn panic(_: &core::panic::PanicInfo) -> ! {
+    unsafe { core::hint::unreachable_unchecked() }
+}
 
 #[context]
 pub struct InitContext {
