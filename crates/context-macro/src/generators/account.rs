@@ -3,6 +3,7 @@ use {
     quote::{format_ident, quote},
     syn::{parse_quote, Expr, Ident},
     typhoon_syn::{
+        constraints::ConstraintAssert,
         error,
         utils::{ContextExpr, SeedsExpr},
         InstructionAccount,
@@ -46,6 +47,7 @@ pub struct AccountGenerator<'a> {
     pub init: Option<InitContext>,
     pub pda: Option<PdaContext>,
     pub init_state: bool,
+    pub asserts: Vec<ConstraintAssert>,
 }
 
 impl<'a> AccountGenerator<'a> {
@@ -56,6 +58,7 @@ impl<'a> AccountGenerator<'a> {
             init: None,
             pda: Default::default(),
             init_state: false,
+            asserts: Vec::new(),
         }
     }
 }
@@ -325,6 +328,17 @@ impl AccountGenerator<'_> {
                 token.extend(targets);
             }
         }
+
+        for ConstraintAssert { assert, error } in &self.asserts {
+            let basic_error: Expr = parse_quote!(ErrorCode::AssertConstraint);
+            let error = error.as_ref().unwrap_or(&basic_error);
+
+            token.extend(quote! {
+                if pinocchio::hint::unlikely(!#assert) {
+                    return Err(#error.into());
+                }
+            });
+        }
         Ok(token)
     }
 
@@ -413,41 +427,3 @@ impl AccountGenerator<'_> {
         Ok(token)
     }
 }
-
-/*
-ConstraintAssociatedToken::Mint(ident) => {
-    if let Some(seeds) = self.seeds.as_mut() {
-        let SeedsExpr::Punctuated(expr) = seeds else {
-            return Err(syn::Error::new_spanned(
-                &seeds,
-                "Seeds expr cannot be used in this context.",
-            ));
-        };
-
-        expr.insert(2, parse_quote!(#ident));
-    } else {
-        self.seeds = Some(SeedsExpr::Punctuated(
-            parse_quote!(token_program.key().as_ref(), #ident),
-        ));
-        self.program_id = Some(parse_quote!(AtaTokenProgram::ID))
-    }
-}
-ConstraintAssociatedToken::Authority(ident) => {
-    if let Some(seeds) = self.seeds.as_mut() {
-        let SeedsExpr::Punctuated(expr) = seeds else {
-            return Err(syn::Error::new_spanned(
-                &seeds,
-                "Seeds expr cannot be used in this context.",
-            ));
-        };
-
-        expr.insert(0, parse_quote!(#ident));
-    } else {
-        self.seeds = Some(SeedsExpr::Punctuated(
-            parse_quote!(#ident, token_program.key().as_ref()),
-        ));
-        self.program_id = Some(parse_quote!(AtaTokenProgram::ID))
-    }
-}
-
-*/

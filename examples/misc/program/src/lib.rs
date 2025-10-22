@@ -10,5 +10,7 @@ no_allocator!();
 impl_error_logger!(ErrorCode);
 
 handlers! {
-    account_iter
+    account_iter,
+    initialize,
+    assert
 }

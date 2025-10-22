@@ -15,22 +15,19 @@ pub trait ContextVisitor {
 
     fn visit_constraint(&mut self, constraint: &Constraint) -> Result<(), syn::Error> {
         match constraint {
-            Constraint::Init(constraint_init) => self.visit_init(constraint_init),
-            Constraint::Payer(constraint_payer) => self.visit_payer(constraint_payer),
-            Constraint::Space(constraint_space) => self.visit_space(constraint_space),
-            Constraint::Seeded(constraint_seeded) => self.visit_seeded(constraint_seeded),
-            Constraint::Seeds(constraint_seeds) => self.visit_seeds(constraint_seeds),
-            Constraint::Bump(constraint_bump) => self.visit_bump(constraint_bump),
-            Constraint::HasOne(constraint_has_one) => self.visit_has_one(constraint_has_one),
-            Constraint::Program(constraint_program) => self.visit_program(constraint_program),
-            Constraint::Token(constraint_token) => self.visit_token(constraint_token),
-            Constraint::Mint(constraint_mint) => self.visit_mint(constraint_mint),
-            Constraint::AssociatedToken(constraint_associated_token) => {
-                self.visit_associated_token(constraint_associated_token)
-            }
-            Constraint::InitIfNeeded(contraint_init_if_needed) => {
-                self.visit_init_if_needed(contraint_init_if_needed)
-            }
+            Constraint::Init(constraint) => self.visit_init(constraint),
+            Constraint::Payer(constraint) => self.visit_payer(constraint),
+            Constraint::Space(constraint) => self.visit_space(constraint),
+            Constraint::Seeded(constraint) => self.visit_seeded(constraint),
+            Constraint::Seeds(constraint) => self.visit_seeds(constraint),
+            Constraint::Bump(constraint) => self.visit_bump(constraint),
+            Constraint::HasOne(constraint) => self.visit_has_one(constraint),
+            Constraint::Program(constraint) => self.visit_program(constraint),
+            Constraint::Token(constraint) => self.visit_token(constraint),
+            Constraint::Mint(constraint) => self.visit_mint(constraint),
+            Constraint::AssociatedToken(constraint) => self.visit_associated_token(constraint),
+            Constraint::InitIfNeeded(constraint) => self.visit_init_if_needed(constraint),
+            Constraint::Assert(constraint) => self.visit_assert(constraint),
         }
     }
 
@@ -85,6 +82,10 @@ pub trait ContextVisitor {
         &mut self,
         _constraint: &ConstraintInitIfNeeded,
     ) -> Result<(), syn::Error> {
+        Ok(())
+    }
+
+    fn visit_assert(&mut self, _constraint: &ConstraintAssert) -> Result<(), syn::Error> {
         Ok(())
     }
 }

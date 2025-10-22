@@ -9,6 +9,7 @@ pub enum ErrorCode {
     AccountOwnedByWrongProgram,
     AccountDiscriminatorMismatch,
     HasOneConstraint,
+    AssertConstraint,
     TryingToInitPayerAsProgramAccount,
     TokenConstraintViolated,
     BufferFull,
@@ -28,10 +29,11 @@ impl TryFrom<u32> for ErrorCode {
             104 => Ok(ErrorCode::AccountOwnedByWrongProgram),
             105 => Ok(ErrorCode::AccountDiscriminatorMismatch),
             106 => Ok(ErrorCode::HasOneConstraint),
-            107 => Ok(ErrorCode::TryingToInitPayerAsProgramAccount),
-            108 => Ok(ErrorCode::TokenConstraintViolated),
-            109 => Ok(ErrorCode::BufferFull),
-            110 => Ok(ErrorCode::InvalidReturnData),
+            107 => Ok(ErrorCode::AssertConstraint),
+            108 => Ok(ErrorCode::TryingToInitPayerAsProgramAccount),
+            109 => Ok(ErrorCode::TokenConstraintViolated),
+            110 => Ok(ErrorCode::BufferFull),
+            111 => Ok(ErrorCode::InvalidReturnData),
             _ => Err(ProgramError::InvalidArgument),
         }
     }
@@ -61,6 +63,7 @@ impl ToStr for ErrorCode {
                 "Error: Discriminator did not match what was expected"
             }
             ErrorCode::HasOneConstraint => "Error: has_one constraint violated",
+            ErrorCode::AssertConstraint => "Error: assert constraint violated",
             ErrorCode::TryingToInitPayerAsProgramAccount => {
                 "Error: Cannot initialize a program account with the payer account"
             }

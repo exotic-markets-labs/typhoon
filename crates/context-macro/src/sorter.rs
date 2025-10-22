@@ -40,7 +40,7 @@ impl ContextVisitor for DependencyLinker {
 
     fn visit_bump(&mut self, constraint: &ConstraintBump) -> Result<(), syn::Error> {
         if let Some(ref bump) = constraint.0 {
-            if let Some(name) = bump.name() {
+            for name in &bump.names {
                 self.add_dependency(&name);
             }
         }

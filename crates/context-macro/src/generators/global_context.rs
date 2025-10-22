@@ -179,7 +179,7 @@ impl<'a> GlobalContext<'a> {
                                         bumps.insert(name.to_string());
                                     }
                                     pda_ctx.bump = Some(expr.to_owned());
-                                    if let Some(name) = expr.name() {
+                                    for name in &expr.names {
                                         states.insert(name.to_string());
                                     }
                                 }
@@ -302,6 +302,12 @@ impl<'a> GlobalContext<'a> {
                             is_init_if_needed: true,
                             payer: None,
                         })
+                    }
+                    Constraint::Assert(constraint_assert) => {
+                        for name in &constraint_assert.assert.names {
+                            states.insert(name.to_string());
+                        }
+                        generator.asserts.push(constraint_assert.clone());
                     }
                 }
             }

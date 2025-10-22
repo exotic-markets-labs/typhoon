@@ -1,5 +1,7 @@
 #![no_std]
 
+pub mod state;
+
 #[cfg(feature = "client")]
 extern crate std;
 

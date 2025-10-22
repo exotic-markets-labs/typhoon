@@ -1,5 +1,6 @@
 use {
     litesvm::LiteSVM,
+    misc_interface::{AssertInstruction, InitializeContext, InitializeInstruction, SimpleContext},
     solana_instruction::{AccountMeta, Instruction},
     solana_keypair::{Keypair, Signer},
     solana_native_token::LAMPORTS_PER_SOL,
@@ -23,9 +24,9 @@ fn integration() {
         .unwrap();
 
     let admin = Keypair::new();
-    let admin_pb = admin.pubkey();
+    let admin_pk = admin.pubkey();
 
-    svm.airdrop(&admin_pb, 10 * LAMPORTS_PER_SOL).unwrap();
+    svm.airdrop(&admin_pk, 10 * LAMPORTS_PER_SOL).unwrap();
 
     let ix = Instruction {
         accounts: vec![
@@ -38,12 +39,38 @@ fn integration() {
     };
     let tx = Transaction::new_signed_with_payer(
         &[ix],
-        Some(&admin_pb),
-        &[admin],
+        Some(&admin_pk),
+        &[&admin],
         svm.latest_blockhash(),
     );
     assert!(svm
         .send_transaction(tx)
         .inspect(|el| println!("{}", el.pretty_logs()))
         .is_ok());
+
+    let account = Keypair::new();
+    let account_pk = account.pubkey();
+
+    let ix1 = InitializeInstruction {
+        context: InitializeContext {
+            account: account_pk,
+            payer: admin_pk,
+            system_program: Pubkey::default(),
+        },
+    }
+    .into_instruction();
+    let ix2 = AssertInstruction {
+        simple: SimpleContext {
+            account: account_pk,
+        },
+    }
+    .into_instruction();
+    let tx = Transaction::new_signed_with_payer(
+        &[ix1, ix2],
+        Some(&admin_pk),
+        &[&admin, &account],
+        svm.latest_blockhash(),
+    );
+
+    assert!(svm.send_transaction(tx).is_ok())
 }
