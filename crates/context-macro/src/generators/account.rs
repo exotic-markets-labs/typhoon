@@ -334,7 +334,7 @@ impl AccountGenerator<'_> {
             let error = error.as_ref().unwrap_or(&basic_error);
 
             token.extend(quote! {
-                if pinocchio::hint::unlikely(!#assert) {
+                if pinocchio::hint::unlikely(!(#assert)) {
                     return Err(#error.into());
                 }
             });
