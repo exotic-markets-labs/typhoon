@@ -84,7 +84,7 @@ impl<T> ReadableAccount for BorshAccount<'_, T>
 where
     T: Discriminator,
 {
-    type DataUnchecked = [u8];
+    type DataUnchecked = core::cell::Ref<'a, T>;
     type Data<'a>
         = core::cell::Ref<'a, T>
     where
