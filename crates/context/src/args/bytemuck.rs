@@ -1,8 +1,8 @@
 use {
     crate::HandlerContext,
     bytemuck::AnyBitPattern,
-    pinocchio::{account_info::AccountInfo, program_error::ProgramError, pubkey::Pubkey},
-    typhoon_errors::Error,
+    pinocchio::{account_info::AccountInfo, pubkey::Pubkey},
+    typhoon_errors::{Error, ErrorCode},
 };
 
 #[derive(Debug)]
@@ -21,7 +21,7 @@ where
         let len = core::mem::size_of::<T>();
 
         if len > instruction_data.len() {
-            return Err(ProgramError::InvalidInstructionData.into());
+            return Err(ErrorCode::InvalidDataLength.into());
         }
 
         // SAFETY: The invariant `len <= instruction_data.len()` is upheld by the preceding
@@ -32,7 +32,7 @@ where
         let data_ptr = arg_data.as_ptr();
 
         if data_ptr.align_offset(core::mem::align_of::<T>()) != 0 {
-            return Err(ProgramError::InvalidInstructionData.into());
+            return Err(ErrorCode::InvalidDataAlignment.into());
         }
 
         let arg: &T = unsafe { &*(data_ptr as *const T) };

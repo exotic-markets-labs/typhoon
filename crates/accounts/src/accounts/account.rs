@@ -99,13 +99,13 @@ where
         let total_len = dis_len + core::mem::size_of::<T>();
 
         if self.info.data_len() < total_len {
-            return Err(ProgramError::InvalidAccountData.into());
+            return Err(ErrorCode::InvalidDataLength.into());
         }
 
         let data_ptr = unsafe { self.info.data_ptr().add(dis_len) };
 
         if data_ptr.align_offset(core::mem::align_of::<T>()) != 0 {
-            return Err(ProgramError::InvalidAccountData.into());
+            return Err(ErrorCode::InvalidDataAlignment.into());
         }
 
         Ok(unsafe { &*(data_ptr as *const T) })

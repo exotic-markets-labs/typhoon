@@ -14,6 +14,9 @@ pub enum ErrorCode {
     TokenConstraintViolated,
     BufferFull,
     InvalidReturnData,
+    UnknownInstruction,
+    InvalidDataLength,
+    InvalidDataAlignment,
 }
 
 impl TryFrom<u32> for ErrorCode {
@@ -34,6 +37,9 @@ impl TryFrom<u32> for ErrorCode {
             109 => Ok(ErrorCode::TokenConstraintViolated),
             110 => Ok(ErrorCode::BufferFull),
             111 => Ok(ErrorCode::InvalidReturnData),
+            112 => Ok(ErrorCode::UnknownInstruction),
+            113 => Ok(ErrorCode::InvalidDataLength),
+            114 => Ok(ErrorCode::InvalidDataAlignment),
             _ => Err(ProgramError::InvalidArgument),
         }
     }
@@ -70,6 +76,9 @@ impl ToStr for ErrorCode {
             ErrorCode::TokenConstraintViolated => "Error: Token constraint was violated",
             ErrorCode::BufferFull => "Error: Buffer is full",
             ErrorCode::InvalidReturnData => "Error: The return data is invalid",
+            ErrorCode::UnknownInstruction => "Error: Unknown instruction",
+            ErrorCode::InvalidDataLength => "Error: Invalid data length",
+            ErrorCode::InvalidDataAlignment => "Error: Invalid data alignment",
         }
     }
 }
