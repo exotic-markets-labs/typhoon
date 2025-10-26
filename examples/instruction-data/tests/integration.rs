@@ -42,7 +42,7 @@ fn integration_test() {
     let init_args = InitArgs { value: 42.into() };
     let tx = Transaction::new_signed_with_payer(
         &[InitializeInstruction {
-            ctx: InitContextContext {
+            ctx: InitContext {
                 args: init_args,
                 payer: admin_pk,
                 buffer: buffer_a_pk,
@@ -61,7 +61,7 @@ fn integration_test() {
 
     let tx = Transaction::new_signed_with_payer(
         &[InitializeInstruction {
-            ctx: InitContextContext {
+            ctx: InitContext {
                 args: init_args,
                 payer: admin_pk,
                 buffer: buffer_b_pk,
@@ -85,7 +85,7 @@ fn integration_test() {
     let more_args = 42_u64;
     let tx = Transaction::new_signed_with_payer(
         &[SetValueInstruction {
-            ctx: SetValueContextContext {
+            ctx: SetValueContext {
                 buffer: buffer_a_pk,
                 args: ix_a_args,
             },
@@ -109,7 +109,7 @@ fn integration_test() {
     let more_args = 69_u64;
     let tx = Transaction::new_signed_with_payer(
         &[SetValueInstruction {
-            ctx: SetValueContextContext {
+            ctx: SetValueContext {
                 buffer: buffer_b_pk,
                 args: ix_b_args,
             },
@@ -136,11 +136,11 @@ fn integration_test() {
     };
     let tx = Transaction::new_signed_with_payer(
         &[SetAndAddValuesInstruction {
-            ctx_a: SetValueContextContext {
+            ctx_a: SetValueContext {
                 buffer: buffer_a_pk,
                 args: ix_a_args,
             },
-            ctx_b: SetValueContextContext {
+            ctx_b: SetValueContext {
                 args: ix_b_args,
                 buffer: buffer_b_pk,
             },

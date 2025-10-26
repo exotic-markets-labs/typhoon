@@ -38,7 +38,7 @@ impl From<PodU64> for u64 {
 
 #[context]
 #[args(InitArgs)]
-pub struct InitContext {
+pub struct Init {
     pub payer: Mut<Signer>,
     #[constraint(
         init,
@@ -51,7 +51,7 @@ pub struct InitContext {
 
 #[context]
 #[args(value: PodU64, other_value: PodU64)]
-pub struct SetValueContext {
+pub struct SetValue {
     pub buffer: Mut<Account<Buffer>>,
 }
 
@@ -61,13 +61,13 @@ handlers! {
     set_and_add_values,
 }
 
-pub fn initialize(ctx: InitContext) -> ProgramResult {
+pub fn initialize(ctx: Init) -> ProgramResult {
     ctx.buffer.mut_data()?.value1 = ctx.args.value.into();
 
     Ok(())
 }
 
-pub fn set_value(ctx: SetValueContext, Arg(more_args): Arg<PodU64>) -> ProgramResult {
+pub fn set_value(ctx: SetValue, Arg(more_args): Arg<PodU64>) -> ProgramResult {
     let mut data = ctx.buffer.mut_data()?;
     data.value1 = ctx.args.value.into();
     data.value2 = (*more_args).into();
@@ -75,7 +75,7 @@ pub fn set_value(ctx: SetValueContext, Arg(more_args): Arg<PodU64>) -> ProgramRe
     Ok(())
 }
 
-pub fn set_and_add_values(ctx_a: SetValueContext, ctx_b: SetValueContext) -> ProgramResult {
+pub fn set_and_add_values(ctx_a: SetValue, ctx_b: SetValue) -> ProgramResult {
     let value_a = ctx_a.args.value.into();
     let value_b = ctx_b.args.value.into();
     ctx_a.buffer.mut_data()?.value1 = value_a;

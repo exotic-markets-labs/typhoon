@@ -46,7 +46,7 @@ fn integration_test() {
         bump: counter_bump,
     };
     let ix = InitializeInstruction {
-        ctx: InitContextContext {
+        ctx: InitContext {
             args: arg,
             payer: admin_pk,
             counter: counter_pk,
@@ -59,7 +59,7 @@ fn integration_test() {
     svm.send_transaction(tx).unwrap();
 
     let ix = IncrementInstruction {
-        ctx: IncrementContextContext {
+        ctx: IncrementContext {
             admin: admin_pk,
             counter: counter_pk,
         },
@@ -74,7 +74,7 @@ fn integration_test() {
     assert!(counter_account.count == 1);
 
     let ix = IncrementInstruction {
-        ctx: IncrementContextContext {
+        ctx: IncrementContext {
             admin: random_kp.pubkey(),
             counter: counter_pk,
         },

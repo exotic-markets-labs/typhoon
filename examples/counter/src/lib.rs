@@ -11,7 +11,7 @@ nostd_panic_handler!();
 no_allocator!();
 
 #[context]
-pub struct InitContext {
+pub struct Init {
     pub payer: Mut<Signer>,
     #[constraint(
         init,
@@ -22,12 +22,12 @@ pub struct InitContext {
 }
 
 #[context]
-pub struct CounterMutContext {
+pub struct CounterMut {
     pub counter: Mut<Account<Counter>>,
 }
 
 #[context]
-pub struct DestinationContext {
+pub struct Destination {
     pub destination: Mut<SystemAccount>,
 }
 
@@ -37,19 +37,19 @@ handlers! {
     close
 }
 
-pub fn initialize(_: InitContext) -> ProgramResult {
+pub fn initialize(_: Init) -> ProgramResult {
     Ok(())
 }
 
-pub fn increment(ctx: CounterMutContext) -> ProgramResult {
+pub fn increment(ctx: CounterMut) -> ProgramResult {
     ctx.counter.mut_data()?.count += 1;
 
     Ok(())
 }
 
 pub fn close(
-    CounterMutContext { counter }: CounterMutContext,
-    DestinationContext { destination }: DestinationContext,
+    CounterMut { counter }: CounterMut,
+    Destination { destination }: Destination,
 ) -> ProgramResult {
     counter.close(&destination)?;
 

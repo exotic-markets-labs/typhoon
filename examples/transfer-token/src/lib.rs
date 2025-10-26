@@ -31,7 +31,7 @@ pub struct MintFromEscrowArgs {
 
 #[context]
 #[args(MintFromEscrowArgs)]
-pub struct MintFromEscrowContext {
+pub struct MintFromEscrow {
     pub payer: Mut<Signer>,
     pub owner: UncheckedAccount,
     #[constraint(
@@ -62,7 +62,7 @@ pub struct MintFromEscrowContext {
     pub system_program: Program<System>,
 }
 
-pub fn mint_from_escrow(ctx: MintFromEscrowContext) -> ProgramResult {
+pub fn mint_from_escrow(ctx: MintFromEscrow) -> ProgramResult {
     MintTo {
         mint: ctx.mint.as_ref(),
         account: ctx.token_account.as_ref(),
