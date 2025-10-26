@@ -78,7 +78,7 @@ fn integration_test() {
     let buffer_account: &Buffer = Buffer::read(raw_account.data.as_slice()).unwrap();
     assert_eq!(buffer_account.value1, u64::from(init_args.value));
 
-    let ix_a_args = SetValueContextArgs {
+    let ix_a_args = SetValueArgs {
         value: 10.into(),
         other_value: 5.into(),
     };
@@ -102,7 +102,7 @@ fn integration_test() {
     assert_eq!(buffer_account.value1, u64::from(ix_a_args.value));
     assert_eq!(buffer_account.value2, u64::from(more_args));
 
-    let ix_b_args = SetValueContextArgs {
+    let ix_b_args = SetValueArgs {
         value: 50.into(),
         other_value: 55u64.into(),
     };
@@ -126,11 +126,11 @@ fn integration_test() {
     assert_eq!(buffer_account.value1, u64::from(ix_b_args.value));
     assert_eq!(buffer_account.value2, u64::from(more_args));
 
-    let ix_a_args = SetValueContextArgs {
+    let ix_a_args = SetValueArgs {
         value: 6.into(),
         other_value: 11.into(),
     };
-    let ix_b_args = SetValueContextArgs {
+    let ix_b_args = SetValueArgs {
         value: 50.into(),
         other_value: 55.into(),
     };

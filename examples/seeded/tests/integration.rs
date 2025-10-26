@@ -41,7 +41,7 @@ fn integration_test() {
     let (counter_pk, counter_bump) =
         Pubkey::find_program_address(&Counter::derive(&admin_pk.to_bytes().into()), &ID);
 
-    let arg = InitContextArgs {
+    let arg = InitArgs {
         admin: admin_pk.to_bytes().into(),
         bump: counter_bump,
     };
