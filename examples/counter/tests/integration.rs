@@ -38,7 +38,7 @@ fn integration_test() {
     let counter_kp = Keypair::new();
     let counter_pk = counter_kp.pubkey();
     let ix = InitializeInstruction {
-        init_context: InitContextContext {
+        init: InitContext {
             payer: admin_pk,
             counter: counter_pk,
             system: solana_system_interface::program::ID,
@@ -56,7 +56,7 @@ fn integration_test() {
 
     // Increment the counter
     let ix = IncrementInstruction {
-        ctx: CounterMutContextContext {
+        ctx: CounterMutContext {
             counter: counter_pk,
         },
     }
@@ -70,10 +70,10 @@ fn integration_test() {
     assert!(counter_account.count == 1);
 
     let ix = CloseInstruction {
-        counter_mut_context: CounterMutContextContext {
+        counter_mut: CounterMutContext {
             counter: counter_pk,
         },
-        destination_context: DestinationContextContext {
+        destination: DestinationContext {
             destination: admin_pk,
         },
     }

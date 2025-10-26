@@ -17,7 +17,7 @@ handlers! {
 
 #[context]
 #[args(admin: Pubkey, bump: u8)]
-pub struct InitContext {
+pub struct Init {
     pub payer: Mut<Signer>,
     #[constraint(
         init,
@@ -31,13 +31,13 @@ pub struct InitContext {
 }
 
 #[context]
-pub struct IncrementContext {
+pub struct Increment {
     pub admin: Signer,
     #[constraint(seeded, bump = counter.data()?.bump, has_one = admin @ProgramError::IllegalOwner)]
     pub counter: Mut<Account<Counter>>,
 }
 
-pub fn initialize(ctx: InitContext) -> ProgramResult {
+pub fn initialize(ctx: Init) -> ProgramResult {
     *ctx.counter.mut_data()? = Counter {
         admin: ctx.args.admin,
         count: 0,
@@ -48,7 +48,7 @@ pub fn initialize(ctx: InitContext) -> ProgramResult {
     Ok(())
 }
 
-pub fn increment(ctx: IncrementContext) -> ProgramResult {
+pub fn increment(ctx: Increment) -> ProgramResult {
     ctx.counter.mut_data()?.count += 1;
 
     Ok(())

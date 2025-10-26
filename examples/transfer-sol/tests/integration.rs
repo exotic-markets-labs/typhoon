@@ -53,7 +53,7 @@ fn integration_test() {
             payer: admin_pk,
             recipient: recipient_pk,
         },
-        system_context: SystemContextContext {
+        system_program: SystemProgramContext {
             system: solana_system_interface::program::ID,
         },
     }

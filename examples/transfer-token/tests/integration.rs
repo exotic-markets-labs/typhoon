@@ -50,7 +50,7 @@ fn integration_test() {
     let minted_amount = 100000;
     svm.send_transaction(Transaction::new_signed_with_payer(
         &[MintFromEscrowInstruction {
-            ctx: MintFromEscrowContextContext {
+            ctx: MintFromEscrowContext {
                 args: MintFromEscrowArgs {
                     decimals: 6,
                     amount: minted_amount,

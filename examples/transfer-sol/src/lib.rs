@@ -42,14 +42,14 @@ pub struct Transfer {
 }
 
 #[context]
-pub struct SystemContext {
+pub struct SystemProgram {
     pub system: Program<System>,
 }
 
 pub fn transfer_sol_with_cpi(
     Arg(amount): Arg<PodU64>,
     ctx: Transfer,
-    _: SystemContext,
+    _: SystemProgram,
 ) -> ProgramResult {
     ctx.payer.transfer(&ctx.recipient, (*amount).into())?;
 
