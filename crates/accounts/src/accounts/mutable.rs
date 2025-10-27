@@ -8,7 +8,7 @@ use {
         account_info::{AccountInfo, RefMut},
         program_error::ProgramError,
     },
-    typhoon_errors::{Error, ErrorCode},
+    typhoon_errors::Error,
 };
 
 pub struct Mut<T: ReadableAccount>(pub(crate) T);
@@ -20,7 +20,7 @@ where
     #[inline(always)]
     fn try_from_info(info: &'a AccountInfo) -> Result<Self, Error> {
         if !info.is_writable() {
-            return Err(ErrorCode::AccountNotMutable.into());
+            return Err(ProgramError::Immutable.into());
         }
 
         Ok(Mut(T::try_from_info(info)?))
