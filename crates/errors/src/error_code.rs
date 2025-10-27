@@ -4,7 +4,6 @@ use pinocchio::program_error::{ProgramError, ToStr};
 pub enum ErrorCode {
     InvalidProgramExecutable = 100,
     AccountNotInitialized,
-    AccountNotMutable,
     AccountNotSigner,
     AccountDiscriminatorMismatch,
     HasOneConstraint,
@@ -25,18 +24,17 @@ impl TryFrom<u32> for ErrorCode {
         match value {
             100 => Ok(ErrorCode::InvalidProgramExecutable),
             101 => Ok(ErrorCode::AccountNotInitialized),
-            102 => Ok(ErrorCode::AccountNotMutable),
-            103 => Ok(ErrorCode::AccountNotSigner),
-            104 => Ok(ErrorCode::AccountDiscriminatorMismatch),
-            105 => Ok(ErrorCode::HasOneConstraint),
-            106 => Ok(ErrorCode::AssertConstraint),
-            107 => Ok(ErrorCode::TryingToInitPayerAsProgramAccount),
-            108 => Ok(ErrorCode::TokenConstraintViolated),
-            109 => Ok(ErrorCode::BufferFull),
-            110 => Ok(ErrorCode::InvalidReturnData),
-            111 => Ok(ErrorCode::UnknownInstruction),
-            112 => Ok(ErrorCode::InvalidDataLength),
-            113 => Ok(ErrorCode::InvalidDataAlignment),
+            102 => Ok(ErrorCode::AccountNotSigner),
+            103 => Ok(ErrorCode::AccountDiscriminatorMismatch),
+            104 => Ok(ErrorCode::HasOneConstraint),
+            105 => Ok(ErrorCode::AssertConstraint),
+            106 => Ok(ErrorCode::TryingToInitPayerAsProgramAccount),
+            107 => Ok(ErrorCode::TokenConstraintViolated),
+            108 => Ok(ErrorCode::BufferFull),
+            109 => Ok(ErrorCode::InvalidReturnData),
+            110 => Ok(ErrorCode::UnknownInstruction),
+            111 => Ok(ErrorCode::InvalidDataLength),
+            112 => Ok(ErrorCode::InvalidDataAlignment),
             _ => Err(ProgramError::InvalidArgument),
         }
     }
@@ -56,7 +54,6 @@ impl ToStr for ErrorCode {
         match self {
             ErrorCode::InvalidProgramExecutable => "Error: Program is not executable",
             ErrorCode::AccountNotInitialized => "Error: Account is not initialized yet",
-            ErrorCode::AccountNotMutable => "Error: The given account is not mutable",
             ErrorCode::AccountNotSigner => "Error: Account is not a signer",
             ErrorCode::AccountDiscriminatorMismatch => {
                 "Error: Discriminator did not match what was expected"
