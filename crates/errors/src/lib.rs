@@ -12,7 +12,6 @@ pub struct Error {
 }
 
 impl Error {
-    #[inline(always)]
     pub fn new(error: impl Into<ProgramError>) -> Self {
         Error {
             error: error.into(),
@@ -20,13 +19,11 @@ impl Error {
         }
     }
 
-    #[inline(always)]
     pub fn with_account(mut self, name: &'static str) -> Self {
         self.account_name = Some(name);
         self
     }
 
-    #[inline(always)]
     pub fn account_name(&self) -> Option<&str> {
         self.account_name
     }
@@ -47,7 +44,6 @@ impl ToStr for Error {
 }
 
 impl From<ProgramError> for Error {
-    #[inline(always)]
     fn from(error: ProgramError) -> Self {
         Error {
             error,
@@ -57,7 +53,6 @@ impl From<ProgramError> for Error {
 }
 
 impl From<ErrorCode> for Error {
-    #[inline(always)]
     fn from(value: ErrorCode) -> Self {
         Error {
             error: value.into(),
@@ -67,7 +62,6 @@ impl From<ErrorCode> for Error {
 }
 
 impl From<Error> for ProgramError {
-    #[inline(always)]
     fn from(value: Error) -> Self {
         value.error
     }
