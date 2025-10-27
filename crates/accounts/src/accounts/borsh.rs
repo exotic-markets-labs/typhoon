@@ -37,7 +37,7 @@ where
 
         // Verify account ownership - checked after discriminator for better branch prediction
         if unlikely(!pubkey_eq(info.owner(), &T::OWNER)) {
-            return Err(ErrorCode::AccountOwnedByWrongProgram.into());
+            return Err(ProgramError::InvalidAccountOwner.into());
         }
 
         // Handle special case: zero-lamport system accounts (least common case)

@@ -7,7 +7,7 @@ use {
         program_error::ProgramError,
         pubkey::pubkey_eq,
     },
-    typhoon_errors::{Error, ErrorCode},
+    typhoon_errors::Error,
 };
 
 ///
@@ -31,7 +31,7 @@ where
         }
 
         if !info.executable() {
-            return Err(ErrorCode::AccountOwnedByWrongProgram.into());
+            return Err(ProgramError::InvalidAccountOwner.into());
         }
 
         Ok(Program {
