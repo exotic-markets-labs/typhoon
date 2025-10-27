@@ -38,7 +38,7 @@ where
 
         // Verify account ownership against multiple allowed owners - checked after discriminator for better branch prediction
         if unlikely(!T::OWNERS.contains(info.owner())) {
-            return Err(ErrorCode::AccountOwnedByWrongProgram.into());
+            return Err(ProgramError::InvalidAccountOwner.into());
         }
 
         // Handle special case: zero-lamport system accounts (least common case)

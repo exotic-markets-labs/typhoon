@@ -6,7 +6,6 @@ pub enum ErrorCode {
     AccountNotInitialized,
     AccountNotMutable,
     AccountNotSigner,
-    AccountOwnedByWrongProgram,
     AccountDiscriminatorMismatch,
     HasOneConstraint,
     AssertConstraint,
@@ -22,31 +21,28 @@ pub enum ErrorCode {
 impl TryFrom<u32> for ErrorCode {
     type Error = ProgramError;
 
-    #[inline(always)]
     fn try_from(value: u32) -> Result<Self, Self::Error> {
         match value {
             100 => Ok(ErrorCode::InvalidProgramExecutable),
             101 => Ok(ErrorCode::AccountNotInitialized),
             102 => Ok(ErrorCode::AccountNotMutable),
             103 => Ok(ErrorCode::AccountNotSigner),
-            104 => Ok(ErrorCode::AccountOwnedByWrongProgram),
-            105 => Ok(ErrorCode::AccountDiscriminatorMismatch),
-            106 => Ok(ErrorCode::HasOneConstraint),
-            107 => Ok(ErrorCode::AssertConstraint),
-            108 => Ok(ErrorCode::TryingToInitPayerAsProgramAccount),
-            109 => Ok(ErrorCode::TokenConstraintViolated),
-            110 => Ok(ErrorCode::BufferFull),
-            111 => Ok(ErrorCode::InvalidReturnData),
-            112 => Ok(ErrorCode::UnknownInstruction),
-            113 => Ok(ErrorCode::InvalidDataLength),
-            114 => Ok(ErrorCode::InvalidDataAlignment),
+            104 => Ok(ErrorCode::AccountDiscriminatorMismatch),
+            105 => Ok(ErrorCode::HasOneConstraint),
+            106 => Ok(ErrorCode::AssertConstraint),
+            107 => Ok(ErrorCode::TryingToInitPayerAsProgramAccount),
+            108 => Ok(ErrorCode::TokenConstraintViolated),
+            109 => Ok(ErrorCode::BufferFull),
+            110 => Ok(ErrorCode::InvalidReturnData),
+            111 => Ok(ErrorCode::UnknownInstruction),
+            112 => Ok(ErrorCode::InvalidDataLength),
+            113 => Ok(ErrorCode::InvalidDataAlignment),
             _ => Err(ProgramError::InvalidArgument),
         }
     }
 }
 
 impl From<ErrorCode> for ProgramError {
-    #[inline(always)]
     fn from(e: ErrorCode) -> Self {
         ProgramError::Custom(e as u32)
     }
@@ -62,9 +58,6 @@ impl ToStr for ErrorCode {
             ErrorCode::AccountNotInitialized => "Error: Account is not initialized yet",
             ErrorCode::AccountNotMutable => "Error: The given account is not mutable",
             ErrorCode::AccountNotSigner => "Error: Account is not a signer",
-            ErrorCode::AccountOwnedByWrongProgram => {
-                "Error: The current owner of this account is not the expected one"
-            }
             ErrorCode::AccountDiscriminatorMismatch => {
                 "Error: Discriminator did not match what was expected"
             }

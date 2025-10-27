@@ -5,7 +5,7 @@ use {
         account_info::{AccountInfo, Ref},
         program_error::ProgramError,
     },
-    typhoon_errors::{Error, ErrorCode},
+    typhoon_errors::Error,
 };
 
 pub struct Interface<'a, T> {
@@ -24,7 +24,7 @@ where
         }
 
         if !info.executable() {
-            return Err(ErrorCode::AccountOwnedByWrongProgram.into());
+            return Err(ProgramError::InvalidAccountOwner.into());
         }
 
         Ok(Interface {
