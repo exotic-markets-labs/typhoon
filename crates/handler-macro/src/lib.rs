@@ -35,7 +35,7 @@ impl ToTokens for Handlers {
         let expanded = quote! {
             program_entrypoint!(process_instruction);
 
-            #[inline(always)]
+            // TODO: Add inline attribute once efficient borsh deserialization is implemented
             pub fn process_instruction(
                 program_id: &Pubkey,
                 accounts: &[AccountInfo],
