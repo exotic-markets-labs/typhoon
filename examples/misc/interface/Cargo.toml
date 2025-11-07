@@ -8,9 +8,14 @@ publish = false
 crate-type = ["rlib"]
 
 [features]
-client = ["dep:solana-pubkey", "dep:solana-instruction", "dep:typhoon-instruction-builder"]
+client = [
+    "dep:solana-pubkey",
+    "dep:solana-instruction",
+    "dep:typhoon-instruction-builder",
+]
 
 [dependencies]
+const-crypto = "0.3.0"
 bytemuck = { workspace = true, features = ["derive"] }
 typhoon.workspace = true
 solana-pubkey = { workspace = true, optional = true }
