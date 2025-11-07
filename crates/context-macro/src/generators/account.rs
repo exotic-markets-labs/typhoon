@@ -126,9 +126,14 @@ impl AccountGenerator<'_> {
                     }
                 };
 
+                let create_pda = if define_key {
+                    quote!(let #pda_key = create_program_address(&#seeds_token, &#program_id)?;)
+                } else {
+                    quote!(create_program_address(&#seeds_token, &#program_id)?;)
+                };
                 Ok(quote! {
                     let #pda_bump = #bump;
-                    let #pda_key = create_program_address(&#seeds_token, &#program_id)?;
+                    #create_pda
                 })
             }
             _ => {
