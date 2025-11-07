@@ -50,7 +50,7 @@ fn integration() {
         .inspect(|el| println!("{}", el.pretty_logs()))
         .is_ok());
 
-    let account = RANDOM_PDA.into();
+    let account = RANDOM_PDA.0.into();
     let ix1 = InitializeInstruction {
         context: InitializeContext {
             account,
