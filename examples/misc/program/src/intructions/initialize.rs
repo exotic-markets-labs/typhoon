@@ -9,9 +9,10 @@ pub struct Initialize {
     #[constraint(
         init,
         payer = payer,
-        address = &RANDOM_PDA
+        seeds = &["random"],
+        bump = RANDOM_PDA.1
     )]
-    pub account: Mut<SignerNoCheck<Account<RandomData>>>,
+    pub account: Mut<Account<RandomData>>,
     pub system_program: Program<System>,
 }
 
