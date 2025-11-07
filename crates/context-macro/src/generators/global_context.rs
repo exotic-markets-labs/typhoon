@@ -310,7 +310,10 @@ impl<'a> GlobalContext<'a> {
                         generator.asserts.push(constraint_assert.clone());
                     }
                     Constraint::Address(constraint) => {
-                        todo!()
+                        for name in &constraint.check.names {
+                            states.insert(name.to_string());
+                        }
+                        generator.address_checks.push(constraint.clone());
                     }
                 }
             }

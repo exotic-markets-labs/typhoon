@@ -1,17 +1,18 @@
-use syn::{parse::Parse, Expr, Token};
-
-use crate::utils::ContextExpr;
+use {
+    crate::utils::ContextExpr,
+    syn::{parse::Parse, Expr, Token},
+};
 
 #[derive(Clone)]
 pub struct ConstraintAddress {
-    pub address: ContextExpr,
+    pub check: ContextExpr,
     pub error: Option<Expr>,
 }
 
 impl Parse for ConstraintAddress {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         input.parse::<Token![=]>()?;
-        let address: ContextExpr = input.parse()?;
+        let check: ContextExpr = input.parse()?;
         let error = if input.peek(Token![@]) {
             input.parse::<Token![@]>()?;
             Some(input.parse()?)
@@ -19,6 +20,6 @@ impl Parse for ConstraintAddress {
             None
         };
 
-        Ok(ConstraintAddress { address, error })
+        Ok(ConstraintAddress { check, error })
     }
 }

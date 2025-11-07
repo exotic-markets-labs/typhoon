@@ -5,7 +5,8 @@ pub struct Initialize {
     pub payer: Mut<Signer>,
     #[constraint(
         init,
-        payer = payer
+        payer = payer,
+        address = &RANDOM_PDA
     )]
     pub account: Mut<SignerNoCheck<Account<RandomData>>>,
     pub system_program: Program<System>,

@@ -1,5 +1,6 @@
 #![no_std]
 
+pub mod pda;
 pub mod state;
 
 #[cfg(feature = "client")]

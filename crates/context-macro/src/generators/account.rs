@@ -3,7 +3,7 @@ use {
     quote::{format_ident, quote},
     syn::{parse_quote, Expr, Ident},
     typhoon_syn::{
-        constraints::ConstraintAssert,
+        constraints::{ConstraintAddress, ConstraintAssert},
         error,
         utils::{ContextExpr, SeedsExpr},
         InstructionAccount,
@@ -48,6 +48,7 @@ pub struct AccountGenerator<'a> {
     pub pda: Option<PdaContext>,
     pub init_state: bool,
     pub asserts: Vec<ConstraintAssert>,
+    pub address_checks: Vec<ConstraintAddress>,
 }
 
 impl<'a> AccountGenerator<'a> {
@@ -59,6 +60,7 @@ impl<'a> AccountGenerator<'a> {
             pda: Default::default(),
             init_state: false,
             asserts: Vec::new(),
+            address_checks: Vec::new(),
         }
     }
 }
@@ -423,6 +425,17 @@ impl AccountGenerator<'_> {
         } else {
             token.extend(account_checks_token);
         };
+
+        for ConstraintAddress { check, error } in &self.address_checks {
+            let basic_error: Expr = parse_quote!(ErrorCode::AddressConstraint);
+            let error = error.as_ref().unwrap_or(&basic_error);
+
+            token.extend(quote! {
+                if pinocchio::hint::unlikely(!pinocchio::pubkey::pubkey_eq(#name.key(), #check)) {
+                    return Err(#error.into());
+                }
+            });
+        }
 
         // TODO Address
 

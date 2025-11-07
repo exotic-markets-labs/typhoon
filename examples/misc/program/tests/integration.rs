@@ -1,6 +1,8 @@
 use {
     litesvm::LiteSVM,
-    misc_interface::{AssertInstruction, InitializeContext, InitializeInstruction, SimpleContext},
+    misc_interface::{
+        pda::RANDOM_PDA, AssertInstruction, InitializeContext, InitializeInstruction, SimpleContext,
+    },
     solana_instruction::{AccountMeta, Instruction},
     solana_keypair::{Keypair, Signer},
     solana_native_token::LAMPORTS_PER_SOL,
@@ -48,27 +50,23 @@ fn integration() {
         .inspect(|el| println!("{}", el.pretty_logs()))
         .is_ok());
 
-    let account = Keypair::new();
-    let account_pk = account.pubkey();
-
+    let account = RANDOM_PDA.into();
     let ix1 = InitializeInstruction {
         context: InitializeContext {
-            account: account_pk,
+            account,
             payer: admin_pk,
             system_program: Pubkey::default(),
         },
     }
     .into_instruction();
     let ix2 = AssertInstruction {
-        simple: SimpleContext {
-            account: account_pk,
-        },
+        simple: SimpleContext { account },
     }
     .into_instruction();
     let tx = Transaction::new_signed_with_payer(
         &[ix1, ix2],
         Some(&admin_pk),
-        &[&admin, &account],
+        &[&admin],
         svm.latest_blockhash(),
     );
 
