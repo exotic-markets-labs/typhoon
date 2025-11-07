@@ -9,7 +9,7 @@ pub struct Initialize {
     #[constraint(
         init,
         payer = payer,
-        seeds = &["random"],
+        seeds = [b"random"],
         bump = RANDOM_PDA.1
     )]
     pub account: Mut<Account<RandomData>>,

@@ -4,7 +4,7 @@ use {misc_interface::{pda::RANDOM_PDA, state::RandomData},, typhoon::prelude::*}
 pub struct Simple {
     #[constraint(
         assert = account.data()?.counter == 1,
-        address = &RANDOM_PDA
+        address = &RANDOM_PDA.0
     )]
     pub account: Account<RandomData>,
 }
