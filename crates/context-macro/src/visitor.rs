@@ -28,6 +28,7 @@ pub trait ContextVisitor {
             Constraint::AssociatedToken(constraint) => self.visit_associated_token(constraint),
             Constraint::InitIfNeeded(constraint) => self.visit_init_if_needed(constraint),
             Constraint::Assert(constraint) => self.visit_assert(constraint),
+            Constraint::Address(constraint) => self.visit_address(constraint),
         }
     }
 
@@ -86,6 +87,10 @@ pub trait ContextVisitor {
     }
 
     fn visit_assert(&mut self, _constraint: &ConstraintAssert) -> Result<(), syn::Error> {
+        Ok(())
+    }
+
+    fn visit_address(&mut self, _constraint: &ConstraintAddress) -> Result<(), syn::Error> {
         Ok(())
     }
 }

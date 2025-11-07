@@ -309,6 +309,9 @@ impl<'a> GlobalContext<'a> {
                         }
                         generator.asserts.push(constraint_assert.clone());
                     }
+                    Constraint::Address(constraint) => {
+                        todo!()
+                    }
                 }
             }
 

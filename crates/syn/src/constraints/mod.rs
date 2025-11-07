@@ -3,6 +3,7 @@ use syn::{
     Ident, Token,
 };
 
+mod address;
 mod assert;
 mod associated_token;
 mod bump;
@@ -18,8 +19,8 @@ mod space;
 mod token;
 
 pub use {
-    assert::*, associated_token::*, bump::*, has_one::*, init::*, init_if_needed::*, mint::*,
-    payer::*, program::*, seeded::*, seeds::*, space::*, token::*,
+    address::*, assert::*, associated_token::*, bump::*, has_one::*, init::*, init_if_needed::*,
+    mint::*, payer::*, program::*, seeded::*, seeds::*, space::*, token::*,
 };
 
 pub const CONSTRAINT_IDENT_STR: &str = "constraint";
@@ -40,6 +41,7 @@ pub enum Constraint {
     AssociatedToken(ConstraintAssociatedToken),
     InitIfNeeded(ConstraintInitIfNeeded),
     Assert(ConstraintAssert),
+    Address(ConstraintAddress),
 }
 
 impl Constraint {
@@ -58,6 +60,7 @@ impl Constraint {
             Self::AssociatedToken(_) => 10,
             Self::Payer(_) => 11,
             Self::Assert(_) => 12,
+            Self::Address(_) => 13,
         }
     }
 }
@@ -105,6 +108,7 @@ pub fn parse_constraints(input: ParseStream) -> syn::Result<Vec<Constraint>> {
             )),
             "init_if_needed" => constraints.push(Constraint::InitIfNeeded(ConstraintInitIfNeeded)),
             "assert" => constraints.push(Constraint::Assert(ConstraintAssert::parse(input)?)),
+            "address" => constraints.push(Constraint::Address(ConstraintAddress::parse(input)?)),
             _ => return Err(syn::Error::new(input.span(), "Unknow constraint.")),
         }
 
