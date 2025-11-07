@@ -442,8 +442,6 @@ impl AccountGenerator<'_> {
             });
         }
 
-        // TODO Address
-
         Ok(token)
     }
 }
