@@ -24,10 +24,10 @@ impl Parse for Handlers {
         let mut inline = true;
 
         if input.is_empty() {
-            return Ok(Self {
-                instructions,
-                inline,
-            });
+            return Err(syn::Error::new_spanned(
+                &input.to_string(),
+                "At least one handler is required",
+            ));
         }
 
         instructions.push_value(input.parse()?);
