@@ -21,7 +21,7 @@ impl Parse for Handlers {
         // Parse paths until we encounter "no_inline" or the input is empty
         // TODO: Remove this once we have a better borsh lib
         let mut instructions = Punctuated::<Path, Token![,]>::new();
-        let mut inline = false;
+        let mut inline = true;
 
         if input.is_empty() {
             return Ok(Self {
@@ -37,7 +37,7 @@ impl Parse for Handlers {
 
             if let Ok(lit_str) = input.parse::<syn::LitStr>() {
                 if lit_str.value() == "no_inline" {
-                    inline = true;
+                    inline = false;
 
                     if input.peek(Token![,]) {
                         let _ = input.parse::<Token![,]>();
