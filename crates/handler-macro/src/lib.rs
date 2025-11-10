@@ -33,7 +33,12 @@ impl Parse for Handlers {
         instructions.push_value(input.parse()?);
 
         while input.peek(Token![,]) {
+            dbg!(&input.to_string());
             let comma: Token![,] = input.parse()?;
+
+            if input.is_empty() {
+                break;
+            }
 
             if let Ok(lit_str) = input.parse::<syn::LitStr>() {
                 if lit_str.value() == "no_inline" {
