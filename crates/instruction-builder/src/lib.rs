@@ -9,14 +9,8 @@ use {
     proc_macro2::{Span, TokenStream},
     quote::{format_ident, quote, ToTokens},
     std::path::Path,
-    syn::{
-        parse::{Parse, Parser},
-        parse_macro_input,
-        punctuated::Punctuated,
-        visit::Visit,
-        Ident, Item, Token,
-    },
-    typhoon_syn::{Argument, Arguments, Context, Instruction, InstructionArg},
+    syn::{parse::Parse, parse_macro_input, visit::Visit, Ident, Item, Token},
+    typhoon_syn::{Argument, Arguments, Context, Instruction, InstructionArg, InstructionsList},
 };
 
 mod generator;
@@ -41,33 +35,6 @@ pub fn generate_cpi_client(input: proc_macro::TokenStream) -> proc_macro::TokenS
         .generate::<CpiGenerator>()
         .into_token_stream()
         .into()
-}
-
-#[derive(Default)]
-struct InstructionsList(pub Vec<(usize, Ident)>);
-
-impl Visit<'_> for InstructionsList {
-    fn visit_item_macro(&mut self, i: &syn::ItemMacro) {
-        if !i.mac.path.is_ident("handlers") {
-            return;
-        }
-
-        if let Ok(instructions) =
-            Punctuated::<Ident, syn::Token![,]>::parse_terminated.parse2(i.mac.tokens.clone())
-        {
-            self.0 = instructions
-                .iter()
-                .enumerate()
-                .map(|(i, n)| (i, n.clone()))
-                .collect()
-        };
-    }
-}
-
-impl From<InstructionsList> for Vec<(usize, Ident)> {
-    fn from(value: InstructionsList) -> Self {
-        value.0
-    }
 }
 
 #[derive(Default)]

@@ -5,6 +5,7 @@ use {
     syn::{
         parse::{Parse, Parser},
         punctuated::Punctuated,
+        visit::Visit,
         Expr, FnArg, Ident, LitInt, Pat, Token, Type,
     },
 };
@@ -158,6 +159,18 @@ impl TryFrom<&syn::ItemConst> for InstructionsList {
                 })
                 .collect::<Result<_, syn::Error>>()?,
         ))
+    }
+}
+
+impl<'ast> Visit<'ast> for InstructionsList {
+    fn visit_item_const(&mut self, i: &'ast syn::ItemConst) {
+        if i.ident != "ROUTER" {
+            return;
+        }
+
+        if let Ok(ix_list) = InstructionsList::try_from(i) {
+            *self = ix_list;
+        }
     }
 }
 

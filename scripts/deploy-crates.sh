@@ -34,7 +34,6 @@ CRATES=(
     "instruction-builder"
     "discriminator-macro"
     "cpi-generator-macro"
-    "handler-macro"
     "program-id-macro"
     "context-macro"
     "errors-macro"
