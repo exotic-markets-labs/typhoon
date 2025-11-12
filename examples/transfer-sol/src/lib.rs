@@ -9,11 +9,12 @@ program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
 nostd_panic_handler!();
 no_allocator!();
+entrypoint!();
 
-handlers! {
-    transfer_sol_with_cpi,
-    transfer_sol_with_program
-}
+pub const ROUTER: EntryFn = basic_router! {
+    0 => transfer_sol_with_cpi,
+    1 => transfer_sol_with_program
+};
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Pod, Zeroable)]
 #[repr(transparent)]

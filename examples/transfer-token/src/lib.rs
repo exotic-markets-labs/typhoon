@@ -13,10 +13,11 @@ program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
 nostd_panic_handler!();
 no_allocator!();
+entrypoint!();
 
-handlers! {
-    mint_from_escrow,
-}
+pub const ROUTER: EntryFn = basic_router! {
+    0 => mint_from_escrow
+};
 
 #[derive(AccountState, NoUninit, AnyBitPattern, Debug, Clone, Copy)]
 #[repr(C)]

@@ -6,10 +6,11 @@ program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
 nostd_panic_handler!();
 no_allocator!();
+entrypoint!();
 
-handlers! {
-    hello_world,
-}
+pub const ROUTER: EntryFn = basic_router! {
+    0 => hello_world
+};
 
 pub fn hello_world(ProgramIdArg(program_id): ProgramIdArg) -> ProgramResult {
     pinocchio::log::sol_log("Hello World");
