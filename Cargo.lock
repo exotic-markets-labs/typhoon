@@ -733,7 +733,6 @@ dependencies = [
  "typhoon-cpi-generator-macro",
  "typhoon-errors",
  "typhoon-errors-macro",
- "typhoon-handler-macro",
  "typhoon-program-id-macro",
  "typhoon-utility",
  "typhoon-utility-traits",
@@ -854,15 +853,6 @@ dependencies = [
  "syn",
  "typhoon-errors",
  "typhoon-syn",
-]
-
-[[package]]
-name = "typhoon-handler-macro"
-version = "0.1.0-alpha.16"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
 ]
 
 [[package]]

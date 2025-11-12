@@ -26,7 +26,6 @@ typhoon-errors-macro.workspace = true
 typhoon-context.workspace = true
 typhoon-context-macro.workspace = true
 typhoon-cpi-generator-macro.workspace = true
-typhoon-handler-macro.workspace = true
 typhoon-program-id-macro.workspace = true
 typhoon-utility.workspace = true
 typhoon-utility-traits.workspace = true

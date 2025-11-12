@@ -10,10 +10,12 @@ program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 nostd_panic_handler!();
 no_allocator!();
 
-handlers! {
-    initialize,
-    increment,
-}
+entrypoint!();
+
+pub const ROUTER: EntryFn = basic_router! {
+    0 => initialize,
+    1 => increment
+};
 
 #[context]
 #[args(admin: Pubkey, bump: u8)]

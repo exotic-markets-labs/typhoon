@@ -10,14 +10,16 @@ no_allocator!();
 
 program_id!("Bench111111111111111111111111111111111111111");
 
-handlers! {
-    ping,
-    log,
-    create_account,
-    transfer,
-    unchecked_accounts,
-    accounts_c
-}
+entrypoint!();
+
+pub const ROUTER: EntryFn = basic_router! {
+    0 => ping,
+    1 => log,
+    2 => create_account,
+    3 => transfer,
+    4 => unchecked_accounts,
+    5 => accounts_c
+};
 
 fn ping() -> ProgramResult {
     Ok(())

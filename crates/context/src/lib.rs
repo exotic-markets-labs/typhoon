@@ -1,6 +1,6 @@
 #![no_std]
 
-use {bytemuck::NoUninit, paste::paste};
+use {bytemuck::NoUninit, paste::paste, pinocchio::program_error::ProgramError};
 
 mod args;
 mod array;
@@ -109,4 +109,47 @@ where
         }
         Err(err) => Err(err),
     }
+}
+
+#[macro_export]
+macro_rules! basic_router {
+    ($($dis:literal => $fn_ident: ident),*) => {
+        |program_id: &Pubkey, accounts: &[AccountInfo], instruction_data: &[u8]| {
+            let (discriminator, data) = instruction_data
+                .split_first()
+                .ok_or(ProgramError::InvalidInstructionData)?;
+
+            let result = match discriminator {
+                $($dis => handle(program_id, accounts, data, $fn_ident),)*
+                _ => Err(ErrorCode::UnknownInstruction.into()),
+            };
+
+            #[cfg(feature = "logging")]
+            result.inspect_err(log_error)?;
+
+            #[cfg(not(feature = "logging"))]
+            result?;
+
+            Ok(())
+        }
+    };
+}
+
+pub type EntryFn = fn(&Pubkey, &[AccountInfo], &[u8]) -> Result<(), ProgramError>;
+
+#[macro_export]
+macro_rules! entrypoint {
+    () => {
+        program_entrypoint!(process_instruction);
+
+        #[inline(always)]
+        pub fn process_instruction(
+            program_id: &Pubkey,
+            accounts: &[AccountInfo],
+            instruction_data: &[u8],
+        ) -> Result<(), ProgramError> {
+            ROUTER(program_id, accounts, instruction_data)
+        }
+    };
+    ($lit:literal) => {};
 }

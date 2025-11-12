@@ -8,9 +8,10 @@ nostd_panic_handler!();
 no_allocator!();
 
 impl_error_logger!(ErrorCode);
+entrypoint!();
 
-handlers! {
-    account_iter,
-    initialize,
-    assert
-}
+pub const ROUTER: EntryFn = basic_router! {
+    0 => account_iter,
+    1 => initialize,
+    2 => assert
+};
