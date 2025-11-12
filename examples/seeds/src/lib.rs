@@ -17,7 +17,7 @@ entrypoint!();
 
 pub const ROUTER: EntryFn = basic_router! {
     0 => initialize,
-    1 => increment,
+    1 => increment
 };
 
 fn pda_seeds<'a>() -> [&'a [u8]; 1] {
