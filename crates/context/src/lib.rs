@@ -140,9 +140,15 @@ pub type EntryFn = fn(&Pubkey, &[AccountInfo], &[u8]) -> Result<(), ProgramError
 #[macro_export]
 macro_rules! entrypoint {
     () => {
+        $crate::entrypoint!(@inner inline(always));
+    };
+    (no_inline) => {
+        $crate::entrypoint!(@inner inline(never));
+    };
+    (@inner $($inline:tt)*) => {
         program_entrypoint!(process_instruction);
 
-        #[inline(always)]
+        #[ $($inline)* ]
         pub fn process_instruction(
             program_id: &Pubkey,
             accounts: &[AccountInfo],
@@ -151,5 +157,4 @@ macro_rules! entrypoint {
             ROUTER(program_id, accounts, instruction_data)
         }
     };
-    ($lit:literal) => {};
 }

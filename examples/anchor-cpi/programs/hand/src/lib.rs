@@ -9,7 +9,7 @@ no_allocator!();
 entrypoint!();
 
 pub const ROUTER: EntryFn = basic_router! {
-    0 => pull_lever,
+    0 => pull_lever
 };
 
 pub fn pull_lever(ctx: PullLever, Arg(name): Arg<[u8; 16]>) -> ProgramResult {
