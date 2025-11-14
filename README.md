@@ -41,6 +41,14 @@ program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
 nostd_panic_handler!();
 no_allocator!();
+entrypoint!();
+
+pub const ROUTER: EntryFn = basic_router! {
+    0 => initialize,
+    1 => increment,
+    2 => close,
+};
+
 
 #[context]
 pub struct InitContext {
@@ -61,12 +69,6 @@ pub struct CounterMutContext {
 #[context]
 pub struct DestinationContext {
     pub destination: Mut<SystemAccount>,
-}
-
-handlers! {
-    initialize,
-    increment,
-    close
 }
 
 pub fn initialize(_: InitContext) -> ProgramResult {
