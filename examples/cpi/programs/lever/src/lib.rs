@@ -6,12 +6,13 @@ nostd_panic_handler!();
 no_allocator!();
 
 impl_error_logger!(ErrorCode);
+entrypoint!();
 
-handlers! {
-    initialize,
-    switch_power,
-    check_power
-}
+pub const ROUTER: EntryFn = basic_router! {
+    0 => initialize,
+    1 => switch_power,
+    2 => check_power
+};
 
 pub fn initialize(_ctx: InitializeLever) -> ProgramResult {
     Ok(())

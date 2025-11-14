@@ -49,7 +49,6 @@ typhoon-cpi-generator-macro = { version = "0.1.0-alpha.16", path = "crates/cpi-g
 typhoon-discriminator = { version = "0.1.0-alpha.16", path = "crates/discriminator" }
 typhoon-errors = { version = "0.1.0-alpha.16", path = "crates/errors" }
 typhoon-errors-macro = { version = "0.1.0-alpha.16", path = "crates/errors-macro" }
-typhoon-handler-macro = { version = "0.1.0-alpha.16", path = "crates/handler-macro" }
 typhoon-program-id-macro = { version = "0.1.0-alpha.16", path = "crates/program-id-macro" }
 typhoon-syn = { version = "0.1.0-alpha.16", path = "crates/syn" }
 typhoon-token = { version = "0.1.0-alpha.16", path = "crates/token" }

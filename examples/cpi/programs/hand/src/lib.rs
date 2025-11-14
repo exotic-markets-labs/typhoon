@@ -12,11 +12,12 @@ nostd_panic_handler!();
 no_allocator!();
 
 impl_error_logger!(ErrorCode);
+entrypoint!();
 
-handlers! {
-    pull_lever,
-    check_power
-}
+pub const ROUTER: EntryFn = basic_router! {
+    0 => pull_lever,
+    1 => check_power
+};
 
 pub fn check_power(ctx: PullLever) -> ProgramResult {
     let return_data = CheckPowerCpi {

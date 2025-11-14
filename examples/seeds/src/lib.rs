@@ -13,11 +13,12 @@ program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 impl_error_logger!(SeedsError);
 nostd_panic_handler!();
 no_allocator!();
+entrypoint!();
 
-handlers! {
-    initialize,
-    increment,
-}
+pub const ROUTER: EntryFn = basic_router! {
+    0 => initialize,
+    1 => increment
+};
 
 fn pda_seeds<'a>() -> [&'a [u8]; 1] {
     [b"counter".as_ref()]

@@ -6,10 +6,11 @@ program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
 nostd_panic_handler!();
 no_allocator!();
+entrypoint!();
 
-handlers! {
-    pull_lever,
-}
+pub const ROUTER: EntryFn = basic_router! {
+    0 => pull_lever
+};
 
 pub fn pull_lever(ctx: PullLever, Arg(name): Arg<[u8; 16]>) -> ProgramResult {
     let last_char = name.iter().position(|&x| x == 0).unwrap_or(name.len());

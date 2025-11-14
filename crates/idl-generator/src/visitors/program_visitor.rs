@@ -1,6 +1,6 @@
 use {
     crate::helpers::AttributesHelper,
-    codama::KorokVisitor,
+    codama::{ConstAst, KorokVisitor},
     hashbrown::HashMap,
     syn::{Ident, Item},
     typhoon_syn::{Context, Instruction, InstructionsList},
@@ -21,6 +21,17 @@ impl ProgramVisitor {
 }
 
 impl KorokVisitor for ProgramVisitor {
+    fn visit_const(&mut self, korok: &mut codama_koroks::ConstKorok) -> codama::CodamaResult<()> {
+        let ConstAst::Item(item_const) = korok.ast else {
+            return Ok(());
+        };
+        if item_const.ident == "ROUTER" {
+            self.instruction_list = InstructionsList::try_from(item_const)?;
+        }
+
+        Ok(())
+    }
+
     fn visit_struct(&mut self, korok: &mut codama_koroks::StructKorok) -> codama::CodamaResult<()> {
         if korok.attributes.has_attribute("context") {
             self.contexts
@@ -36,10 +47,6 @@ impl KorokVisitor for ProgramVisitor {
     ) -> codama::CodamaResult<()> {
         match korok.ast {
             Item::Macro(item_macro) => {
-                if item_macro.mac.path.is_ident("handlers") {
-                    self.instruction_list = InstructionsList::try_from(item_macro)?;
-                };
-
                 if item_macro.mac.path.is_ident("impl_error_logger") {
                     let macro_body: Ident = item_macro.mac.parse_body()?;
                     self.errors_name = macro_body.to_string();

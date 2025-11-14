@@ -31,11 +31,13 @@ pub struct Destination {
     pub destination: Mut<SystemAccount>,
 }
 
-handlers! {
-    initialize,
-    increment,
-    close
-}
+entrypoint!();
+
+pub const ROUTER: EntryFn = basic_router! {
+    0 => initialize,
+    1 => increment,
+    2 => close,
+};
 
 pub fn initialize(_: Init) -> ProgramResult {
     Ok(())

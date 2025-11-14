@@ -9,6 +9,13 @@ program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
 nostd_panic_handler!();
 no_allocator!();
+entrypoint!();
+
+pub const ROUTER: EntryFn = basic_router! {
+    0 => initialize,
+    1 => set_value,
+    2 => set_and_add_values
+};
 
 #[repr(C)]
 #[derive(Debug, PartialEq, AnyBitPattern, NoUninit, Copy, Clone)]
@@ -53,12 +60,6 @@ pub struct Init {
 #[args(value: PodU64, other_value: PodU64)]
 pub struct SetValue {
     pub buffer: Mut<Account<Buffer>>,
-}
-
-handlers! {
-    initialize,
-    set_value,
-    set_and_add_values,
 }
 
 pub fn initialize(ctx: Init) -> ProgramResult {

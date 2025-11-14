@@ -2,7 +2,12 @@ use {
     crate::{helpers::PathHelper, Encoding},
     heck::ToSnakeCase,
     quote::format_ident,
-    syn::{parse::Parser, punctuated::Punctuated, FnArg, Ident, Pat, Type},
+    syn::{
+        parse::{Parse, Parser},
+        punctuated::Punctuated,
+        visit::Visit,
+        Expr, FnArg, Ident, LitInt, Pat, Token, Type,
+    },
 };
 
 pub struct InstructionReturnData {
@@ -115,19 +120,57 @@ fn extract_name(pat: &Pat) -> Option<Ident> {
 #[derive(Default)]
 pub struct InstructionsList(pub Vec<(usize, Ident)>);
 
-impl TryFrom<&syn::ItemMacro> for InstructionsList {
+struct RouterEntry {
+    discriminator: LitInt,
+    _arrow_eq: Token![=],
+    _arrow_gt: Token![>],
+    handler_name: Ident,
+}
+
+impl Parse for RouterEntry {
+    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        Ok(RouterEntry {
+            discriminator: input.parse()?,
+            _arrow_eq: input.parse()?,
+            _arrow_gt: input.parse()?,
+            handler_name: input.parse()?,
+        })
+    }
+}
+
+impl TryFrom<&syn::ItemConst> for InstructionsList {
     type Error = syn::Error;
 
-    fn try_from(value: &syn::ItemMacro) -> syn::Result<Self> {
-        let instructions = Punctuated::<Ident, syn::Token![,]>::parse_terminated
-            .parse2(value.mac.tokens.clone())?;
+    fn try_from(value: &syn::ItemConst) -> syn::Result<Self> {
+        let Expr::Macro(expr_macro) = value.expr.as_ref() else {
+            return Err(syn::Error::new_spanned(value, "Invalid router type."));
+        };
+
+        let instructions = Punctuated::<RouterEntry, syn::Token![,]>::parse_terminated
+            .parse2(expr_macro.mac.tokens.clone())?;
         Ok(Self(
             instructions
                 .iter()
-                .enumerate()
-                .map(|(i, n)| (i, n.clone()))
-                .collect(),
+                .map(|entry| {
+                    Ok((
+                        entry.discriminator.base10_parse::<usize>()?,
+                        entry.handler_name.clone(),
+                    ))
+                })
+                .collect::<Result<_, syn::Error>>()?,
         ))
+    }
+}
+
+impl<'ast> Visit<'ast> for InstructionsList {
+    fn visit_item_const(&mut self, i: &'ast syn::ItemConst) {
+        if i.ident != "ROUTER" {
+            return;
+        }
+
+        if let Ok(ix_list) = InstructionsList::try_from(i) {
+            *self = ix_list;
+        }
     }
 }
 
@@ -135,8 +178,27 @@ impl TryFrom<&syn::ItemMacro> for InstructionsList {
 mod tests {
     use {
         super::*,
-        syn::{parse_quote, ItemFn},
+        syn::{parse_quote, ItemConst, ItemFn},
     };
+
+    #[test]
+    fn test_instruction_list() {
+        let router: ItemConst = parse_quote! {
+            pub const ROUTER: EntryFn = basic_router! {
+                0 => account_iter,
+                1 => initialize,
+                2 => assert
+            };
+        };
+
+        let ix_list = InstructionsList::try_from(&router).unwrap();
+        assert_eq!(ix_list.0[0].0, 0);
+        assert_eq!(ix_list.0[1].0, 1);
+        assert_eq!(ix_list.0[2].0, 2);
+        assert_eq!(ix_list.0[0].1, "account_iter");
+        assert_eq!(ix_list.0[1].1, "initialize");
+        assert_eq!(ix_list.0[2].1, "assert");
+    }
 
     #[test]
     fn test_instruction_construction() {
