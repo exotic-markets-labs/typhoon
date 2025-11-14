@@ -113,7 +113,7 @@ where
 
 #[macro_export]
 macro_rules! basic_router {
-    ($($dis:literal => $fn_ident: ident),*) => {
+    ($($dis:literal => $fn_ident: ident),+ $(,)?) => {
         |program_id: &Pubkey, accounts: &[AccountInfo], instruction_data: &[u8]| {
             let (discriminator, data) = instruction_data
                 .split_first()

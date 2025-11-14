@@ -36,7 +36,7 @@ entrypoint!();
 pub const ROUTER: EntryFn = basic_router! {
     0 => initialize,
     1 => increment,
-    2 => close
+    2 => close,
 };
 
 pub fn initialize(_: Init) -> ProgramResult {
