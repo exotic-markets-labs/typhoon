@@ -3,8 +3,8 @@ use {
     std::collections::HashMap,
     typhoon_syn::{
         constraints::{
-            ConstraintAssociatedToken, ConstraintBump, ConstraintHasOne, ConstraintPayer,
-            ConstraintToken,
+            ConstraintAddress, ConstraintAssert, ConstraintAssociatedToken, ConstraintBump,
+            ConstraintHasOne, ConstraintPayer, ConstraintToken,
         },
         InstructionAccount,
     },
@@ -67,6 +67,20 @@ impl ContextVisitor for DependencyLinker {
 
     fn visit_has_one(&mut self, constraint: &ConstraintHasOne) -> Result<(), syn::Error> {
         self.add_dependency(&constraint.join_target);
+        Ok(())
+    }
+
+    fn visit_address(&mut self, constraint: &ConstraintAddress) -> Result<(), syn::Error> {
+        for name in &constraint.check.names {
+            self.add_dependency(&name);
+        }
+        Ok(())
+    }
+
+    fn visit_assert(&mut self, constraint: &ConstraintAssert) -> Result<(), syn::Error> {
+        for name in &constraint.assert.names {
+            self.add_dependency(&name);
+        }
         Ok(())
     }
 }
