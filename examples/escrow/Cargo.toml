@@ -15,7 +15,7 @@ unexpected_cfgs = { level = "warn", check-cfg = [
 [workspace.dependencies]
 bytemuck = "1.23"
 escrow-interface = { path = "interfaces/escrow" }
-litesvm = "0.8"
+litesvm = "0.8.2"
 typhoon = { path = "../../crates/lib" }
 typhoon-token = { path = "../../crates/token" }
 typhoon-instruction-builder = { path = "../../crates/instruction-builder" }
