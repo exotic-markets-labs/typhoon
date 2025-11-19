@@ -56,3 +56,16 @@ test example:
 # Show the example list
 list-examples:
 	@ls -d examples/*/ | xargs -n1 basename
+
+# Run an arbitrary cargo command in every example directory
+cargo-examples command='build':
+	#!/usr/bin/env bash
+	set -euo pipefail
+	for e in examples/*/; do
+	  e=${e%/}
+	  e=${e##*/}
+	  if [ -f "examples/$e/Cargo.toml" ]; then
+	    echo "[cargo {{command}}] examples/$e"
+	    (cd examples/"$e" && cargo {{command}})
+	  fi
+	done
