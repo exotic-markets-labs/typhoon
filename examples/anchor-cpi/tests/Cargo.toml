@@ -6,7 +6,7 @@ publish = false
 
 [dev-dependencies]
 bytemuck = "1.23"
-litesvm = "0.8"
+litesvm = "0.8.2"
 typhoon = { path = "../../../crates/lib" }
 solana-instruction = "3.0"
 solana-keypair = "3.0"

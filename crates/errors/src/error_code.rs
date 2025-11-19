@@ -2,7 +2,7 @@ use pinocchio::program_error::{ProgramError, ToStr};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum ErrorCode {
-    InvalidProgramExecutable = 100,
+    UnknownInstruction = 100,
     AccountNotSigner,
     AccountDiscriminatorMismatch,
     HasOneConstraint,
@@ -12,7 +12,6 @@ pub enum ErrorCode {
     TokenConstraintViolated,
     BufferFull,
     InvalidReturnData,
-    UnknownInstruction,
     InvalidDataLength,
     InvalidDataAlignment,
 }
@@ -22,7 +21,7 @@ impl TryFrom<u32> for ErrorCode {
 
     fn try_from(value: u32) -> Result<Self, Self::Error> {
         match value {
-            100 => Ok(ErrorCode::InvalidProgramExecutable),
+            100 => Ok(ErrorCode::UnknownInstruction),
             101 => Ok(ErrorCode::AccountNotSigner),
             102 => Ok(ErrorCode::AccountDiscriminatorMismatch),
             103 => Ok(ErrorCode::HasOneConstraint),
@@ -32,9 +31,8 @@ impl TryFrom<u32> for ErrorCode {
             107 => Ok(ErrorCode::TokenConstraintViolated),
             108 => Ok(ErrorCode::BufferFull),
             109 => Ok(ErrorCode::InvalidReturnData),
-            110 => Ok(ErrorCode::UnknownInstruction),
-            111 => Ok(ErrorCode::InvalidDataLength),
-            112 => Ok(ErrorCode::InvalidDataAlignment),
+            110 => Ok(ErrorCode::InvalidDataLength),
+            111 => Ok(ErrorCode::InvalidDataAlignment),
             _ => Err(ProgramError::InvalidArgument),
         }
     }
@@ -52,7 +50,7 @@ impl ToStr for ErrorCode {
         E: 'static + ToStr + TryFrom<u32>,
     {
         match self {
-            ErrorCode::InvalidProgramExecutable => "Error: Program is not executable",
+            ErrorCode::UnknownInstruction => "Error: Unknown instruction",
             ErrorCode::AccountNotSigner => "Error: Account is not a signer",
             ErrorCode::AccountDiscriminatorMismatch => {
                 "Error: Discriminator did not match what was expected"
@@ -66,7 +64,6 @@ impl ToStr for ErrorCode {
             ErrorCode::TokenConstraintViolated => "Error: Token constraint was violated",
             ErrorCode::BufferFull => "Error: Buffer is full",
             ErrorCode::InvalidReturnData => "Error: The return data is invalid",
-            ErrorCode::UnknownInstruction => "Error: Unknown instruction",
             ErrorCode::InvalidDataLength => "Error: Invalid data length",
             ErrorCode::InvalidDataAlignment => "Error: Invalid data alignment",
         }

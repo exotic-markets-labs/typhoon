@@ -18,4 +18,4 @@ solana-keypair = "3.0"
 misc-interface = { path = "interface" }
 typhoon = { path = "../../crates/lib" }
 typhoon-instruction-builder = { path = "../../crates/instruction-builder" }
-litesvm = "0.8"
+litesvm = "0.8.2"
