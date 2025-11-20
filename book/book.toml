@@ -1,6 +1,5 @@
 [book]
 authors = ["Aursen"]
 language = "en"
-multilingual = false
 src = "src"
 title = "Typhoon Book"
