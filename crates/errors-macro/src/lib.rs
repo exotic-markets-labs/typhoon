@@ -11,7 +11,6 @@ use {
 /// ```rust
 /// # use {
 /// #    pinocchio::program_error::{ProgramError, ToStr},
-/// #    typhoon_errors::Error,
 /// #    typhoon_errors_macro::TyphoonError
 /// # };
 /// #[derive(TyphoonError)]
@@ -65,9 +64,9 @@ pub fn typhoon_error(input: TokenStream) -> TokenStream {
             }
         }
 
-        impl From<#name> for Error {
+        impl From<#name> for ProgramError {
             fn from(value: #name) -> Self {
-                Error::new(ProgramError::Custom(value as u32))
+                ProgramError::Custom(value as u32)
             }
         }
     }
