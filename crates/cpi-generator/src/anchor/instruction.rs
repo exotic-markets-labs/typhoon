@@ -53,7 +53,7 @@ pub fn gen_instructions(idl: &Idl) -> TokenStream {
                 }
 
                 pub fn invoke_signed_with_remaining(&self, seeds: &[instruction::CpiSigner], remaining: &[AccountInfo]) -> ProgramResult {
-                    let accounts_len: usize = core::cmp::max(remaining.len() + #len, 64);
+                    let accounts_len: usize = core::cmp::min(remaining.len() + #len, 64);
                     let mut account_infos = [bytes::UNINIT_INFO; 64];
                     let mut account_metas = [bytes::UNINIT_META; 64];
 
