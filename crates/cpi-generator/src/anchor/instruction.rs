@@ -20,6 +20,7 @@ pub fn gen_instructions(idl: &Idl) -> TokenStream {
         let discriminator = &instruction.discriminator;
         let (arg_fields, instruction_data) =
             gen_instruction_data(&instruction.args, discriminator, program_id);
+        let len = metas.len();
 
         quote! {
             /// Used for Cross-Program Invocation (CPI) calls.
@@ -42,6 +43,42 @@ pub fn gen_instructions(idl: &Idl) -> TokenStream {
                     invoke_signed(
                         &instruction,
                         &[#(self.#accounts),*],
+                        seeds
+                    ).map_err(Into::into)
+                }
+
+                #[inline(always)]
+                pub fn invoke_with_remaining(&self, seeds: &[instruction::CpiSigner], remaining: &[AccountInfo]) -> ProgramResult {
+                    self.invoke_signed_with_remaining(&[], remaining)
+                }
+
+                pub fn invoke_signed_with_remaining(&self, seeds: &[instruction::CpiSigner], remaining: &[AccountInfo]) -> ProgramResult {
+                    let accounts_len: usize = core::cmp::min(remaining.len() + #len, 64);
+                    let mut account_infos = [bytes::UNINIT_INFO; 64];
+                    let mut account_metas = [bytes::UNINIT_META; 64];
+
+                    for (d, s) in account_metas[..#len].iter_mut().zip([#(#metas),*]) {
+                        d.write(s);
+                    }
+
+                    for (d, s) in account_metas[#len..accounts_len].iter_mut().zip(remaining) {
+                        d.write(instruction::AccountMeta::new(s.key(), s.is_writable(), s.is_signer()));
+                    }
+
+                    for (d, s) in account_infos[..#len].iter_mut().zip([#(self.#accounts),*]) {
+                        d.write(s);
+                    }
+
+                    for (d, s) in account_infos[#len..accounts_len].iter_mut().zip(remaining) {
+                        d.write(&s);
+                    }
+
+                    let account_metas =  unsafe { core::slice::from_raw_parts(account_metas.as_ptr() as _, accounts_len) };
+                    #instruction_data
+
+                    slice_invoke_signed(
+                        &instruction,
+                        unsafe { core::slice::from_raw_parts(account_infos.as_ptr() as _, accounts_len) },
                         seeds
                     ).map_err(Into::into)
                 }
