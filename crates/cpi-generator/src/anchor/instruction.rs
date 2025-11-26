@@ -64,9 +64,9 @@ pub fn gen_instructions(ixs: &[Instruction]) -> TokenStream {
                         d.write(s);
                     }
 
-                    for i in 0..rem_accounts_len {
-                        let account = &remaining_accounts[i];
-                        instruction_accounts[#len + i].write(instruction::AccountMeta::new(account.key(), account.is_writable(), account.is_signer()));
+                    for i in 0..remaining.len() {
+                        let account = &remaining[i];
+                        account_metas[#len + i].write(instruction::AccountMeta::new(account.key(), account.is_writable(), account.is_signer()));
                         account_infos[#len + i].write(&account);
                     }
 
