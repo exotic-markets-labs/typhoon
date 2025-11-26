@@ -10,11 +10,13 @@ pub fn gen_cpi(idl: &Idl) -> proc_macro2::TokenStream {
     let name = idl
         .name
         .as_ref()
-        .unwrap_or(idl.metadata.name.as_ref().unwrap());
+        .or(idl.metadata.name.as_ref())
+        .unwrap_or_else(|| panic!("IDL is missing name"));
     let address = idl
         .address
         .as_ref()
-        .unwrap_or(idl.metadata.address.as_ref().unwrap());
+        .or(idl.metadata.address.as_ref())
+        .unwrap_or_else(|| panic!("IDL is missing address"));
     let mod_name = format_ident!("{name}_cpi");
     let program_id = gen_program_id(name, address);
     let accounts = gen_accounts(&idl.accounts, &idl.types);

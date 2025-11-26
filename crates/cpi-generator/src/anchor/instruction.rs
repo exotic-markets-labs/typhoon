@@ -60,16 +60,14 @@ pub fn gen_instructions(ixs: &[Instruction]) -> TokenStream {
                         d.write(s);
                     }
 
-                    for (d, s) in account_metas[#len..accounts_len].iter_mut().zip(remaining) {
-                        d.write(instruction::AccountMeta::new(s.key(), s.is_writable(), s.is_signer()));
-                    }
-
                     for (d, s) in account_infos[..#len].iter_mut().zip([#(self.#accounts),*]) {
                         d.write(s);
                     }
 
-                    for (d, s) in account_infos[#len..accounts_len].iter_mut().zip(remaining) {
-                        d.write(&s);
+                    for i in 0..rem_accounts_len {
+                        let account = &remaining_accounts[i];
+                        instruction_accounts[#len + i].write(instruction::AccountMeta::new(account.key(), account.is_writable(), account.is_signer()));
+                        account_infos[#len + i].write(&account);
                     }
 
                     let account_metas =  unsafe { core::slice::from_raw_parts(account_metas.as_ptr() as _, accounts_len) };

@@ -15,3 +15,7 @@ proc-macro = true
 quote.workspace = true
 syn.workspace = true
 typhoon-syn.workspace = true
+
+[dev-dependencies]
+typhoon-errors.workspace = true
+pinocchio.workspace = true
