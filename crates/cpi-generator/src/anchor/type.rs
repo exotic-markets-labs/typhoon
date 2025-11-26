@@ -1,8 +1,7 @@
 use {
-    anchor_lang_idl_spec::{IdlArrayLen, IdlGenericArg, IdlType},
-    proc_macro2::Span,
-    quote::quote,
-    syn::{parse_quote, Ident, Type},
+    crate::idl::{ArrayLen, Type as IdlType},
+    quote::{format_ident, quote},
+    syn::{parse_quote, Type},
 };
 
 pub fn gen_type(idl_ty: &IdlType) -> Type {
@@ -31,28 +30,41 @@ pub fn gen_type(idl_ty: &IdlType) -> Type {
             let ty = gen_type(inner);
             parse_quote!(Vec<#ty>)
         }
-        IdlType::Defined { name, generics } => {
-            let ident = Ident::new(name, Span::call_site());
-            if generics.is_empty() {
-                parse_quote!(#ident)
-            } else {
-                let generic_types = generics.iter().map(|g| match g {
-                    IdlGenericArg::Type { ty } => gen_type(ty),
-                    IdlGenericArg::Const { value } => parse_quote!(#value),
-                });
-                parse_quote!(#ident<#(#generic_types),*>)
-            }
+        IdlType::Defined(defined) => {
+            let ident = format_ident!("{}", defined.name());
+            parse_quote!(#ident)
         }
         IdlType::Array(inner, len) => {
             let ty = gen_type(inner);
             let size = match len {
-                IdlArrayLen::Generic(size) => quote!(#size),
-                IdlArrayLen::Value(size) => quote!(#size),
+                ArrayLen::Generic(size) => quote!(#size),
+                ArrayLen::Value(size) => quote!(#size),
             };
             parse_quote!([#ty; #size])
         }
+        IdlType::HashMap(key, value) => {
+            let key = gen_type(key);
+            let value = gen_type(value);
+
+            parse_quote!(HashMap<#key, #value>)
+        }
+        IdlType::BTreeMap(key, value) => {
+            let key = gen_type(key);
+            let value = gen_type(value);
+
+            parse_quote!(BTreeMap<#key, #value>)
+        }
+        IdlType::HashSet(ty) => {
+            let ty = gen_type(ty);
+
+            parse_quote!(HashSet<#ty>)
+        }
+        IdlType::BTreeSet(ty) => {
+            let ty = gen_type(ty);
+
+            parse_quote!(BTreeSet<#ty>)
+        }
         IdlType::U256 | IdlType::I256 | IdlType::Generic(_) => unimplemented!(),
-        _ => unimplemented!(),
     }
 }
 
@@ -82,19 +94,32 @@ pub fn gen_type_ref(idl_ty: &IdlType) -> Type {
             let ty = gen_type_ref(inner);
             parse_quote!(&'a [#ty])
         }
-        IdlType::Defined { name, generics } => {
-            let ident = Ident::new(name, Span::call_site());
-            if generics.is_empty() {
-                parse_quote!(&'a #ident)
-            } else {
-                let generic_types = generics.iter().map(|g| match g {
-                    IdlGenericArg::Type { ty } => gen_type_ref(ty),
-                    IdlGenericArg::Const { value } => parse_quote!(#value),
-                });
-                parse_quote!(&'a #ident<#(#generic_types),*>)
-            }
+        IdlType::Defined(defined) => {
+            let ident = format_ident!("{}", defined.name());
+            parse_quote!(&'a #ident)
+        }
+        IdlType::HashMap(key, value) => {
+            let key = gen_type_ref(key);
+            let value = gen_type_ref(value);
+
+            parse_quote!(&'a HashMap<#key, #value>)
+        }
+        IdlType::BTreeMap(key, value) => {
+            let key = gen_type_ref(key);
+            let value = gen_type_ref(value);
+
+            parse_quote!(&'a BTreeMap<#key, #value>)
+        }
+        IdlType::HashSet(ty) => {
+            let ty = gen_type_ref(ty);
+
+            parse_quote!(&'a HashSet<#ty>)
+        }
+        IdlType::BTreeSet(ty) => {
+            let ty = gen_type_ref(ty);
+
+            parse_quote!(&'a BTreeSet<#ty>)
         }
         IdlType::U256 | IdlType::I256 | IdlType::Generic(_) => unimplemented!(),
-        _ => unimplemented!(),
     }
 }

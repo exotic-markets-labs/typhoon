@@ -1,8 +1,8 @@
 mod account;
+mod cpi;
 mod doc;
-mod idl;
 mod instruction;
 mod program_id;
 mod r#type;
 
-pub use {account::*, doc::*, idl::*, instruction::*, r#type::*};
+pub use {account::*, cpi::*, doc::*, instruction::*, r#type::*};

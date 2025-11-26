@@ -1,9 +1,8 @@
 use {
-    anchor_lang_idl_spec::Idl,
     proc_macro::TokenStream,
     std::{fs::read_to_string, path::PathBuf},
     syn::{parse::Parse, parse_macro_input, LitStr},
-    typhoon_cpi_generator::anchor::gen_cpi,
+    typhoon_cpi_generator::{anchor::gen_cpi, idl::Idl},
 };
 
 #[proc_macro]

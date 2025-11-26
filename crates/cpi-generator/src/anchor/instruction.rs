@@ -1,25 +1,24 @@
 use {
-    crate::anchor::{gen_docs, gen_type_ref},
-    anchor_lang_idl_spec::{Idl, IdlField, IdlInstructionAccountItem},
-    five8_const::decode_32_const,
+    crate::{
+        anchor::{gen_docs, gen_type_ref},
+        idl::{Field, Instruction, InstructionAccountItem},
+    },
     heck::ToUpperCamelCase,
     proc_macro2::{Span, TokenStream},
-    quote::quote,
+    quote::{format_ident, quote},
     syn::{Expr, Ident},
 };
 
-pub fn gen_instructions(idl: &Idl) -> TokenStream {
-    let program_id = &idl.address;
-    let instructions = idl.instructions.iter().map(|instruction| {
-        let name = instruction.name.to_upper_camel_case();
-        let ident = Ident::new(&name, Span::call_site());
+pub fn gen_instructions(ixs: &[Instruction]) -> TokenStream {
+    let instructions = ixs.iter().map(|instruction| {
+        let ident = format_ident!("{}", instruction.name.to_upper_camel_case());
         let (metas, accounts) = gen_account_instruction(&instruction.accounts);
         let docs = gen_docs(&instruction.docs);
 
         let account_metas = gen_account_metas(&metas);
-        let discriminator = &instruction.discriminator;
+        let discriminator = &instruction.discriminator.value();
         let (arg_fields, instruction_data) =
-            gen_instruction_data(&instruction.args, discriminator, program_id);
+            gen_instruction_data(&instruction.args, discriminator);
         let len = metas.len();
 
         quote! {
@@ -61,16 +60,14 @@ pub fn gen_instructions(idl: &Idl) -> TokenStream {
                         d.write(s);
                     }
 
-                    for (d, s) in account_metas[#len..accounts_len].iter_mut().zip(remaining) {
-                        d.write(instruction::AccountMeta::new(s.key(), s.is_writable(), s.is_signer()));
-                    }
-
                     for (d, s) in account_infos[..#len].iter_mut().zip([#(self.#accounts),*]) {
                         d.write(s);
                     }
 
-                    for (d, s) in account_infos[#len..accounts_len].iter_mut().zip(remaining) {
-                        d.write(&s);
+                    for i in 0..remaining.len() {
+                        let account = &remaining[i];
+                        account_metas[#len + i].write(instruction::AccountMeta::new(account.key(), account.is_writable(), account.is_signer()));
+                        account_infos[#len + i].write(&account);
                     }
 
                     let account_metas =  unsafe { core::slice::from_raw_parts(account_metas.as_ptr() as _, accounts_len) };
@@ -91,12 +88,7 @@ pub fn gen_instructions(idl: &Idl) -> TokenStream {
     }
 }
 
-fn gen_instruction_data(
-    args: &[IdlField],
-    discriminator: &[u8],
-    program_id: &str,
-) -> (Vec<TokenStream>, TokenStream) {
-    let id_array = decode_32_const(program_id);
+fn gen_instruction_data(args: &[Field], discriminator: &[u8]) -> (Vec<TokenStream>, TokenStream) {
     let discriminator_len = discriminator.len();
     let buffer_size = 1232 - discriminator_len;
     let discriminator_expr: Expr = syn::parse_quote!(&[#(#discriminator),*]);
@@ -120,7 +112,7 @@ fn gen_instruction_data(
             bytes::write_bytes(&mut instruction_data, #discriminator_expr);
 
             let instruction = instruction::Instruction {
-                program_id: &[#(#id_array),*],
+                program_id: &PROGRAM_ID,
                 accounts: &account_metas,
                 data: unsafe { core::slice::from_raw_parts(instruction_data.as_ptr() as _, #discriminator_len) },
             };
@@ -134,7 +126,7 @@ fn gen_instruction_data(
             #(#arg_ser)*
 
             let instruction = instruction::Instruction {
-                program_id: &[#(#id_array),*],
+                program_id: &PROGRAM_ID,
                 accounts: &account_metas,
                 data: writer.initialized(),
             };
@@ -145,23 +137,23 @@ fn gen_instruction_data(
 }
 
 fn gen_account_instruction(
-    accounts: &[IdlInstructionAccountItem],
+    accounts: &[InstructionAccountItem],
 ) -> (Vec<TokenStream>, Vec<syn::Ident>) {
     let mut metas = Vec::with_capacity(accounts.len());
     let mut fields = Vec::with_capacity(accounts.len());
 
     for account in accounts {
         match account {
-            IdlInstructionAccountItem::Composite(composite_accounts) => {
+            InstructionAccountItem::Composite(composite_accounts) => {
                 let (nested_metas, nested_fields) =
                     gen_account_instruction(&composite_accounts.accounts);
                 metas.extend(nested_metas);
                 fields.extend(nested_fields);
             }
-            IdlInstructionAccountItem::Single(account) => {
-                let ident = Ident::new(&account.name, Span::call_site());
-                let is_writable = account.writable;
-                let is_signer = account.signer;
+            InstructionAccountItem::Single(account) => {
+                let ident = format_ident!("{}", &account.name);
+                let is_writable = account.is_mut;
+                let is_signer = account.is_signer;
 
                 metas.push(quote! {
                     instruction::AccountMeta::new(self.#ident.key(), #is_writable, #is_signer)
@@ -185,25 +177,21 @@ fn gen_account_metas(metas: &[TokenStream]) -> TokenStream {
 
 #[cfg(test)]
 mod tests {
-    use {
-        super::*,
-        anchor_lang_idl_spec::{IdlInstructionAccount, IdlType},
-    };
+    use {super::*, crate::idl::InstructionAccount};
 
     #[test]
     fn test_gen_instruction_data() {
         let args = vec![];
         let discriminator = vec![1, 2, 3, 4];
-        let program_id = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS";
 
-        let (fields, data) = gen_instruction_data(&args, &discriminator, program_id);
+        let (fields, data) = gen_instruction_data(&args, &discriminator);
         let expected_data = quote! {
             let mut instruction_data = [bytes::UNINIT_BYTE; 4usize];
 
             bytes::write_bytes(&mut instruction_data, &[1u8, 2u8, 3u8, 4u8]);
 
             let instruction = instruction::Instruction {
-                program_id: &[218u8, 7u8, 92u8, 178u8, 255u8, 94u8, 198u8, 129u8, 118u8, 19u8, 222u8, 83u8, 11u8, 105u8, 42u8, 135u8, 53u8, 71u8, 119u8, 105u8, 218u8, 71u8, 67u8, 12u8, 189u8, 129u8, 84u8, 51u8, 92u8, 74u8, 131u8, 39u8],
+                program_id: &PROGRAM_ID,
                 accounts: &account_metas,
                 data: unsafe { core::slice::from_raw_parts(instruction_data.as_ptr() as _, 4usize) },
             };
@@ -211,15 +199,14 @@ mod tests {
         assert!(fields.is_empty());
         assert_eq!(data.to_string(), expected_data.to_string());
 
-        let args = vec![IdlField {
+        let args = vec![Field {
             docs: vec![],
             name: "amount".to_string(),
-            ty: IdlType::U64,
+            ty: crate::idl::Type::U64,
         }];
         let discriminator = vec![1, 2, 3, 4];
-        let program_id = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS";
 
-        let (fields, data) = gen_instruction_data(&args, &discriminator, program_id);
+        let (fields, data) = gen_instruction_data(&args, &discriminator);
         let expected_data = quote! {
             let mut instruction_data = [bytes::UNINIT_BYTE; 1228usize];
             bytes::write_bytes(&mut instruction_data, &[1u8, 2u8, 3u8, 4u8]);
@@ -228,7 +215,7 @@ mod tests {
             borsh::ser::BorshSerialize::serialize(&self.amount, &mut writer).map_err(|_| ProgramError::BorshIoError)?;
 
             let instruction = instruction::Instruction {
-                program_id: &[218u8, 7u8, 92u8, 178u8, 255u8, 94u8, 198u8, 129u8, 118u8, 19u8, 222u8, 83u8, 11u8, 105u8, 42u8, 135u8, 53u8, 71u8, 119u8, 105u8, 218u8, 71u8, 67u8, 12u8, 189u8, 129u8, 84u8, 51u8, 92u8, 74u8, 131u8, 39u8],
+                program_id: &PROGRAM_ID,
                 accounts: &account_metas,
                 data: writer.initialized(),
             };
@@ -241,25 +228,15 @@ mod tests {
     #[test]
     fn test_gen_account_instruction() {
         let accounts = vec![
-            IdlInstructionAccountItem::Single(IdlInstructionAccount {
+            InstructionAccountItem::Single(InstructionAccount {
                 name: "test_account".to_string(),
-                writable: true,
-                signer: false,
-                docs: vec![],
-                optional: false,
-                address: None,
-                pda: None,
-                relations: vec![],
+                is_mut: true,
+                is_signer: false,
             }),
-            IdlInstructionAccountItem::Single(IdlInstructionAccount {
+            InstructionAccountItem::Single(InstructionAccount {
                 name: "test_account2".to_string(),
-                writable: false,
-                signer: true,
-                docs: vec![],
-                optional: false,
-                address: None,
-                pda: None,
-                relations: vec![],
+                is_mut: false,
+                is_signer: true,
             }),
         ];
 
