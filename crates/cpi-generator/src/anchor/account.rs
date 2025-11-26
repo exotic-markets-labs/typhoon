@@ -1,65 +1,85 @@
 use {
-    crate::anchor::{gen_docs, gen_type},
-    anchor_lang_idl_spec::{
-        Idl, IdlDefinedFields, IdlEnumVariant, IdlRepr, IdlReprModifier, IdlSerialization, IdlType,
-        IdlTypeDefTy,
+    crate::{
+        anchor::{gen_docs, gen_type},
+        idl::{
+            Account, DefinedFields, EnumVariant, Repr, ReprModifier, Serialization, Type, TypeDef,
+            TypeDefTy,
+        },
     },
-    heck::ToUpperCamelCase,
-    proc_macro2::Span,
-    quote::quote,
+    proc_macro2::{Span, TokenStream},
+    quote::{format_ident, quote},
+    std::collections::HashMap,
     syn::Ident,
 };
 
-pub fn gen_accounts(idl: &Idl) -> proc_macro2::TokenStream {
-    let program_name = &idl.metadata.name.to_upper_camel_case();
-    let program_ident = Ident::new(&format!("{program_name}Program"), Span::call_site());
-    let types = idl.types.iter().map(|i| {
-        let ident = Ident::new(&i.name, Span::call_site());
-        let repr = i.repr.as_ref().map(gen_repr);
-        let docs = gen_docs(&i.docs);
-        let derive = gen_serialization(&i.serialization);
-        let item = match &i.ty {
-            IdlTypeDefTy::Struct { fields } => gen_struct(&ident, fields),
-            IdlTypeDefTy::Enum { variants } => gen_enum(&ident, variants),
-            IdlTypeDefTy::Type { alias } => gen_type_alias(&ident, alias),
+pub fn gen_accounts(accounts: &[Account], types: &[TypeDef]) -> proc_macro2::TokenStream {
+    let mut types: HashMap<String, TokenStream> = types
+        .iter()
+        .map(|ty| (ty.name.to_string(), gen_defined_type(ty)))
+        .collect();
+
+    for account in accounts {
+        let ident = format_ident!("{}", account.name);
+        let discriminator = &account.discriminator;
+        let traits_impl = quote! {
+            impl Owner for #ident {
+                const OWNER: Pubkey = PROGRAM_ID;
+            }
+
+            impl Discriminator for #ident {
+                const DISCRIMINATOR: &'static [u8] = &[#(#discriminator),*];
+            }
         };
-        let maybe_owner = idl
-            .accounts
-            .iter()
-            .find(|acc| acc.name == i.name)
-            .map(|acc| {
-                let discriminator = &acc.discriminator;
-
+        if let Some(ty) = &account.ty {
+            let type_def = TypeDef {
+                name: account.name.to_owned(),
+                ty: ty.to_owned(),
+                ..Default::default()
+            };
+            let ty = gen_defined_type(&type_def);
+            types.insert(
+                account.name.clone(),
                 quote! {
-                    impl Owner for #ident {
-                        const OWNER: Pubkey = #program_ident::ID;
-                    }
-
-                    impl Discriminator for #ident {
-                        const DISCRIMINATOR: &'static [u8] = &[#(#discriminator),*];
-                    }
-                }
-            });
-        // TODO generics
-
-        quote! {
-            #docs
-            #derive
-            #repr
-            #item
-            #maybe_owner
+                    #ty
+                    #traits_impl
+                },
+            );
+        } else {
+            let ty = types.get_mut(&account.name).unwrap();
+            ty.extend(traits_impl);
         }
-    });
+    }
+
+    let types = types.values();
 
     quote! {
         #(#types)*
     }
 }
 
-fn gen_struct(ident: &Ident, fields: &Option<IdlDefinedFields>) -> proc_macro2::TokenStream {
+fn gen_defined_type(ty: &TypeDef) -> proc_macro2::TokenStream {
+    let ident = format_ident!("{}", ty.name);
+    let repr = ty.repr.as_ref().map(gen_repr);
+    let docs = gen_docs(&ty.docs);
+    let derive = gen_serialization(&ty.serialization);
+    let item = match &ty.ty {
+        TypeDefTy::Struct { fields } => gen_struct(&ident, fields),
+        TypeDefTy::Enum { variants } => gen_enum(&ident, variants),
+        TypeDefTy::Type { alias } => gen_type_alias(&ident, alias),
+    };
+
+    quote! {
+        #docs
+        #derive
+        #repr
+        #item
+    }
+}
+
+fn gen_struct(ident: &Ident, fields: &Option<DefinedFields>) -> proc_macro2::TokenStream {
     match fields {
         Some(struct_fields) => match struct_fields {
-            IdlDefinedFields::Named(f) => {
+            DefinedFields::Named(f) => {
                 let fields = f.iter().map(|el| {
                     let docs = gen_docs(&el.docs);
                     let ident = Ident::new(&el.name, Span::call_site());
@@ -76,7 +96,7 @@ fn gen_struct(ident: &Ident, fields: &Option<IdlDefinedFields>) -> proc_macro2::
                     }
                 }
             }
-            IdlDefinedFields::Tuple(f) => {
+            DefinedFields::Tuple(f) => {
                 let fields = f.iter().map(|el| {
                     let ty = gen_type(el);
                     quote!(#ty)
@@ -90,12 +110,12 @@ fn gen_struct(ident: &Ident, fields: &Option<IdlDefinedFields>) -> proc_macro2::
     }
 }
 
-fn gen_enum(ident: &Ident, variants: &[IdlEnumVariant]) -> proc_macro2::TokenStream {
+fn gen_enum(ident: &Ident, variants: &[EnumVariant]) -> proc_macro2::TokenStream {
     let fields = variants.iter().map(|el| {
         let variant_ident = Ident::new(&el.name, Span::call_site());
         if let Some(ref f) = el.fields {
             match f {
-                IdlDefinedFields::Named(f) => {
+                DefinedFields::Named(f) => {
                     let fields = f.iter().map(|el| {
                         let docs = gen_docs(&el.docs);
                         let ident = Ident::new(&el.name, Span::call_site());
@@ -112,7 +132,7 @@ fn gen_enum(ident: &Ident, variants: &[IdlEnumVariant]) -> proc_macro2::TokenStr
                         }
                     }
                 }
-                IdlDefinedFields::Tuple(f) => {
+                DefinedFields::Tuple(f) => {
                     let fields = f.iter().map(|el| {
                         let ty = gen_type(el);
                         quote!(#ty)
@@ -134,13 +154,13 @@ fn gen_enum(ident: &Ident, variants: &[IdlEnumVariant]) -> proc_macro2::TokenStr
     }
 }
 
-fn gen_type_alias(ident: &Ident, alias: &IdlType) -> proc_macro2::TokenStream {
+fn gen_type_alias(ident: &Ident, alias: &Type) -> proc_macro2::TokenStream {
     let ty = gen_type(alias);
     quote!(pub type #ident = #ty;)
 }
 
-fn gen_repr(r: &IdlRepr) -> proc_macro2::TokenStream {
-    let gen_repr_with_modifiers = |repr_type: &str, modifier: &IdlReprModifier| {
+fn gen_repr(r: &Repr) -> proc_macro2::TokenStream {
+    let gen_repr_with_modifiers = |repr_type: &str, modifier: &ReprModifier| {
         let ident = Ident::new(repr_type, Span::call_site());
         let mut attrs = vec![quote!(#ident)];
 
@@ -155,19 +175,18 @@ fn gen_repr(r: &IdlRepr) -> proc_macro2::TokenStream {
     };
 
     match r {
-        IdlRepr::Rust(modifier) => gen_repr_with_modifiers("Rust", modifier),
-        IdlRepr::C(modifier) => gen_repr_with_modifiers("C", modifier),
-        IdlRepr::Transparent => quote!(#[repr(transparent)]),
-        _ => unimplemented!(),
+        Repr::Rust(modifier) => gen_repr_with_modifiers("Rust", modifier),
+        Repr::C(modifier) => gen_repr_with_modifiers("C", modifier),
+        Repr::Transparent => quote!(#[repr(transparent)]),
     }
 }
 
-fn gen_serialization(serialization: &IdlSerialization) -> proc_macro2::TokenStream {
+fn gen_serialization(serialization: &Serialization) -> proc_macro2::TokenStream {
     match serialization {
-        IdlSerialization::Borsh => {
+        Serialization::Borsh => {
             quote!(#[derive(borsh::BorshSerialize, borsh::BorshDeserialize)])
         }
-        IdlSerialization::BytemuckUnsafe | IdlSerialization::Bytemuck => {
+        Serialization::BytemuckUnsafe | Serialization::Bytemuck => {
             quote!(#[derive(bytemuck::Pod, bytemuck::Zeroable, Clone, Copy)])
         }
         _ => unimplemented!(),
@@ -176,11 +195,11 @@ fn gen_serialization(serialization: &IdlSerialization) -> proc_macro2::TokenStre
 
 #[cfg(test)]
 mod tests {
-    use {super::*, anchor_lang_idl_spec::IdlField, quote::quote};
+    use {super::*, crate::idl::Field, quote::quote};
 
     #[test]
     fn test_gen_repr_rust() {
-        let repr = IdlRepr::Rust(IdlReprModifier {
+        let repr = Repr::Rust(ReprModifier {
             packed: true,
             align: Some(4),
         });
@@ -193,7 +212,7 @@ mod tests {
 
     #[test]
     fn test_gen_repr_c() {
-        let repr = IdlRepr::C(IdlReprModifier {
+        let repr = Repr::C(ReprModifier {
             packed: false,
             align: Some(8),
         });
@@ -203,14 +222,14 @@ mod tests {
 
     #[test]
     fn test_gen_repr_transparent() {
-        let repr = IdlRepr::Transparent;
+        let repr = Repr::Transparent;
         let result = gen_repr(&repr).to_string();
         assert_eq!(result, quote!(#[repr(transparent)]).to_string());
     }
 
     #[test]
     fn test_gen_repr_no_modifiers() {
-        let repr = IdlRepr::Rust(IdlReprModifier {
+        let repr = Repr::Rust(ReprModifier {
             packed: false,
             align: None,
         });
@@ -220,7 +239,7 @@ mod tests {
 
     #[test]
     fn test_gen_serialization_borsh() {
-        let result = gen_serialization(&IdlSerialization::Borsh).to_string();
+        let result = gen_serialization(&Serialization::Borsh).to_string();
         assert_eq!(
             result,
             quote!(#[derive(borsh::BorshSerialize, borsh::BorshDeserialize)]).to_string()
@@ -229,7 +248,7 @@ mod tests {
 
     #[test]
     fn test_gen_serialization_bytemuck() {
-        let result = gen_serialization(&IdlSerialization::Bytemuck).to_string();
+        let result = gen_serialization(&Serialization::Bytemuck).to_string();
         assert_eq!(
             result,
             quote!(#[derive(bytemuck::Pod, bytemuck::Zeroable, Clone, Copy)]).to_string()
@@ -239,10 +258,10 @@ mod tests {
     #[test]
     fn test_gen_struct_named() {
         let ident = Ident::new("TestStruct", Span::call_site());
-        let fields = IdlDefinedFields::Named(vec![IdlField {
+        let fields = DefinedFields::Named(vec![Field {
             name: "field1".to_string(),
             docs: vec!["Test doc".to_string()],
-            ty: IdlType::U64,
+            ty: Type::U64,
         }]);
         let result = gen_struct(&ident, &Some(fields)).to_string();
         assert_eq!(
@@ -260,7 +279,7 @@ mod tests {
     #[test]
     fn test_gen_struct_tuple() {
         let ident = Ident::new("TestStruct", Span::call_site());
-        let fields = IdlDefinedFields::Tuple(vec![IdlType::U64, IdlType::Bool]);
+        let fields = DefinedFields::Tuple(vec![Type::U64, Type::Bool]);
         let result = gen_struct(&ident, &Some(fields)).to_string();
         assert_eq!(result, quote!(pub struct TestStruct(u64, bool)).to_string());
     }
@@ -282,21 +301,21 @@ mod tests {
     fn test_gen_enum() {
         let ident = Ident::new("TestEnum", Span::call_site());
         let variants = vec![
-            IdlEnumVariant {
+            EnumVariant {
                 name: "Variant1".to_string(),
                 fields: None,
             },
-            IdlEnumVariant {
+            EnumVariant {
                 name: "Variant2".to_string(),
-                fields: Some(IdlDefinedFields::Named(vec![IdlField {
+                fields: Some(DefinedFields::Named(vec![Field {
                     name: "field1".to_string(),
                     docs: vec![],
-                    ty: IdlType::U64,
+                    ty: Type::U64,
                 }])),
             },
-            IdlEnumVariant {
+            EnumVariant {
                 name: "Variant3".to_string(),
-                fields: Some(IdlDefinedFields::Tuple(vec![IdlType::Bool, IdlType::U64])),
+                fields: Some(DefinedFields::Tuple(vec![Type::Bool, Type::U64])),
             },
         ];
         let result = gen_enum(&ident, &variants).to_string();
@@ -318,7 +337,7 @@ mod tests {
     #[test]
     fn test_gen_type_alias() {
         let ident = Ident::new("TestAlias", Span::call_site());
-        let alias = IdlType::U64;
+        let alias = Type::U64;
         let result = gen_type_alias(&ident, &alias).to_string();
         assert_eq!(
             result,
