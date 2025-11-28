@@ -93,7 +93,7 @@ macro_rules! impl_error_logger {
 #[macro_export]
 macro_rules! require {
     ( $constraint:expr, $error:expr ) => {
-        if !$constraint {
+        if pinocchio::hint::unlikely(!$constraint) {
             return Err($error.into());
         }
     };
