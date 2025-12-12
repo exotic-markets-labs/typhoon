@@ -18,14 +18,14 @@ fn main() -> anyhow::Result<()> {
         }
         Commands::Add { subcommand } => match subcommand {
             AddSubcommand::Program { path, name } => {
-                add::program(path, name)?;
+                add::program(path, &name)?;
             }
             AddSubcommand::Handler {
                 path,
                 program,
                 name,
             } => {
-                add::handler(path, program, name)?;
+                add::handler(path, &program, &name)?;
             }
         },
     }

@@ -16,6 +16,8 @@ pub struct TemplateContext {
     pub program_name_snake: String,
     pub program_name_kebab: String,
     pub program_name_pascal: String,
+    pub instruction_name_snake: String,
+    pub instruction_name_pascal: String,
     pub typhoon_version: String,
     pub typhoon_builder_version: String,
     pub typhoon_idl_version: String,
@@ -81,6 +83,8 @@ impl Template {
             program_name_snake: program_name.to_snake_case(),
             program_name_kebab: program_name.to_kebab_case(),
             program_name_pascal: program_name.to_pascal_case(),
+            instruction_name_snake: "".to_snake_case(),
+            instruction_name_pascal: "".to_pascal_case(),
             typhoon_version,
             typhoon_builder_version,
             typhoon_idl_version,
@@ -133,6 +137,8 @@ impl Template {
             project_name_snake: program_name.to_snake_case(),
             project_name_kebab: program_name.to_kebab_case(),
             project_name_pascal: program_name.to_pascal_case(),
+            instruction_name_snake: "".to_snake_case(),
+            instruction_name_pascal: "".to_pascal_case(),
             typhoon_version: env!("CARGO_PKG_VERSION").to_string(),
             typhoon_builder_version: env!("CARGO_PKG_VERSION").to_string(),
             typhoon_idl_version: env!("CARGO_PKG_VERSION").to_string(),
@@ -142,6 +148,64 @@ impl Template {
         handlebars.set_strict_mode(true);
 
         for file in &Self::program(program_name).files {
+            // Render file path template
+            let file_path = handlebars
+                .render_template(&file.path_template, &ctx)
+                .with_context(|| {
+                    format!(
+                        "Failed to render file path template: {}",
+                        file.path_template
+                    )
+                })?;
+
+            // Render file content template
+            let file_content = handlebars
+                .render_template(&file.content_template, &ctx)
+                .with_context(|| {
+                    format!(
+                        "Failed to render file content template: {}",
+                        file.path_template
+                    )
+                })?;
+
+            let full_path = project_dir.join(&file_path);
+
+            // Create parent directories if needed
+            if let Some(parent) = full_path.parent() {
+                fs::create_dir_all(parent)
+                    .with_context(|| format!("Failed to create directory: {}", parent.display()))?;
+            }
+
+            fs::write(&full_path, file_content)
+                .with_context(|| format!("Failed to write file: {}", full_path.display()))?;
+        }
+
+        Ok(())
+    }
+
+    pub fn generate_handler(
+        project_dir: &Path,
+        program_name: &str,
+        instruction_name: &str,
+    ) -> Result<()> {
+        let ctx = TemplateContext {
+            project_name_snake: program_name.to_snake_case(),
+            project_name_kebab: program_name.to_kebab_case(),
+            project_name_pascal: program_name.to_pascal_case(),
+            program_name_snake: program_name.to_snake_case(),
+            program_name_kebab: program_name.to_kebab_case(),
+            program_name_pascal: program_name.to_pascal_case(),
+            instruction_name_snake: instruction_name.to_snake_case(),
+            instruction_name_pascal: instruction_name.to_pascal_case(),
+            typhoon_version: env!("CARGO_PKG_VERSION").to_string(),
+            typhoon_builder_version: env!("CARGO_PKG_VERSION").to_string(),
+            typhoon_idl_version: env!("CARGO_PKG_VERSION").to_string(),
+        };
+
+        let mut handlebars = Handlebars::new();
+        handlebars.set_strict_mode(true);
+
+        for file in &Self::handler(program_name, instruction_name).files {
             // Render file path template
             let file_path = handlebars
                 .render_template(&file.path_template, &ctx)
@@ -406,6 +470,38 @@ impl Template {
                         .to_string(),
                     content_template: include_str!(
                         "../templates/tests/tests/integration.rs.template"
+                    )
+                    .to_string(),
+                },
+            ],
+        }
+    }
+
+    fn handler(program_name: &str, instruction_name: &str) -> Self {
+        Self {
+            name: "handler".to_string(),
+            files: vec![
+                TemplateFile {
+                    path_template: format!(
+                        "programs/{}/src/handlers/{}.rs",
+                        program_name.to_snake_case(),
+                        instruction_name.to_snake_case()
+                    )
+                    .to_string(),
+                    content_template: include_str!(
+                        "../templates/programs/src/handlers/generic.rs.template"
+                    )
+                    .to_string(),
+                },
+                TemplateFile {
+                    path_template: format!(
+                        "programs/{}/src/contexts/{}.rs",
+                        program_name.to_snake_case(),
+                        instruction_name.to_snake_case()
+                    )
+                    .to_string(),
+                    content_template: include_str!(
+                        "../templates/programs/src/contexts/generic.rs.template"
                     )
                     .to_string(),
                 },

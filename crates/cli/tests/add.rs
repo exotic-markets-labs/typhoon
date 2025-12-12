@@ -21,7 +21,7 @@ fn add_program() {
         false,
     )
     .unwrap();
-    run(&project_dir, new_program_name).unwrap();
+    run_program(&project_dir, new_program_name).unwrap();
     test_workspace(&project_dir).unwrap();
 
     // IDLs should be generated
@@ -33,9 +33,65 @@ fn add_program() {
     ));
     assert!(old_idl_path.exists());
     assert!(new_idl_path.exists());
+
+    // Programs should be generated
+    let program_dir = project_dir
+        .join("programs")
+        .join(program_name.to_snake_case());
+    assert!(program_dir.exists());
+
+    // Handlers should be generated
+    let handler_dir = program_dir.join("src").join("handlers");
+    assert!(handler_dir.exists());
+
+    // Contexts should be generated
+    let context_dir = program_dir.join("src").join("contexts");
+    assert!(context_dir.exists());
 }
 
-fn run(project_dir: &Path, program_name: &str) -> anyhow::Result<()> {
+#[test]
+fn add_handler() {
+    let tmp_dir = TempDir::new("typhoon-test").unwrap();
+    let program_name = "counter";
+    let handler_name = "new-handler";
+    let project_dir: std::path::PathBuf = new_workspace(
+        &tmp_dir,
+        "test-project",
+        Some(program_name.to_string()),
+        false,
+    )
+    .unwrap();
+    run_handler(&project_dir, program_name, handler_name).unwrap();
+    test_workspace(&project_dir).unwrap();
+
+    // Handlers should be generated
+    let handler_path = project_dir
+        .join("programs")
+        .join(program_name.to_snake_case())
+        .join("src")
+        .join("handlers")
+        .join(format!("{}.rs", handler_name.to_snake_case()));
+    assert!(
+        handler_path.exists(),
+        "Handler path does not exist: {}",
+        handler_path.display()
+    );
+
+    // Contexts should be generated
+    let context_path = project_dir
+        .join("programs")
+        .join(program_name.to_snake_case())
+        .join("src")
+        .join("contexts")
+        .join(format!("{}.rs", handler_name.to_snake_case()));
+    assert!(
+        context_path.exists(),
+        "Context path does not exist: {}",
+        context_path.display()
+    );
+}
+
+fn run_program(project_dir: &Path, program_name: &str) -> anyhow::Result<()> {
     let args = vec![
         "typhoon",
         "add",
@@ -62,7 +118,50 @@ fn run(project_dir: &Path, program_name: &str) -> anyhow::Result<()> {
 
     assert_eq!(cmd.command, expected_params);
 
-    typhoon_cli::add::program(path.clone(), name.clone())?;
+    typhoon_cli::add::program(path.clone(), name)?;
+
+    Ok(())
+}
+
+fn run_handler(
+    project_dir: &Path,
+    program_name: &str,
+    instruction_name: &str,
+) -> anyhow::Result<()> {
+    let args = vec![
+        "typhoon",
+        "add",
+        "handler",
+        program_name,
+        instruction_name,
+        "--path",
+        project_dir.to_str().unwrap(),
+    ];
+
+    let expected_params = Commands::Add {
+        subcommand: AddSubcommand::Handler {
+            path: Some(project_dir.to_path_buf()),
+            program: program_name.to_string(),
+            name: instruction_name.to_string(),
+        },
+    };
+
+    let cmd = Cli::parse_from(args);
+    let Commands::Add {
+        subcommand:
+            AddSubcommand::Handler {
+                path,
+                program,
+                name,
+            },
+    } = &cmd.command
+    else {
+        anyhow::bail!("Failed to parse command: {:?}", cmd.command);
+    };
+
+    assert_eq!(cmd.command, expected_params);
+
+    typhoon_cli::add::handler(path.clone(), &program, &name)?;
 
     Ok(())
 }
