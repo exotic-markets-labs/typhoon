@@ -19,6 +19,7 @@ serde_json = { workspace = true }
 anyhow = { workspace = true }
 handlebars = { workspace = true }
 heck = { workspace = true }
+toml_edit = { workspace = true }
 
 [dev-dependencies]
 tempdir = { workspace = true }

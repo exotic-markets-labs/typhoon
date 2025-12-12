@@ -1,5 +1,5 @@
 [package]
-name = "{{project_name_kebab}}"
+name = "{{program_name_kebab}}"
 version = { workspace = true }
 edition = { workspace = true }
 publish = { workspace = true }
@@ -8,7 +8,7 @@ publish = { workspace = true }
 logging = []
 
 [lib]
-lib = "{{project_name_snake}}"
+lib = "{{program_name_snake}}"
 crate-type = ["cdylib", "lib"]
 
 [lints.rust]
@@ -17,11 +17,11 @@ unexpected_cfgs = { level = "warn", check-cfg = [
 ] }
 
 [dependencies]
-bytemuck = { version = "1.24", features = ["derive"] }
-typhoon = {{{typhoon_version}}}
+bytemuck = { workspace = true, features = ["derive"] }
+typhoon = { workspace = true }
 
 [build-dependencies]
-typhoon-idl-generator = {{{typhoon_idl_version}}}
+typhoon-idl-generator = { workspace = true }
 
 [profile.release]
 lto = true

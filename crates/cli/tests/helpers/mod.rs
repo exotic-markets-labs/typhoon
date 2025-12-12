@@ -1,35 +1,16 @@
-use {
-    clap::Parser,
-    heck::ToKebabCase,
-    std::{path::PathBuf, process::Command},
-    tempdir::TempDir,
-    typhoon_cli::{Cli, Commands},
-};
+use std::{path::PathBuf, process::Command};
 
-#[test]
-fn new() {
-    let tmp_dir = TempDir::new("typhoon-test").unwrap();
-    let project_dir = run(&tmp_dir, "test-project", false).unwrap();
-    test(&project_dir).unwrap();
+use clap::Parser;
+use heck::ToKebabCase;
+use tempdir::TempDir;
+use typhoon_cli::{Cli, Commands};
 
-    // IDL should be generated
-    let idl_dir = project_dir.join("target/idls");
-    assert!(idl_dir.exists());
-}
-
-#[test]
-fn new_force() {
-    let tmp_dir = TempDir::new("typhoon-test").unwrap();
-    run(&tmp_dir, "test-project", false).unwrap();
-
-    assert!(run(&tmp_dir, "test-project", false)
-        .unwrap_err()
-        .to_string()
-        .contains("already exists"));
-    run(&tmp_dir, "test-project", true).unwrap();
-}
-
-fn run(tmp_dir: &TempDir, project_name: &str, force: bool) -> anyhow::Result<PathBuf> {
+pub fn new_workspace(
+    tmp_dir: &TempDir,
+    project_name: &str,
+    program_name: Option<String>,
+    force: bool,
+) -> anyhow::Result<PathBuf> {
     let mut args = vec![
         "typhoon",
         "new",
@@ -40,12 +21,18 @@ fn run(tmp_dir: &TempDir, project_name: &str, force: bool) -> anyhow::Result<Pat
         "../../",
     ];
 
+    if let Some(program_name) = &program_name {
+        args.push("--program");
+        args.push(program_name);
+    }
+
     if force {
         args.push("--force");
     }
 
     let expected_params = Commands::New {
         name: project_name.to_string(),
+        program: program_name.clone(),
         path: Some(tmp_dir.path().to_path_buf()),
         force,
         typhoon_path: Some(PathBuf::from("../../")),
@@ -54,14 +41,24 @@ fn run(tmp_dir: &TempDir, project_name: &str, force: bool) -> anyhow::Result<Pat
     let cmd = Cli::parse_from(args);
     let Commands::New {
         name,
+        program,
         path,
         force,
         typhoon_path,
-    } = &cmd.command;
+    } = &cmd.command
+    else {
+        anyhow::bail!("Failed to parse command: {:?}", cmd.command);
+    };
 
     assert_eq!(cmd.command, expected_params);
 
-    typhoon_cli::new::execute(name.clone(), path.clone(), *force, typhoon_path.clone())?;
+    typhoon_cli::new::execute(
+        name.clone(),
+        program.clone(),
+        path.clone(),
+        *force,
+        typhoon_path.clone(),
+    )?;
 
     let project_dir = tmp_dir.path().join(name.to_kebab_case());
 
@@ -70,7 +67,7 @@ fn run(tmp_dir: &TempDir, project_name: &str, force: bool) -> anyhow::Result<Pat
     Ok(project_dir)
 }
 
-fn test(project_dir: &PathBuf) -> anyhow::Result<()> {
+pub fn test_workspace(project_dir: &PathBuf) -> anyhow::Result<()> {
     // Build the project
     let output = Command::new("cargo")
         .current_dir(project_dir)

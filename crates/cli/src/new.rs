@@ -1,14 +1,13 @@
-mod templates;
-
 use {
+    crate::templates::Template,
     anyhow::{Context, Result},
     heck::ToKebabCase,
     std::{fs, path::PathBuf},
-    templates::Template,
 };
 
 pub fn execute(
     project_name: String,
+    program_name: Option<String>,
     path: Option<PathBuf>,
     force: bool,
     typhoon_path: Option<PathBuf>,
@@ -36,7 +35,7 @@ pub fn execute(
         .with_context(|| format!("Failed to create directory: {}", target_path.display()))?;
 
     // Generate project files
-    Template::generate(&target_path, &project_name, typhoon_path)?;
+    Template::generate_workspace(&target_path, &project_name, program_name, typhoon_path)?;
 
     println!("\n✅ Project created successfully!");
     println!("\nNext steps:");

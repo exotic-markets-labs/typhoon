@@ -1,4 +1,6 @@
+pub mod add;
 pub mod new;
+pub mod templates;
 
 use {
     clap::{Parser, Subcommand},
@@ -19,6 +21,9 @@ pub enum Commands {
     New {
         /// Project name
         name: String,
+        /// Program name
+        #[arg(long)]
+        program: Option<String>,
         /// Project directory path
         #[arg(short, long)]
         path: Option<PathBuf>,
@@ -28,5 +33,34 @@ pub enum Commands {
         /// Typhoon workspace path to use instead of the crate version
         #[arg(long)]
         typhoon_path: Option<PathBuf>,
+    },
+
+    /// Add a program to the Typhoon workspace or an instruction to a program
+    Add {
+        #[command(subcommand)]
+        subcommand: AddSubcommand,
+    },
+}
+
+#[derive(Debug, PartialEq, Subcommand)]
+pub enum AddSubcommand {
+    /// Add a program to the Typhoon workspace  
+    Program {
+        /// Project directory path
+        #[arg(short, long)]
+        path: Option<PathBuf>,
+        /// Program name
+        name: String,
+    },
+
+    /// Add a handler to a program
+    Handler {
+        /// Project directory path
+        #[arg(short, long)]
+        path: Option<PathBuf>,
+        /// Program name
+        program: String,
+        /// Handler name
+        name: String,
     },
 }

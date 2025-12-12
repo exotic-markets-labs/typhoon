@@ -1,5 +1,5 @@
 use {
-    {{project_name_snake}}::Counter,
+    {{program_name_snake}}::Counter,
     litesvm::LiteSVM,
     solana_keypair::Keypair,
     solana_native_token::LAMPORTS_PER_SOL,
@@ -15,12 +15,12 @@ const ID: Pubkey = pubkey!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
 fn read_program() -> Vec<u8> {
     let mut so_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("..");
-    so_path.push("target/deploy/{{project_name_snake}}.so");
+    so_path.push("target/deploy/{{program_name_snake}}.so");
 
     std::fs::read(so_path).unwrap()
 }
 
-generate_instructions_client!({{project_name_snake}});
+generate_instructions_client!({{program_name_snake}});
 
 #[test]
 fn integration_test() {

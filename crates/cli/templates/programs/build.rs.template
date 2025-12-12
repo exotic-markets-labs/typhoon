@@ -10,5 +10,5 @@ fn main() {
 
     let idl = typhoon_idl_generator::generate(&[Path::new(&manifest_dir)]).unwrap();
 
-    fs::write(idl_dir.join("{{project_name_snake}}.json"), idl).unwrap();
+    fs::write(idl_dir.join("{{program_name_snake}}.json"), idl).unwrap();
 }
