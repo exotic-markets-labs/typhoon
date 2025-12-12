@@ -12,10 +12,12 @@ repository = "https://github.com/exotic-markets-labs/typhoon"
 rust-version = "1.82"
 
 [workspace.dependencies]
+anyhow = "1.0"
 base64 = "0.22"
 borsh = { version = "1.5", default-features = false }
 bytemuck = "1.24"
 cargo-manifest = "0.19"
+clap = { version = "4.5", features = ["derive"] }
 codama = "0.5"
 codama-attributes = "0.5"
 codama-korok-plugins = "0.5"
@@ -24,6 +26,7 @@ codama-koroks = "0.5"
 codama-nodes = "0.5"
 codama-syn-helpers = "0.5"
 five8_const = "1.0"
+handlebars = "5.1"
 hashbrown = "0.16"
 heck = "0.5"
 paste = "1.0"
@@ -39,6 +42,7 @@ serde = "1.0"
 serde_json = "1.0"
 sha2 = "0.10"
 syn = "2.0"
+tempdir = "0.3"
 trybuild = "1.0"
 typhoon-account-macro = { version = "0.1.0", path = "crates/account-macro" }
 typhoon-accounts = { version = "0.1.0", path = "crates/accounts" }

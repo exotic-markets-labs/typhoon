@@ -1,0 +1,22 @@
+#![no_std]
+
+mod state;
+mod handlers;
+mod contexts;
+
+use {handlers::*, typhoon::prelude::*};
+pub use state::*;
+
+program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+
+nostd_panic_handler!();
+no_allocator!();
+
+entrypoint!();
+
+pub const ROUTER: EntryFn = basic_router! {
+    0 => initialize,
+    1 => increment,
+    2 => close,
+};
+

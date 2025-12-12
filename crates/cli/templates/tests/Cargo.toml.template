@@ -1,0 +1,30 @@
+[package]
+name = "{{project_name_kebab}}-tests"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+
+[package.metadata.typhoon.builder-dependencies]
+{{project_name_snake}} = { path = "../programs/{{project_name_snake}}" }
+
+[dependencies]
+bytemuck = { version = "1.24", features = ["derive"] }
+typhoon = {{{typhoon_version}}}
+
+[dev-dependencies]
+litesvm = "0.8.2"
+solana-instruction = "3.0"
+solana-keypair = "3.0"
+solana-native-token = "3.0"
+solana-pubkey = "3.0"
+solana-signer = "3.0"
+solana-system-interface = "2.0.0"
+solana-transaction = "3.0"
+typhoon-instruction-builder = {{{typhoon_builder_version}}}
+{{project_name_kebab}} = { path = "../programs/{{project_name_snake}}" }
+
+[profile.release]
+lto = true
+codegen-units = 1

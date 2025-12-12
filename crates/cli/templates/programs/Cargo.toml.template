@@ -1,0 +1,28 @@
+[package]
+name = "{{project_name_kebab}}"
+version = { workspace = true }
+edition = { workspace = true }
+publish = { workspace = true }
+
+[features]
+logging = []
+
+[lib]
+lib = "{{project_name_snake}}"
+crate-type = ["cdylib", "lib"]
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = [
+    'cfg(target_os, values("solana"))',
+] }
+
+[dependencies]
+bytemuck = { version = "1.24", features = ["derive"] }
+typhoon = {{{typhoon_version}}}
+
+[build-dependencies]
+typhoon-idl-generator = {{{typhoon_idl_version}}}
+
+[profile.release]
+lto = true
+codegen-units = 1

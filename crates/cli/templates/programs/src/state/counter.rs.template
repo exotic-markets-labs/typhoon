@@ -1,0 +1,12 @@
+use {
+    bytemuck::{AnyBitPattern, NoUninit},
+    typhoon::prelude::*,
+};
+
+#[derive(NoUninit, AnyBitPattern, AccountState, Copy, Clone)]
+#[repr(C)]
+pub struct Counter {
+    #[key]
+    pub authority: Pubkey,
+    pub count: u64,
+}
