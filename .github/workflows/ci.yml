@@ -74,18 +74,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        example: [
-          "anchor-cpi",
-          "counter", 
-          "cpi",
-          "hello-world",
-          "instruction-data",
-          "misc",
-          "seeded",
-          "seeds",
-          "transfer-sol",
-          "transfer-token"
-        ]
+        example:
+          [
+            "anchor-cpi",
+            "counter",
+            "cpi",
+            "hello-world",
+            "instruction-data",
+            "misc",
+            "seeded",
+            "seeds",
+            "transfer-sol",
+            "transfer-token",
+          ]
     steps:
       - uses: actions/checkout@v5
       - name: Rust install
@@ -110,4 +111,20 @@ jobs:
       - name: Rust install
         uses: dtolnay/rust-toolchain@stable
       - name: Run tests
-        run: cargo test
+        run: cargo test --workspace --exclude typhoon-cli
+
+  run_cli_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Rust install
+        uses: dtolnay/rust-toolchain@stable
+      - name: Setup cache
+        uses: Swatinem/rust-cache@v2
+      - uses: taiki-e/install-action@just
+      - name: Install Solana CLI
+        run: |
+          sh -c "$(curl -sSfL https://release.anza.xyz/v3.0.4/install)"
+          echo "/home/runner/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+      - name: Test CLI
+        run: cargo test -p typhoon-cli
