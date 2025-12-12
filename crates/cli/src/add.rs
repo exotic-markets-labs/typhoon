@@ -1,12 +1,12 @@
-use std::{
-    fs,
-    path::{Path, PathBuf},
+use {
+    crate::templates::Template,
+    heck::{ToKebabCase, ToSnakeCase},
+    std::{
+        fs,
+        path::{Path, PathBuf},
+    },
+    toml_edit::{value, DocumentMut},
 };
-
-use heck::{ToKebabCase, ToSnakeCase};
-use toml_edit::{value, DocumentMut};
-
-use crate::templates::Template;
 
 pub fn program(project_dir: Option<PathBuf>, program: &str) -> anyhow::Result<()> {
     // Check if project directory already exists
@@ -33,7 +33,7 @@ pub fn program(project_dir: Option<PathBuf>, program: &str) -> anyhow::Result<()
     println!("Location: {}", project_dir.display());
 
     // Generate program files
-    Template::generate_program(&project_dir, &program)?;
+    Template::generate_program(&project_dir, program)?;
 
     // Update Cargo.toml
     let workspace_toml_path = project_dir.join("Cargo.toml");
@@ -73,7 +73,7 @@ pub fn handler(path: Option<PathBuf>, program: &str, instruction: &str) -> anyho
     }
 
     // Generate handler files
-    Template::generate_handler(&project_dir, &program, &instruction)?;
+    Template::generate_handler(&project_dir, program, instruction)?;
 
     update_mod_file(
         &project_dir
@@ -99,7 +99,7 @@ pub fn handler(path: Option<PathBuf>, program: &str, instruction: &str) -> anyho
 }
 
 fn update_mod_file(mod_path: &Path, mod_name: &str) -> anyhow::Result<()> {
-    let mod_content = fs::read_to_string(&mod_path)?;
+    let mod_content = fs::read_to_string(mod_path)?;
     let mut mod_doc = mod_content.split("\n").collect::<Vec<&str>>();
     let new_line = format!("mod {};", mod_name.to_snake_case());
     mod_doc.insert(0, new_line.as_str());

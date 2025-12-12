@@ -1,9 +1,10 @@
-use std::{path::PathBuf, process::Command};
-
-use clap::Parser;
-use heck::ToKebabCase;
-use tempdir::TempDir;
-use typhoon_cli::{Cli, Commands};
+use {
+    clap::Parser,
+    heck::ToKebabCase,
+    std::{path::PathBuf, process::Command},
+    tempdir::TempDir,
+    typhoon_cli::{Cli, Commands},
+};
 
 pub fn new_workspace(
     tmp_dir: &TempDir,

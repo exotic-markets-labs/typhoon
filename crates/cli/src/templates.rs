@@ -1,12 +1,13 @@
-use std::{
-    fs,
-    path::{Path, PathBuf},
+use {
+    anyhow::{Context, Result},
+    handlebars::Handlebars,
+    heck::{ToKebabCase, ToPascalCase, ToSnakeCase},
+    serde::Serialize,
+    std::{
+        fs,
+        path::{Path, PathBuf},
+    },
 };
-
-use anyhow::{Context, Result};
-use handlebars::Handlebars;
-use heck::{ToKebabCase, ToPascalCase, ToSnakeCase};
-use serde::Serialize;
 
 #[derive(Serialize)]
 pub struct TemplateContext {

@@ -161,7 +161,7 @@ fn run_handler(
 
     assert_eq!(cmd.command, expected_params);
 
-    typhoon_cli::add::handler(path.clone(), &program, &name)?;
+    typhoon_cli::add::handler(path.clone(), program, name)?;
 
     Ok(())
 }
