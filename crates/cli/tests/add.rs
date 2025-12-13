@@ -4,7 +4,7 @@ use {
     crate::helpers::{new_workspace, test_workspace},
     clap::Parser,
     heck::ToSnakeCase,
-    std::path::Path,
+    std::{fs, path::Path},
     tempdir::TempDir,
     typhoon_cli::{AddSubcommand, Cli, Commands},
 };
@@ -88,6 +88,19 @@ fn add_handler() {
         context_path.exists(),
         "Context path does not exist: {}",
         context_path.display()
+    );
+
+    // Router should be updated
+    let lib_path = project_dir
+        .join("programs")
+        .join(program_name.to_snake_case())
+        .join("src")
+        .join("lib.rs");
+    let lib_content = fs::read_to_string(lib_path.clone()).unwrap();
+    assert!(
+        lib_content.contains(&format!("    3 => {},", handler_name.to_snake_case())),
+        "Router does not contain new instruction: {}",
+        lib_content
     );
 }
 

@@ -85,6 +85,7 @@ pub fn handler(path: Option<PathBuf>, program: &str, instruction: &str) -> anyho
     // Generate handler files
     Template::generate_handler(&project_dir, program, instruction)?;
 
+    // Insert dependencies
     update_mod_file(
         &project_dir
             .join("programs")
@@ -103,6 +104,36 @@ pub fn handler(path: Option<PathBuf>, program: &str, instruction: &str) -> anyho
             .join("mod.rs"),
         &instruction.to_snake_case(),
     )?;
+
+    // Add instruction to router
+    let lib_path = project_dir
+        .join("programs")
+        .join(program.to_snake_case())
+        .join("src")
+        .join("lib.rs");
+    let lib_content = fs::read_to_string(lib_path.clone())?;
+    let mut lib_lines = lib_content.split("\n").collect::<Vec<&str>>();
+    // Find the router, count instructions, and add the new instruction
+    let router_line = lib_lines
+        .iter()
+        .position(|line| {
+            line.trim_start()
+                .starts_with("pub const ROUTER: EntryFn = basic_router! {")
+        })
+        .ok_or_else(|| anyhow::anyhow!("Router not found in lib.rs"))?;
+    let router_end_line = router_line
+        + lib_lines[router_line..]
+            .iter()
+            .position(|line| line.trim_start().starts_with("};"))
+            .ok_or_else(|| anyhow::anyhow!("Router end not found in lib.rs"))?;
+    let instruction_count = router_end_line - router_line;
+    let new_instruction = format!(
+        "    {} => {},",
+        instruction_count - 1,
+        instruction.to_snake_case()
+    );
+    lib_lines.insert(router_end_line, &new_instruction);
+    fs::write(&lib_path, lib_lines.join("\n"))?;
     println!("\n✅ Handler added successfully!");
 
     Ok(())
