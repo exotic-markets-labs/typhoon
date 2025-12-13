@@ -5,7 +5,7 @@ use {
         fs,
         path::{Path, PathBuf},
     },
-    toml_edit::{value, DocumentMut},
+    toml_edit::{DocumentMut, Item},
 };
 
 pub fn program(project_dir: Option<PathBuf>, program: &str) -> anyhow::Result<()> {
@@ -35,21 +35,31 @@ pub fn program(project_dir: Option<PathBuf>, program: &str) -> anyhow::Result<()
     // Generate program files
     Template::generate_program(&project_dir, program)?;
 
-    // Update Cargo.toml
-    let workspace_toml_path = project_dir.join("Cargo.toml");
-    let workspace = fs::read_to_string(&workspace_toml_path)?;
-    let mut workspace_doc = workspace.parse::<DocumentMut>()?;
-    workspace_doc["workspace"]["dependencies"][program.to_kebab_case()]["path"] =
-        value(format!("programs/{}", program.to_snake_case()));
-    fs::write(workspace_toml_path, workspace_doc.to_string())?;
-
-    let tests_toml_path = project_dir.join("tests").join("Cargo.toml");
-    let tests = fs::read_to_string(&tests_toml_path)?;
-    let mut tests_doc = tests.parse::<DocumentMut>()?;
-    tests_doc["package"]["metadata"]["typhoon"]["builder-dependencies"][program.to_snake_case()]
-        ["path"] = value(format!("../programs/{}", program.to_snake_case()));
-    tests_doc["dev-dependencies"][program.to_kebab_case()]["workspace"] = value(true);
-    fs::write(tests_toml_path, tests_doc.to_string())?;
+    // Insert dependencies and metadata into Cargo.toml files
+    insert_toml_values(
+        &project_dir.join("Cargo.toml"),
+        &[(
+            format!("workspace.dependencies.{}.path", program.to_kebab_case()).as_str(),
+            format!("programs/{}", program.to_snake_case()).into(),
+        )],
+    )?;
+    insert_toml_values(
+        &project_dir.join("tests").join("Cargo.toml"),
+        &[
+            (
+                format!(
+                    "package.metadata.typhoon.builder-dependencies.{}.path",
+                    program.to_snake_case()
+                )
+                .as_str(),
+                format!("../programs/{}", program.to_snake_case()).into(),
+            ),
+            (
+                format!("dev-dependencies.{}.workspace", program.to_kebab_case()).as_str(),
+                true.into(),
+            ),
+        ],
+    )?;
 
     println!("\n✅ Program added successfully!");
 
@@ -95,6 +105,32 @@ pub fn handler(path: Option<PathBuf>, program: &str, instruction: &str) -> anyho
     )?;
     println!("\n✅ Handler added successfully!");
 
+    Ok(())
+}
+
+fn insert_toml_values(
+    toml_path: &Path,
+    table_value_pairs: &[(&str, toml_edit::Value)],
+) -> anyhow::Result<()> {
+    fn set_path(item: &mut Item, path: &str, val: toml_edit::Value) -> anyhow::Result<()> {
+        let mut current = item;
+
+        for key in path.split('.') {
+            current = current
+                .get_mut(key)
+                .ok_or_else(|| anyhow::anyhow!("Path '{}' not found in TOML file", path))?;
+        }
+
+        *current = Item::Value(val.clone());
+        Ok(())
+    }
+
+    let contents = fs::read_to_string(toml_path)?;
+    let mut doc = contents.parse::<DocumentMut>()?;
+    for (key, val) in table_value_pairs {
+        set_path(doc.as_item_mut(), key, val.clone())?;
+    }
+    fs::write(toml_path, doc.to_string())?;
     Ok(())
 }
 
