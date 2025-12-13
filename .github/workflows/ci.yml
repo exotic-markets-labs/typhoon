@@ -126,5 +126,9 @@ jobs:
         run: |
           sh -c "$(curl -sSfL https://release.anza.xyz/v3.0.4/install)"
           echo "/home/runner/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+      - name: Ensure Solana cache dir exists and is writable
+        run: |
+          mkdir -p /home/runner/.cache/solana
+          chmod -R u+rwX /home/runner/.cache/solana
       - name: Test CLI
         run: cargo test -p typhoon-cli
