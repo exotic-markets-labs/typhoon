@@ -117,18 +117,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      - name: Reset Solana toolchain directories
+        run: |
+          rm -rf "$HOME/.cache/solana"
+          rm -rf "$HOME/.local/share/solana"
       - name: Rust install
         uses: dtolnay/rust-toolchain@stable
       - name: Setup cache
         uses: Swatinem/rust-cache@v2
-      - uses: taiki-e/install-action@just
       - name: Install Solana CLI
         run: |
           sh -c "$(curl -sSfL https://release.anza.xyz/v3.0.4/install)"
-          echo "/home/runner/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
-      - name: Ensure Solana cache dir exists and is writable
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
+      - name: Warm up SBF tools
         run: |
-          mkdir -p /home/runner/.cache/solana
-          chmod -R u+rwX /home/runner/.cache/solana
+          cargo build-sbf --force-tools-install || true
       - name: Test CLI
         run: cargo test -p typhoon-cli
