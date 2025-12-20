@@ -1,5 +1,5 @@
 use {
-    crate::templates::Template,
+    crate::{templates::Template, utils::is_valid_name},
     anyhow::{Context, Result},
     heck::ToKebabCase,
     std::{fs, path::PathBuf},
@@ -13,8 +13,14 @@ pub fn execute(
     typhoon_path: Option<PathBuf>,
 ) -> Result<()> {
     // Validate project name
-    if project_name.is_empty() {
-        anyhow::bail!("Project name cannot be empty");
+    if !is_valid_name(&project_name) {
+        anyhow::bail!("Project name '{}' is not a valid name", project_name);
+    }
+    if !program_name.as_ref().is_none_or(|p| is_valid_name(p)) {
+        anyhow::bail!(
+            "Program name '{}' is not a valid name",
+            program_name.unwrap_or_default()
+        );
     }
 
     // Check if target directory already exists

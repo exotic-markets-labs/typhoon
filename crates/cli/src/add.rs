@@ -1,5 +1,5 @@
 use {
-    crate::templates::Template,
+    crate::{templates::Template, utils::is_valid_name},
     heck::{ToKebabCase, ToSnakeCase},
     std::{
         fs,
@@ -24,9 +24,9 @@ pub fn program(project_dir: Option<PathBuf>, program: &str) -> anyhow::Result<()
         );
     }
 
-    // Validate project name
-    if program.is_empty() {
-        anyhow::bail!("Program name cannot be empty");
+    // Validate program name
+    if !is_valid_name(program) {
+        anyhow::bail!("Program name '{}' is not a valid name", program);
     }
 
     println!("Adding program {} to the Typhoon workspace...", program);
@@ -80,6 +80,11 @@ pub fn handler(path: Option<PathBuf>, program: &str, instruction: &str) -> anyho
             "Handler '{}' already exists in the Typhoon workspace",
             instruction
         );
+    }
+
+    // Validate instruction name
+    if !is_valid_name(instruction) {
+        anyhow::bail!("Instruction name '{}' is not a valid name", instruction);
     }
 
     // Generate handler files

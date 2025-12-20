@@ -1,6 +1,7 @@
 pub mod add;
 pub mod new;
 pub mod templates;
+mod utils;
 
 use {
     clap::{Parser, Subcommand},
