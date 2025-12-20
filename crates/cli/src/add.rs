@@ -174,6 +174,11 @@ fn insert_toml_values(
 
 fn update_mod_file(mod_path: &Path, mod_name: &str) -> anyhow::Result<()> {
     let mod_content = fs::read_to_string(mod_path)?;
+
+    if mod_content.contains(&format!("mod {};", mod_name.to_snake_case())) {
+        return Ok(()); // Already exists
+    }
+
     let mut mod_doc = mod_content.split("\n").collect::<Vec<&str>>();
     let new_line = format!("mod {};", mod_name.to_snake_case());
     mod_doc.insert(0, new_line.as_str());
