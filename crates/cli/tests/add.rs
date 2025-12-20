@@ -50,6 +50,24 @@ fn add_program() {
 }
 
 #[test]
+fn add_program_invalid_name() {
+    let tmp_dir = TempDir::new("typhoon-test").unwrap();
+    let test_names = vec![
+        "", "_", "1", "123_123", "mod", "fn", "pub", "use", "struct", "enum", "impl", "self",
+        "super", "crate",
+    ];
+    for (i, name) in test_names.iter().enumerate() {
+        let project_dir: std::path::PathBuf =
+            new_workspace(&tmp_dir, &format!("test-project-{}", i), None, false).unwrap();
+        assert!(
+            run_program(&project_dir, name).is_err(),
+            "Expected error for invalid name: {}",
+            name
+        );
+    }
+}
+
+#[test]
 fn add_handler() {
     let tmp_dir = TempDir::new("typhoon-test").unwrap();
     let program_name = "counter";
@@ -134,6 +152,25 @@ fn run_program(project_dir: &Path, program_name: &str) -> anyhow::Result<()> {
     typhoon_cli::add::program(path.clone(), name)?;
 
     Ok(())
+}
+
+#[test]
+fn add_handler_invalid_name() {
+    let tmp_dir = TempDir::new("typhoon-test").unwrap();
+    let test_names = vec![
+        "", "_", "1", "123_123", "mod", "fn", "pub", "use", "struct", "enum", "impl", "self",
+        "super", "crate",
+    ];
+    for (i, name) in test_names.iter().enumerate() {
+        let project_name = format!("test-project-{}", i);
+        let project_dir: std::path::PathBuf =
+            new_workspace(&tmp_dir, &project_name, None, false).unwrap();
+        assert!(
+            run_handler(&project_dir, &project_name, name).is_err(),
+            "Expected error for invalid name: {}",
+            name
+        );
+    }
 }
 
 fn run_handler(

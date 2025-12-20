@@ -58,3 +58,19 @@ fn new_force() {
     );
     new_workspace(&tmp_dir, "test-project", Some("counter".to_string()), true).unwrap();
 }
+
+#[test]
+fn new_invalid_name() {
+    let tmp_dir = TempDir::new("typhoon-test").unwrap();
+    let test_names = vec![
+        "", "_", "1", "123_123", "mod", "fn", "pub", "use", "struct", "enum", "impl", "self",
+        "super", "crate",
+    ];
+    for name in test_names {
+        assert!(
+            new_workspace(&tmp_dir, name, None, false).is_err(),
+            "Expected error for invalid name: {}",
+            name
+        );
+    }
+}
