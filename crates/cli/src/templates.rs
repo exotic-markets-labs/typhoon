@@ -3,6 +3,7 @@ use {
     handlebars::Handlebars,
     heck::{ToKebabCase, ToPascalCase, ToSnakeCase},
     serde::Serialize,
+    solana_keypair::{Keypair, Signer},
     std::{
         fs,
         path::{Path, PathBuf},
@@ -11,6 +12,7 @@ use {
 
 #[derive(Serialize)]
 pub struct TemplateContext {
+    pub program_id: String,
     pub project_name_snake: String,
     pub project_name_kebab: String,
     pub project_name_pascal: String,
@@ -78,6 +80,7 @@ impl Template {
 
         let program_name = program_name.unwrap_or_else(|| project_name.to_string());
         let ctx = TemplateContext {
+            program_id: Keypair::new().pubkey().to_string(),
             project_name_snake: project_name.to_snake_case(),
             project_name_kebab: project_name.to_kebab_case(),
             project_name_pascal: project_name.to_pascal_case(),
@@ -132,6 +135,7 @@ impl Template {
 
     pub fn generate_program(project_dir: &Path, program_name: &str) -> Result<()> {
         let ctx = TemplateContext {
+            program_id: Keypair::new().pubkey().to_string(),
             program_name_snake: program_name.to_snake_case(),
             program_name_kebab: program_name.to_kebab_case(),
             program_name_pascal: program_name.to_pascal_case(),
@@ -190,6 +194,7 @@ impl Template {
         instruction_name: &str,
     ) -> Result<()> {
         let ctx = TemplateContext {
+            program_id: Keypair::new().pubkey().to_string(),
             project_name_snake: program_name.to_snake_case(),
             project_name_kebab: program_name.to_kebab_case(),
             project_name_pascal: program_name.to_pascal_case(),

@@ -11,7 +11,7 @@ use {
     typhoon_instruction_builder::generate_instructions_client,
 };
 
-const ID: Pubkey = pubkey!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+const ID: Pubkey = pubkey!("{{program_id}}");
 
 fn read_program() -> Vec<u8> {
     let mut so_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("..");

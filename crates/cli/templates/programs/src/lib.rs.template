@@ -7,7 +7,7 @@ mod contexts;
 use {handlers::*, typhoon::prelude::*};
 pub use state::*;
 
-program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+program_id!("{{program_id}}");
 
 nostd_panic_handler!();
 no_allocator!();
