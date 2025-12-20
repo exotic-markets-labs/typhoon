@@ -112,7 +112,7 @@ pub fn handler(path: Option<PathBuf>, program: &str, instruction: &str) -> anyho
         .join("src")
         .join("lib.rs");
     let lib_content = fs::read_to_string(lib_path.clone())?;
-    let mut lib_lines = lib_content.split("\n").collect::<Vec<&str>>();
+    let mut lib_lines: Vec<String> = lib_content.lines().map(str::to_owned).collect();
     // Find the router and add the new instruction
     let router_line = lib_lines
         .iter()
@@ -139,7 +139,7 @@ pub fn handler(path: Option<PathBuf>, program: &str, instruction: &str) -> anyho
     }
     let next_index = last_index + 1;
     let new_instruction = format!("    {} => {},", next_index, instruction.to_snake_case());
-    lib_lines.insert(router_end_line, &new_instruction);
+    lib_lines.insert(router_end_line, new_instruction);
     fs::write(&lib_path, lib_lines.join("\n"))?;
     println!("\n✅ Handler added successfully!");
 
