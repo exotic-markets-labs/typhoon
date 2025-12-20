@@ -113,7 +113,7 @@ pub fn handler(path: Option<PathBuf>, program: &str, instruction: &str) -> anyho
         .join("lib.rs");
     let lib_content = fs::read_to_string(lib_path.clone())?;
     let mut lib_lines = lib_content.split("\n").collect::<Vec<&str>>();
-    // Find the router, count instructions, and add the new instruction
+    // Find the router and add the new instruction
     let router_line = lib_lines
         .iter()
         .position(|line| {
@@ -126,12 +126,19 @@ pub fn handler(path: Option<PathBuf>, program: &str, instruction: &str) -> anyho
             .iter()
             .position(|line| line.trim_start().starts_with("};"))
             .ok_or_else(|| anyhow::anyhow!("Router end not found in lib.rs"))?;
-    let instruction_count = router_end_line - router_line;
-    let new_instruction = format!(
-        "    {} => {},",
-        instruction_count - 1,
-        instruction.to_snake_case()
-    );
+    let router_instr_regex = regex::Regex::new(r"^\s*(\d+)\s*=>\s*([\w_]+),").unwrap();
+    let mut last_index = -1;
+    for line in &lib_lines[router_line + 1..router_end_line] {
+        if let Some(cap) = router_instr_regex.captures(line) {
+            if let Ok(idx) = cap[1].parse::<i32>() {
+                if idx > last_index {
+                    last_index = idx;
+                }
+            }
+        }
+    }
+    let next_index = last_index + 1;
+    let new_instruction = format!("    {} => {},", next_index, instruction.to_snake_case());
     lib_lines.insert(router_end_line, &new_instruction);
     fs::write(&lib_path, lib_lines.join("\n"))?;
     println!("\n✅ Handler added successfully!");
