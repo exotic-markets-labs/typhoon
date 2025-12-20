@@ -179,7 +179,6 @@ fn update_mod_file(mod_path: &Path, mod_name: &str) -> anyhow::Result<()> {
     mod_doc.insert(0, new_line.as_str());
 
     // Find last 'use' line and insert 'pub use *' after it
-    let mut mod_doc = mod_doc.clone();
     let last_use_idx = mod_doc
         .iter()
         .rposition(|line| line.trim_start().starts_with("use "));
