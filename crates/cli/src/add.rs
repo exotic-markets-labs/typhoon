@@ -72,10 +72,10 @@ pub fn handler(path: Option<PathBuf>, program: &str, instruction: &str) -> anyho
         anyhow::bail!("No Typhoon workspace found at '{}'", project_dir.display());
     }
 
-    let handler_dir = project_dir
+    let handler_path = project_dir
         .join("handlers")
         .join(instruction.to_snake_case());
-    if handler_dir.exists() {
+    if handler_path.exists() {
         anyhow::bail!(
             "Handler '{}' already exists in the Typhoon workspace",
             instruction
