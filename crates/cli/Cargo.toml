@@ -1,0 +1,27 @@
+[package]
+name = "typhoon-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "CLI tool for creating and managing Typhoon projects"
+
+[[bin]]
+name = "typhoon"
+path = "src/main.rs"
+
+[dependencies]
+clap = { workspace = true, features = ["derive"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+handlebars = { workspace = true }
+heck = { workspace = true }
+regex = { workspace = true }
+solana-keypair = { workspace = true }
+toml_edit = { workspace = true }
+
+[dev-dependencies]
+tempdir = { workspace = true }

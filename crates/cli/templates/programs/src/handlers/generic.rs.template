@@ -1,0 +1,8 @@
+use {
+    crate::contexts::{{instruction_name_pascal}},
+    typhoon::prelude::*,
+};
+
+pub fn {{instruction_name_snake}}(_: NewHandler) -> ProgramResult {
+    Ok(())
+}

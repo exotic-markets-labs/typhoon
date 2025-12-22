@@ -1,0 +1,7 @@
+use {crate::contexts::CounterMut, typhoon::prelude::*};
+
+pub fn increment(ctx: CounterMut) -> ProgramResult {
+    ctx.counter.mut_data()?.count += 1;
+
+    Ok(())
+}

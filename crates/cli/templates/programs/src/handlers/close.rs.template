@@ -1,0 +1,13 @@
+use {
+    crate::contexts::{CounterMut, Destination},
+    typhoon::prelude::*,
+};
+
+pub fn close(
+    CounterMut { counter }: CounterMut,
+    Destination { destination }: Destination,
+) -> ProgramResult {
+    counter.close(&destination)?;
+
+    Ok(())
+}

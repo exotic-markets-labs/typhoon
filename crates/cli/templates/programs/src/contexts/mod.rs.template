@@ -1,0 +1,22 @@
+use {crate::state::Counter, typhoon::prelude::*};
+
+#[context]
+pub struct Init {
+    pub payer: Mut<Signer>,
+    #[constraint(
+        init,
+        payer = payer,
+    )]
+    pub counter: Mut<SignerNoCheck<Account<Counter>>>,
+    pub system: Program<System>,
+}
+
+#[context]
+pub struct Destination {
+    pub destination: Mut<SystemAccount>,
+}
+
+#[context]
+pub struct CounterMut {
+    pub counter: Mut<Account<Counter>>,
+}

@@ -1,0 +1,7 @@
+use typhoon::prelude::*;
+
+#[context]
+pub struct {{instruction_name_pascal}} {
+    pub payer: Mut<Signer>,
+    pub system: Program<System>,
+}
