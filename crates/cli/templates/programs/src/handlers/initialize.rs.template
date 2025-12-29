@@ -1,0 +1,5 @@
+use {crate::contexts::Init, typhoon::prelude::*};
+
+pub fn initialize(_: Init) -> ProgramResult {
+    Ok(())
+}
