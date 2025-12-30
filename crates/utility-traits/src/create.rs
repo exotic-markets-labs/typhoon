@@ -5,7 +5,7 @@ use {
         SystemAccount, UncheckedAccount, WritableAccount,
     },
     typhoon_errors::Error,
-    typhoon_utility::create_or_assign,
+    typhoon_utility::{bytes::write_bytes, create_or_assign},
 };
 
 pub trait CreateAccountCpi<'a, T>
@@ -28,13 +28,14 @@ where
         create_or_assign(info, rent, payer, owner, space, seeds)?;
 
         {
-            let data = info.data_ptr();
+            let discriminator_len = Self::D::DISCRIMINATOR.len();
+            let data_ptr = info.data_ptr();
             unsafe {
-                core::ptr::copy_nonoverlapping(
-                    Self::D::DISCRIMINATOR.as_ptr(),
-                    data,
-                    Self::D::DISCRIMINATOR.len(),
+                let data_slice = core::slice::from_raw_parts_mut(
+                    data_ptr as *mut core::mem::MaybeUninit<u8>,
+                    discriminator_len,
                 );
+                write_bytes(data_slice, Self::D::DISCRIMINATOR);
             }
         }
 
