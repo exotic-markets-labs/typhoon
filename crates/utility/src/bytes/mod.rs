@@ -16,7 +16,8 @@ pub const UNINIT_INFO: MaybeUninit<&AccountInfo> = MaybeUninit::<&AccountInfo>::
 
 #[inline(always)]
 pub fn write_bytes(destination: &mut [MaybeUninit<u8>], source: &[u8]) {
-    for (d, s) in destination.iter_mut().zip(source.iter()) {
-        d.write(*s);
+    let len = destination.len().min(source.len());
+    unsafe {
+        core::ptr::copy_nonoverlapping(source.as_ptr(), destination.as_mut_ptr() as *mut u8, len);
     }
 }
