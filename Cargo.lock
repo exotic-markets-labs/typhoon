@@ -1485,7 +1485,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-cli"
-version = "0.1.0-alpha.16"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
