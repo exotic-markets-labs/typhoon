@@ -233,10 +233,10 @@ impl AccountGenerator<'_> {
                 owner,
             } => {
                 let Some(owner) = owner else {
-                    error!(name, "An `owner` need to be specified for the `init` or `init_if_needed` constraint.");
+                    error!(name, "An `owner` needs to be specified for the `init` or `init_if_needed` constraint.");
                 };
                 let Some(mint) = mint else {
-                    error!(name, "A `mint` need to be specified for the `init` or `init_if_needed` constraint.");
+                    error!(name, "A `mint` needs to be specified for the `init` or `init_if_needed` constraint.");
                 };
 
                 if *is_ata {
@@ -253,7 +253,7 @@ impl AccountGenerator<'_> {
                 let default_decimals = parse_quote!(9);
                 let decimals = decimals.as_ref().unwrap_or(&default_decimals);
                 let Some(authority) = authority else {
-                    error!(name, "An `authority` need to be specified for the `init` or `init_if_needed` constraint.");
+                    error!(name, "An `authority` needs to be specified for the `init` or `init_if_needed` constraint.");
                 };
                 let f_auth_token = if let Some(auth) = freeze_authority.as_ref() {
                     quote!(Some(#auth))
