@@ -109,7 +109,7 @@ pub fn parse_constraints(input: ParseStream) -> syn::Result<Vec<Constraint>> {
             "init_if_needed" => constraints.push(Constraint::InitIfNeeded(ConstraintInitIfNeeded)),
             "assert" => constraints.push(Constraint::Assert(ConstraintAssert::parse(input)?)),
             "address" => constraints.push(Constraint::Address(ConstraintAddress::parse(input)?)),
-            _ => return Err(syn::Error::new(input.span(), "Unknow constraint.")),
+            _ => return Err(syn::Error::new(input.span(), "Unknown constraint.")),
         }
 
         if input.peek(Token![,]) {
