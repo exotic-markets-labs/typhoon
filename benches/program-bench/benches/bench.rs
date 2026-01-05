@@ -178,7 +178,7 @@ pub fn generate_markdown([pinocchio, anchor, typhoon, star_frame]: [BenchResult;
     output.push_str("- 🟥 **Red**: Poor performance (more than 2x the minimum value)\n\n");
     output.push_str("### CU Consumed\n\n");
     output.push_str(
-        "| Benchmark     | `pinocchio`     | `anchor`          | `typhoon`    | `star-frame`   |\n",
+        "| Benchmark     | `vanilla`     | `anchor`          | `typhoon`    | `star-frame`   |\n",
     );
     output.push_str(
         "| ------------- | --------------- | ----------------- | ------------ | -------------- |\n",
@@ -202,7 +202,7 @@ pub fn generate_markdown([pinocchio, anchor, typhoon, star_frame]: [BenchResult;
     }
 
     output.push_str("\n### Binary Size\n\n");
-    output.push_str("|                     | `pinocchio`     | `anchor`            | `typhoon`| `star-frame`   |\n");
+    output.push_str("|                     | `vanilla`     | `anchor`            | `typhoon`| `star-frame`   |\n");
     output.push_str("| ------------------- | --------------- | ------------------- | -------- | -------------- |\n");
 
     let p_size = pinocchio.binary_size as u64;
