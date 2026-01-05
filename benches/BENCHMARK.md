@@ -8,7 +8,7 @@
 
 ### CU Consumed
 
-| Benchmark     | `pinocchio`     | `anchor`          | `typhoon`    | `star-frame`   |
+| Benchmark     | `vanilla`     | `anchor`          | `typhoon`    | `star-frame`   |
 | ------------- | --------------- | ----------------- | ------------ | -------------- |
 | ping | 🟩 12 (+1) | 🟥 238 (+227) | 🟩 **11** | 🟩 13 (+2) |
 | log | 🟩 **116** | 🟥 342 (+226) | 🟩 117 (+1) | 🟩 117 (+1) |
@@ -19,6 +19,6 @@
 
 ### Binary Size
 
-|                     | `pinocchio`     | `anchor`            | `typhoon`| `star-frame`   |
+|                     | `vanilla`     | `anchor`            | `typhoon`| `star-frame`   |
 | ------------------- | --------------- | ------------------- | -------- | -------------- |
 | Binary size (bytes) | 🟩 17944 (+2504) | 🟥 212560 (+197120) | 🟩 **15440** | 🟥 116632 (+101192) |
