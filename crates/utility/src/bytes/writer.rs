@@ -27,12 +27,8 @@ impl<'a> MaybeUninitWriter<'a> {
 
         // SAFETY: We're writing to `MaybeUninit` and ensuring the data is valid.
         unsafe {
-            let dst = self
-                .buffer
-                .get_unchecked_mut(self.position..self.position + to_write);
-            for (uninit_byte, &src_byte) in dst.iter_mut().zip(data) {
-                uninit_byte.write(src_byte);
-            }
+            let dst_ptr = self.buffer.as_mut_ptr().add(self.position);
+            core::ptr::copy_nonoverlapping(data.as_ptr(), dst_ptr as _, to_write);
         }
 
         self.position += to_write;
