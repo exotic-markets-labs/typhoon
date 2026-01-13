@@ -1,13 +1,12 @@
 use {
     core::ptr,
     pinocchio::{
-        account_info::AccountInfo,
-        msg,
-        program_error::ProgramError,
+        error::ProgramError,
         sysvars::{rent::Rent, Sysvar},
-        ProgramResult,
+        AccountView, ProgramResult,
     },
     pinocchio_system::instructions::{Allocate, Assign, CreateAccount, Transfer},
+    solana_program_log::log,
 };
 
 const ACCOUNT_DISCRIMINATOR: [u8; 8] = [206, 156, 59, 188, 18, 79, 240, 232];
@@ -19,12 +18,12 @@ pub fn process_ping() -> ProgramResult {
 
 #[inline(always)]
 pub fn process_log() -> ProgramResult {
-    msg!("Instruction: Log");
+    log("Instruction: Log");
     Ok(())
 }
 
 #[inline(always)]
-pub fn process_create_account(accounts: &[AccountInfo]) -> ProgramResult {
+pub fn process_create_account(accounts: &[AccountView]) -> ProgramResult {
     let [payer, to, _rem @ ..] = accounts else {
         return Err(ProgramError::NotEnoughAccountKeys);
     };
@@ -34,7 +33,7 @@ pub fn process_create_account(accounts: &[AccountInfo]) -> ProgramResult {
     if current_lamports == 0 {
         CreateAccount {
             from: payer,
-            lamports: rent.minimum_balance(9),
+            lamports: rent.try_minimum_balance(9)?,
             owner: &crate::ID,
             space: 9,
             to,
@@ -42,7 +41,7 @@ pub fn process_create_account(accounts: &[AccountInfo]) -> ProgramResult {
         .invoke()?;
     } else {
         let required_lamports = rent
-            .minimum_balance(9)
+            .try_minimum_balance(9)?
             .max(1)
             .saturating_sub(current_lamports);
 
@@ -67,7 +66,7 @@ pub fn process_create_account(accounts: &[AccountInfo]) -> ProgramResult {
         }
         .invoke()?;
     }
-    let mut data = to.try_borrow_mut_data()?;
+    let mut data = to.try_borrow_mut()?;
     data[0..8].copy_from_slice(&ACCOUNT_DISCRIMINATOR);
     data[8] = 1;
 
@@ -75,7 +74,7 @@ pub fn process_create_account(accounts: &[AccountInfo]) -> ProgramResult {
 }
 
 #[inline(always)]
-pub fn process_transfer(instruction_data: &[u8], accounts: &[AccountInfo]) -> ProgramResult {
+pub fn process_transfer(instruction_data: &[u8], accounts: &[AccountView]) -> ProgramResult {
     Transfer {
         from: &accounts[0],
         to: &accounts[1],
@@ -89,14 +88,14 @@ pub fn process_transfer(instruction_data: &[u8], accounts: &[AccountInfo]) -> Pr
 }
 
 #[inline(always)]
-pub fn process_unchecked_accounts(_accounts: &[AccountInfo]) -> ProgramResult {
+pub fn process_unchecked_accounts(_accounts: &[AccountView]) -> ProgramResult {
     Ok(())
 }
 
 #[inline(always)]
-pub fn process_accounts(accounts: &[AccountInfo]) -> ProgramResult {
+pub fn process_accounts(accounts: &[AccountView]) -> ProgramResult {
     for account in accounts {
-        if account.owner() != &crate::ID {
+        if !account.owned_by(&crate::ID) {
             return Err(ProgramError::InvalidAccountOwner);
         }
 

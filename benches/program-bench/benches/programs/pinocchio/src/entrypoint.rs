@@ -4,8 +4,8 @@ use {
         process_unchecked_accounts,
     },
     pinocchio::{
-        account_info::AccountInfo, no_allocator, nostd_panic_handler, program_entrypoint,
-        program_error::ProgramError, pubkey::Pubkey, ProgramResult,
+        error::ProgramError, no_allocator, nostd_panic_handler, program_entrypoint, AccountView,
+        Address, ProgramResult,
     },
 };
 
@@ -16,8 +16,8 @@ program_entrypoint!(process_instruction);
 
 #[inline(always)]
 pub fn process_instruction(
-    _program_id: &Pubkey,
-    accounts: &[AccountInfo],
+    _program_id: &Address,
+    accounts: &[AccountView],
     instruction_data: &[u8],
 ) -> ProgramResult {
     let [instruction, remaining @ ..] = instruction_data else {
