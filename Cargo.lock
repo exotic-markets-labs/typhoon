@@ -1480,8 +1480,8 @@ dependencies = [
  "bytemuck",
  "pinocchio",
  "pinocchio-system",
- "typhoon-definitions",
  "typhoon-errors",
+ "typhoon-traits",
 ]
 
 [[package]]
@@ -1509,8 +1509,8 @@ dependencies = [
  "paste",
  "pinocchio",
  "typhoon-accounts",
- "typhoon-definitions",
  "typhoon-errors",
+ "typhoon-traits",
 ]
 
 [[package]]
@@ -1555,13 +1555,6 @@ dependencies = [
  "serde_json",
  "syn",
  "typhoon-cpi-generator",
-]
-
-[[package]]
-name = "typhoon-definitions"
-version = "0.1.0"
-dependencies = [
- "pinocchio",
 ]
 
 [[package]]
@@ -1662,9 +1655,16 @@ dependencies = [
  "pinocchio-associated-token-account",
  "pinocchio-token",
  "typhoon-accounts",
- "typhoon-definitions",
  "typhoon-errors",
+ "typhoon-traits",
  "typhoon-utility",
+]
+
+[[package]]
+name = "typhoon-traits"
+version = "0.1.0"
+dependencies = [
+ "pinocchio",
 ]
 
 [[package]]
@@ -1685,8 +1685,8 @@ dependencies = [
  "pinocchio",
  "pinocchio-system",
  "typhoon-accounts",
- "typhoon-definitions",
  "typhoon-errors",
+ "typhoon-traits",
  "typhoon-utility",
 ]
 

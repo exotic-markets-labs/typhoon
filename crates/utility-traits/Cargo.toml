@@ -9,9 +9,9 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-pinocchio.workspace = true
 pinocchio-system.workspace = true
+pinocchio.workspace = true
 typhoon-accounts.workspace = true
-typhoon-definitions.workspace = true
 typhoon-errors.workspace = true
+typhoon-traits.workspace = true
 typhoon-utility.workspace = true

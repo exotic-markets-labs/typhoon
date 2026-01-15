@@ -11,10 +11,10 @@ rust-version.workspace = true
 
 [dependencies]
 five8_const.workspace = true
-pinocchio.workspace = true
-pinocchio-token = { workspace = true }
 pinocchio-associated-token-account = { workspace = true }
+pinocchio-token = { workspace = true }
+pinocchio.workspace = true
 typhoon-accounts.workspace = true
-typhoon-definitions.workspace = true
 typhoon-errors.workspace = true
+typhoon-traits.workspace = true
 typhoon-utility.workspace = true

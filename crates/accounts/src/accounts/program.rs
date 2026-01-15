@@ -7,8 +7,8 @@ use {
         program_error::ProgramError,
         pubkey::pubkey_eq,
     },
-    typhoon_definitions::ProgramId,
     typhoon_errors::Error,
+    typhoon_traits::ProgramId,
 };
 
 ///

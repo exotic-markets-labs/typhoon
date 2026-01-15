@@ -5,8 +5,8 @@ use {
         account_info::{AccountInfo, Ref},
         program_error::ProgramError,
     },
-    typhoon_definitions::ProgramIds,
     typhoon_errors::Error,
+    typhoon_traits::ProgramIds,
 };
 
 pub struct Interface<'a, T> {

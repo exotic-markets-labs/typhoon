@@ -9,8 +9,8 @@ use {
         hint::unlikely,
         program_error::ProgramError,
     },
-    typhoon_definitions::Owners,
     typhoon_errors::{Error, ErrorCode},
+    typhoon_traits::Owners,
 };
 
 pub struct InterfaceAccount<'a, T>

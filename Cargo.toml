@@ -52,7 +52,7 @@ typhoon-accounts = { version = "0.1.0", path = "crates/accounts" }
 typhoon-context = { version = "0.1.0", path = "crates/context" }
 typhoon-context-macro = { version = "0.1.0", path = "crates/context-macro" }
 typhoon-cpi-generator = { version = "0.1.0", path = "crates/cpi-generator" }
-typhoon-definitions = { version = "0.1.0", path = "crates/definitions" }
+typhoon-traits = { version = "0.1.0", path = "crates/traits" }
 typhoon-cpi-generator-macro = { version = "0.1.0", path = "crates/cpi-generator-macro" }
 typhoon-discriminator = { version = "0.1.0", path = "crates/discriminator" }
 typhoon-errors = { version = "0.1.0", path = "crates/errors" }

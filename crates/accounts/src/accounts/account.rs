@@ -7,8 +7,8 @@ use {
         program_error::ProgramError,
         pubkey::pubkey_eq,
     },
-    typhoon_definitions::{Discriminator, Owner},
     typhoon_errors::{Error, ErrorCode},
+    typhoon_traits::{Discriminator, Owner},
 };
 
 pub struct Account<'a, T>

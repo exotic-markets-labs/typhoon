@@ -1,5 +1,5 @@
 [package]
-name = "typhoon-definitions"
+name = "typhoon-traits"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

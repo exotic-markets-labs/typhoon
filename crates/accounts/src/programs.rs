@@ -1,4 +1,4 @@
-use {pinocchio::pubkey::Pubkey, typhoon_definitions::ProgramId};
+use {pinocchio::pubkey::Pubkey, typhoon_traits::ProgramId};
 
 pub struct System;
 

@@ -17,5 +17,5 @@ bytemuck.workspace = true
 paste.workspace = true
 pinocchio.workspace = true
 typhoon-accounts.workspace = true
-typhoon-definitions.workspace = true
 typhoon-errors.workspace = true
+typhoon-traits.workspace = true

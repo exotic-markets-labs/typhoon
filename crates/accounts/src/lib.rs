@@ -7,8 +7,8 @@ use {
         account_info::{AccountInfo, Ref, RefMut},
         pubkey::Pubkey,
     },
-    typhoon_definitions::Discriminator,
     typhoon_errors::Error,
+    typhoon_traits::Discriminator,
 };
 
 mod accounts;

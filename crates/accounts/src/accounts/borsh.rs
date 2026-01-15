@@ -8,8 +8,8 @@ use {
     pinocchio::{
         account_info::AccountInfo, hint::unlikely, program_error::ProgramError, pubkey::pubkey_eq,
     },
-    typhoon_definitions::Owner,
     typhoon_errors::{Error, ErrorCode},
+    typhoon_traits::Owner,
 };
 
 pub struct BorshAccount<'a, T>

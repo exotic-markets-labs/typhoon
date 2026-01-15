@@ -22,6 +22,7 @@ done
 CRATES=(
     "syn"
     "errors"
+    "traits"
     "accounts"
     "utility"
     "utility-traits"

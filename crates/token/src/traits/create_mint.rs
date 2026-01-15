@@ -9,8 +9,8 @@ use {
         Account, FromAccountInfo, InterfaceAccount, Mut, ReadableAccount, Signer, SignerCheck,
         SystemAccount, UncheckedAccount, WritableAccount,
     },
-    typhoon_definitions::ProgramId,
     typhoon_errors::Error,
+    typhoon_traits::ProgramId,
     typhoon_utility::create_or_assign,
 };
 

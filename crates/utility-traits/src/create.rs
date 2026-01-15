@@ -4,8 +4,8 @@ use {
         Account, FromRaw, Mut, ReadableAccount, RefFromBytes, Signer, SignerCheck, SystemAccount,
         UncheckedAccount, WritableAccount,
     },
-    typhoon_definitions::Discriminator,
     typhoon_errors::Error,
+    typhoon_traits::Discriminator,
     typhoon_utility::create_or_assign,
 };
 

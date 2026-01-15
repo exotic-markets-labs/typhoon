@@ -1,4 +1,4 @@
-use {pinocchio::account_info::AccountInfo, typhoon_definitions::Discriminator};
+use {pinocchio::account_info::AccountInfo, typhoon_traits::Discriminator};
 
 /// Discriminator matching with length-optimized comparison strategies.
 /// Uses different comparison methods based on discriminator length:
