@@ -6,9 +6,10 @@ use {
     },
     pinocchio_token::instructions::InitializeMint2,
     typhoon_accounts::{
-        Account, FromAccountInfo, InterfaceAccount, Mut, ProgramId, ReadableAccount, Signer,
-        SignerCheck, SystemAccount, UncheckedAccount, WritableAccount,
+        Account, FromAccountInfo, InterfaceAccount, Mut, ReadableAccount, Signer, SignerCheck,
+        SystemAccount, UncheckedAccount, WritableAccount,
     },
+    typhoon_definitions::ProgramId,
     typhoon_errors::Error,
     typhoon_utility::create_or_assign,
 };

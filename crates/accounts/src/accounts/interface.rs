@@ -1,10 +1,11 @@
 use {
-    crate::{FromAccountInfo, ProgramIds, ReadableAccount},
+    crate::{FromAccountInfo, ReadableAccount},
     core::marker::PhantomData,
     pinocchio::{
         account_info::{AccountInfo, Ref},
         program_error::ProgramError,
     },
+    typhoon_definitions::ProgramIds,
     typhoon_errors::Error,
 };
 

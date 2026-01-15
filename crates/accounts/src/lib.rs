@@ -7,7 +7,7 @@ use {
         account_info::{AccountInfo, Ref, RefMut},
         pubkey::Pubkey,
     },
-    sealed::Sealed,
+    typhoon_definitions::Discriminator,
     typhoon_errors::Error,
 };
 
@@ -45,7 +45,7 @@ pub trait ReadableAccount: AsRef<AccountInfo> {
     fn data_unchecked(&self) -> Result<&Self::DataUnchecked, Error>;
 }
 
-pub trait WritableAccount: ReadableAccount + Sealed {
+pub trait WritableAccount: ReadableAccount {
     type DataMut<'a>
     where
         Self: 'a;
@@ -70,45 +70,7 @@ pub trait WritableAccount: ReadableAccount + Sealed {
     fn mut_data<'a>(&'a self) -> Result<Self::DataMut<'a>, Error>;
 }
 
-pub trait SignerAccount: ReadableAccount + Sealed {}
-
-mod sealed {
-    use {
-        super::{Mut, ReadableAccount, Signer},
-        crate::SignerCheck,
-        pinocchio::account_info::AccountInfo,
-    };
-
-    pub trait Sealed {}
-
-    impl<T> Sealed for Mut<T> where T: ReadableAccount + AsRef<AccountInfo> {}
-    impl<T, C> Sealed for Signer<'_, T, C>
-    where
-        T: ReadableAccount,
-        C: SignerCheck,
-    {
-    }
-}
-
-pub trait ProgramId {
-    const ID: Pubkey;
-}
-
-pub trait ProgramIds {
-    const IDS: &'static [Pubkey];
-}
-
-pub trait Owner {
-    const OWNER: Pubkey;
-}
-
-pub trait Owners {
-    const OWNERS: &'static [Pubkey];
-}
-
-pub trait Discriminator {
-    const DISCRIMINATOR: &'static [u8];
-}
+pub trait SignerAccount: ReadableAccount {}
 
 pub trait RefFromBytes {
     fn read(data: &[u8]) -> Option<&Self>;

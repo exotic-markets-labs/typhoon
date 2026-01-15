@@ -1,8 +1,5 @@
 use {
-    crate::{
-        discriminator_matches, Discriminator, FromAccountInfo, FromRaw, Owner, ReadableAccount,
-        RefFromBytes,
-    },
+    crate::{discriminator_matches, FromAccountInfo, FromRaw, ReadableAccount, RefFromBytes},
     core::marker::PhantomData,
     pinocchio::{
         account_info::{AccountInfo, Ref},
@@ -10,6 +7,7 @@ use {
         program_error::ProgramError,
         pubkey::pubkey_eq,
     },
+    typhoon_definitions::{Discriminator, Owner},
     typhoon_errors::{Error, ErrorCode},
 };
 

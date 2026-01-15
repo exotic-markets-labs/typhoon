@@ -9,7 +9,8 @@ use {
         state::{Mint as SplMint, TokenAccount as SplTokenAccount},
         ID as TOKEN_PROGRAM_ID,
     },
-    typhoon_accounts::{Discriminator, Owner, Owners, ProgramId, ProgramIds, RefFromBytes},
+    typhoon_accounts::RefFromBytes,
+    typhoon_definitions::{Discriminator, Owner, Owners, ProgramId, ProgramIds},
 };
 
 mod traits;

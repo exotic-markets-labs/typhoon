@@ -1,6 +1,6 @@
 use {
     crate::{
-        discriminator_matches, Discriminator, FromAccountInfo, FromRaw, Owners, ReadableAccount,
+        discriminator_matches, Discriminator, FromAccountInfo, FromRaw, ReadableAccount,
         RefFromBytes,
     },
     core::marker::PhantomData,
@@ -9,6 +9,7 @@ use {
         hint::unlikely,
         program_error::ProgramError,
     },
+    typhoon_definitions::Owners,
     typhoon_errors::{Error, ErrorCode},
 };
 
