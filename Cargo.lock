@@ -1454,6 +1454,7 @@ dependencies = [
  "typhoon-errors",
  "typhoon-errors-macro",
  "typhoon-program-id-macro",
+ "typhoon-traits",
  "typhoon-utility",
  "typhoon-utility-traits",
 ]
@@ -1468,8 +1469,8 @@ dependencies = [
  "quote",
  "syn",
  "trybuild",
- "typhoon-accounts",
  "typhoon-discriminator",
+ "typhoon-traits",
 ]
 
 [[package]]
@@ -1481,6 +1482,7 @@ dependencies = [
  "pinocchio",
  "pinocchio-system",
  "typhoon-errors",
+ "typhoon-traits",
 ]
 
 [[package]]
@@ -1509,6 +1511,7 @@ dependencies = [
  "pinocchio",
  "typhoon-accounts",
  "typhoon-errors",
+ "typhoon-traits",
 ]
 
 [[package]]
@@ -1530,6 +1533,7 @@ dependencies = [
  "typhoon-program-id-macro",
  "typhoon-syn",
  "typhoon-token",
+ "typhoon-traits",
  "typhoon-utility-traits",
 ]
 
@@ -1654,7 +1658,15 @@ dependencies = [
  "pinocchio-token",
  "typhoon-accounts",
  "typhoon-errors",
+ "typhoon-traits",
  "typhoon-utility",
+]
+
+[[package]]
+name = "typhoon-traits"
+version = "0.1.0"
+dependencies = [
+ "pinocchio",
 ]
 
 [[package]]
@@ -1676,6 +1688,7 @@ dependencies = [
  "pinocchio-system",
  "typhoon-accounts",
  "typhoon-errors",
+ "typhoon-traits",
  "typhoon-utility",
 ]
 

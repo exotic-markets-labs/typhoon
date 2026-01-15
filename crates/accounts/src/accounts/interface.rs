@@ -1,11 +1,12 @@
 use {
-    crate::{FromAccountInfo, ProgramIds, ReadableAccount},
+    crate::{FromAccountInfo, ReadableAccount},
     core::marker::PhantomData,
     pinocchio::{
         account_info::{AccountInfo, Ref},
         program_error::ProgramError,
     },
     typhoon_errors::Error,
+    typhoon_traits::ProgramIds,
 };
 
 pub struct Interface<'a, T> {

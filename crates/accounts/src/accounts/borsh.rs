@@ -1,7 +1,7 @@
 use {
     super::Mut,
     crate::{
-        discriminator_matches, Discriminator, FromAccountInfo, Owner, ReadableAccount, Signer,
+        discriminator_matches, Discriminator, FromAccountInfo, ReadableAccount, Signer,
         WritableAccount,
     },
     core::cell::RefCell,
@@ -9,6 +9,7 @@ use {
         account_info::AccountInfo, hint::unlikely, program_error::ProgramError, pubkey::pubkey_eq,
     },
     typhoon_errors::{Error, ErrorCode},
+    typhoon_traits::Owner,
 };
 
 pub struct BorshAccount<'a, T>

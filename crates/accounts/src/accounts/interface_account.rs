@@ -1,6 +1,6 @@
 use {
     crate::{
-        discriminator_matches, Discriminator, FromAccountInfo, FromRaw, Owners, ReadableAccount,
+        discriminator_matches, Discriminator, FromAccountInfo, FromRaw, ReadableAccount,
         RefFromBytes,
     },
     core::marker::PhantomData,
@@ -10,6 +10,7 @@ use {
         program_error::ProgramError,
     },
     typhoon_errors::{Error, ErrorCode},
+    typhoon_traits::Owners,
 };
 
 pub struct InterfaceAccount<'a, T>

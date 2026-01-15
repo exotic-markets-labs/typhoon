@@ -7,10 +7,11 @@ use {
     pinocchio_associated_token_account::instructions::{Create, CreateIdempotent},
     pinocchio_token::instructions::InitializeAccount3,
     typhoon_accounts::{
-        Account, FromAccountInfo, FromRaw, InterfaceAccount, Mut, ProgramId, ReadableAccount,
-        Signer, SignerCheck, SystemAccount, UncheckedAccount, WritableAccount,
+        Account, FromAccountInfo, FromRaw, InterfaceAccount, Mut, ReadableAccount, Signer,
+        SignerCheck, SystemAccount, UncheckedAccount, WritableAccount,
     },
     typhoon_errors::Error,
+    typhoon_traits::ProgramId,
     typhoon_utility::create_or_assign,
 };
 

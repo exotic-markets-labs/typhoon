@@ -1,10 +1,11 @@
 use {
     pinocchio::{account_info::AccountInfo, instruction, pubkey::Pubkey, sysvars::rent::Rent},
     typhoon_accounts::{
-        Account, Discriminator, FromRaw, Mut, ReadableAccount, RefFromBytes, Signer, SignerCheck,
-        SystemAccount, UncheckedAccount, WritableAccount,
+        Account, FromRaw, Mut, ReadableAccount, RefFromBytes, Signer, SignerCheck, SystemAccount,
+        UncheckedAccount, WritableAccount,
     },
     typhoon_errors::Error,
+    typhoon_traits::Discriminator,
     typhoon_utility::create_or_assign,
 };
 

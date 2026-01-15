@@ -14,6 +14,7 @@ borsh = ["dep:borsh"]
 [dependencies]
 borsh = { workspace = true, optional = true }
 bytemuck.workspace = true
-typhoon-errors.workspace = true
-pinocchio.workspace = true
 pinocchio-system.workspace = true
+pinocchio.workspace = true
+typhoon-errors.workspace = true
+typhoon-traits.workspace = true

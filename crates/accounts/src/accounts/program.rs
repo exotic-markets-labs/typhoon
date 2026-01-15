@@ -1,5 +1,5 @@
 use {
-    crate::{FromAccountInfo, ProgramId, ReadableAccount},
+    crate::{FromAccountInfo, ReadableAccount},
     core::marker::PhantomData,
     pinocchio::{
         account_info::{AccountInfo, Ref},
@@ -8,6 +8,7 @@ use {
         pubkey::pubkey_eq,
     },
     typhoon_errors::Error,
+    typhoon_traits::ProgramId,
 };
 
 ///

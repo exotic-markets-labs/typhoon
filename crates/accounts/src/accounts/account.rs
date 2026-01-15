@@ -1,8 +1,5 @@
 use {
-    crate::{
-        discriminator_matches, Discriminator, FromAccountInfo, FromRaw, Owner, ReadableAccount,
-        RefFromBytes,
-    },
+    crate::{discriminator_matches, FromAccountInfo, FromRaw, ReadableAccount, RefFromBytes},
     core::marker::PhantomData,
     pinocchio::{
         account_info::{AccountInfo, Ref},
@@ -11,6 +8,7 @@ use {
         pubkey::pubkey_eq,
     },
     typhoon_errors::{Error, ErrorCode},
+    typhoon_traits::{Discriminator, Owner},
 };
 
 pub struct Account<'a, T>
