@@ -1,3 +1,5 @@
+#![no_std]
+
 use pinocchio::pubkey::Pubkey;
 
 pub trait ProgramId {

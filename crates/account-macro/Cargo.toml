@@ -21,4 +21,4 @@ typhoon-discriminator.workspace = true
 bytemuck = { workspace = true, features = ["derive"] }
 pinocchio.workspace = true
 trybuild.workspace = true
-typhoon-accounts.workspace = true
+typhoon-traits.workspace = true

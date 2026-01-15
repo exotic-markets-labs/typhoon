@@ -2,7 +2,7 @@ use {
     bytemuck::{AnyBitPattern, NoUninit},
     pinocchio::{instruction, pubkey::Pubkey, seeds},
     typhoon_account_macro::*,
-    typhoon_accounts::{Discriminator, Owner},
+    typhoon_traits::{Discriminator, Owner},
 };
 
 pub const ID: Pubkey = [

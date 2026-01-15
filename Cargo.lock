@@ -1454,6 +1454,7 @@ dependencies = [
  "typhoon-errors",
  "typhoon-errors-macro",
  "typhoon-program-id-macro",
+ "typhoon-traits",
  "typhoon-utility",
  "typhoon-utility-traits",
 ]
@@ -1468,8 +1469,8 @@ dependencies = [
  "quote",
  "syn",
  "trybuild",
- "typhoon-accounts",
  "typhoon-discriminator",
+ "typhoon-traits",
 ]
 
 [[package]]
