@@ -19,6 +19,7 @@ use {
     typhoon_errors::*,
     typhoon_program_id_macro::program_id,
     typhoon_token::{Mint, TokenAccount},
+    typhoon_traits::*,
     typhoon_utility_traits::CreateAccountCpi,
 };
 

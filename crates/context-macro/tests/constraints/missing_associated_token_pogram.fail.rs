@@ -3,9 +3,9 @@ use {
     pinocchio::pubkey::Pubkey,
     pinocchio_pubkey::declare_id,
     typhoon_account_macro::*,
-    typhoon_accounts::*,
     typhoon_context_macro::*,
     typhoon_program_id_macro::program_id,
+    typhoon_traits::*,
 };
 
 program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");

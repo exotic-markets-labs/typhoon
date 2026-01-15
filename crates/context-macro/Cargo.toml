@@ -20,13 +20,14 @@ typhoon-syn.workspace = true
 
 [dev-dependencies]
 bytemuck = { workspace = true, features = ["derive"] }
-pinocchio.workspace = true
 pinocchio-pubkey.workspace = true
+pinocchio.workspace = true
 trybuild.workspace = true
 typhoon-account-macro.workspace = true
 typhoon-accounts.workspace = true
 typhoon-context.workspace = true
 typhoon-errors.workspace = true
 typhoon-program-id-macro.workspace = true
-typhoon-utility-traits.workspace = true
 typhoon-token.workspace = true
+typhoon-traits.workspace = true
+typhoon-utility-traits.workspace = true
