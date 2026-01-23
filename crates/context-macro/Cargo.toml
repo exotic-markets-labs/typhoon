@@ -20,8 +20,8 @@ typhoon-syn.workspace = true
 
 [dev-dependencies]
 bytemuck = { workspace = true, features = ["derive"] }
-pinocchio-pubkey.workspace = true
 pinocchio.workspace = true
+solana-address = { workspace = true, features = ["bytemuck", "copy"] }
 trybuild.workspace = true
 typhoon-account-macro.workspace = true
 typhoon-accounts.workspace = true
@@ -31,3 +31,6 @@ typhoon-program-id-macro.workspace = true
 typhoon-token.workspace = true
 typhoon-traits.workspace = true
 typhoon-utility-traits.workspace = true
+
+[target.'cfg(not(any(target_os = "solana", target_arch = "bpf")))'.dev-dependencies]
+solana-address = { workspace = true, features = ["curve25519"] }

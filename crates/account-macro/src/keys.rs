@@ -17,7 +17,7 @@ impl PrimaryKey {
             Type::Path(path) => {
                 if let Some(ident) = path.path.get_ident() {
                     match ident.to_string().as_str() {
-                        "Pubkey" => quote! { #name.as_ref() },
+                        "Address" => quote! { #name.as_ref() },
                         "u64" | "u32" | "u16" | "u8" => quote! { #name.to_le_bytes().as_ref() },
                         _ => syn::Error::new(self.name.span(), "This type cannot be used as a key")
                             .to_compile_error(),
@@ -79,11 +79,11 @@ impl PrimaryKeys {
                     [Self::BASE_SEED, #seeds, bump]
                 }
 
-                pub fn signer_seeds_with_bump<'a>(&'a self, bump: &'a [u8]) -> [instruction::Seed<'a>; #n_seeds_with_bump] {
+                pub fn signer_seeds_with_bump<'a>(&'a self, bump: &'a [u8]) -> [Seed<'a>; #n_seeds_with_bump] {
                     seeds!(Self::BASE_SEED, #self_seeds, bump)
                 }
 
-                pub fn derive_signer_seeds_with_bump<'a>(#parameters_list_with_lifetime, bump: &'a [u8]) -> [instruction::Seed<'a>; #n_seeds_with_bump] {
+                pub fn derive_signer_seeds_with_bump<'a>(#parameters_list_with_lifetime, bump: &'a [u8]) -> [Seed<'a>; #n_seeds_with_bump] {
                     seeds!(Self::BASE_SEED, #seeds, bump)
                 }
             }

@@ -1,15 +1,16 @@
 use {
     escrow_interface::{MakeArgs, MakeContext, MakeInstruction, TakeContext, TakeInstruction},
     litesvm::LiteSVM,
-    litesvm_token::{spl_token::solana_program::pubkey::Pubkey, CreateMint, MintTo, TOKEN_ID},
+    litesvm_token::{CreateMint, MintTo, TOKEN_ID},
     solana_keypair::Keypair,
     solana_native_token::LAMPORTS_PER_SOL,
     solana_signer::Signer,
     solana_transaction::Transaction,
-    spl_associated_token_account_client::{
+    spl_associated_token_account_interface::{
         address::get_associated_token_address, instruction::create_associated_token_account,
     },
     std::path::PathBuf,
+    typhoon::prelude::Address,
 };
 
 fn read_program(name: &str) -> Vec<u8> {
@@ -62,11 +63,9 @@ fn integration() {
         .send()
         .unwrap();
 
-    let escrow = Pubkey::find_program_address(
-        &[b"escrow", maker_pk.as_ref(), &[0]],
-        &escrow_interface::ID.into(),
-    )
-    .0;
+    let escrow =
+        Address::find_program_address(&[b"escrow", maker_pk.as_ref(), &[0]], &escrow_interface::ID)
+            .0;
 
     let ix = MakeInstruction {
         ctx: MakeContext {
@@ -76,9 +75,9 @@ fn integration() {
             mint_b,
             maker_ata_a,
             vault: get_associated_token_address(&escrow, &mint_a),
-            ata_program: spl_associated_token_account_client::program::ID,
+            ata_program: spl_associated_token_account_interface::program::ID,
             token_program: TOKEN_ID,
-            system_program: Pubkey::default(),
+            system_program: Address::default(),
             args: MakeArgs {
                 amount: 1000,
                 receive: 500,
@@ -92,7 +91,7 @@ fn integration() {
     let tx = Transaction::new_signed_with_payer(&[ix], Some(&maker_pk), &[&maker], hash);
     svm.send_transaction(tx).unwrap();
 
-    let ix: litesvm_token::spl_token::solana_program::instruction::Instruction = TakeInstruction {
+    let ix = TakeInstruction {
         ctx: TakeContext {
             taker: taker_pk,
             maker: maker_pk,
@@ -103,9 +102,9 @@ fn integration() {
             taker_ata_a: get_associated_token_address(&taker_pk, &mint_a),
             taker_ata_b,
             maker_ata_b: get_associated_token_address(&maker_pk, &mint_b),
-            ata_program: spl_associated_token_account_client::program::ID,
+            ata_program: spl_associated_token_account_interface::program::ID,
             token_program: TOKEN_ID,
-            system_program: Pubkey::default(),
+            system_program: Address::default(),
         },
     }
     .into_instruction();

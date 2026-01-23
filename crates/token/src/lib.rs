@@ -2,13 +2,12 @@
 
 use {
     core::{mem::transmute, ops::Deref},
-    five8_const::decode_32_const,
-    pinocchio::pubkey::{find_program_address, Pubkey},
     pinocchio_associated_token_account::ID as ATA_PROGRAM_ID,
     pinocchio_token::{
         state::{Mint as SplMint, TokenAccount as SplTokenAccount},
         ID as TOKEN_PROGRAM_ID,
     },
+    solana_address::Address,
     typhoon_accounts::RefFromBytes,
     typhoon_traits::{Discriminator, Owner, Owners, ProgramId, ProgramIds},
 };
@@ -20,23 +19,23 @@ pub use {
     pinocchio_token::instructions as spl_instructions, traits::*,
 };
 
-const TOKEN_2022_PROGRAM_ID: Pubkey =
-    decode_32_const("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb");
+const TOKEN_2022_PROGRAM_ID: Address =
+    Address::from_str_const("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb");
 
 pub struct AtaTokenProgram;
 
 impl ProgramId for AtaTokenProgram {
-    const ID: Pubkey = ATA_PROGRAM_ID;
+    const ID: Address = ATA_PROGRAM_ID;
 }
 
 pub struct TokenProgram;
 
 impl ProgramId for TokenProgram {
-    const ID: Pubkey = TOKEN_PROGRAM_ID;
+    const ID: Address = TOKEN_PROGRAM_ID;
 }
 
 impl ProgramIds for TokenProgram {
-    const IDS: &'static [Pubkey] = &[TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID];
+    const IDS: &'static [Address] = &[TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID];
 }
 
 #[repr(transparent)]
@@ -61,11 +60,11 @@ impl Discriminator for Mint {
 }
 
 impl Owner for Mint {
-    const OWNER: Pubkey = TOKEN_PROGRAM_ID;
+    const OWNER: Address = TOKEN_PROGRAM_ID;
 }
 
 impl Owners for Mint {
-    const OWNERS: &'static [Pubkey] = &[TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID];
+    const OWNERS: &'static [Address] = &[TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID];
 }
 
 impl Deref for Mint {
@@ -102,11 +101,11 @@ impl Discriminator for TokenAccount {
 }
 
 impl Owner for TokenAccount {
-    const OWNER: Pubkey = TOKEN_PROGRAM_ID;
+    const OWNER: Address = TOKEN_PROGRAM_ID;
 }
 
 impl Owners for TokenAccount {
-    const OWNERS: &'static [Pubkey] = &[TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID];
+    const OWNERS: &'static [Address] = &[TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID];
 }
 
 impl Deref for TokenAccount {
@@ -117,8 +116,8 @@ impl Deref for TokenAccount {
     }
 }
 
-pub fn find_associated_token_address(mint: &Pubkey, owner: &Pubkey) -> Pubkey {
-    find_program_address(
+pub fn find_associated_token_address(mint: &Address, owner: &Address) -> Address {
+    Address::find_program_address(
         &[owner.as_ref(), TOKEN_PROGRAM_ID.as_ref(), mint.as_ref()],
         &ATA_PROGRAM_ID,
     )

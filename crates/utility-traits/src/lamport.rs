@@ -1,5 +1,5 @@
 use {
-    pinocchio::program_error::ProgramError,
+    pinocchio::error::ProgramError,
     typhoon_accounts::{
         Mut, Signer, SignerAccount, SignerCheck, SystemAccount, UncheckedAccount, WritableAccount,
     },
@@ -9,31 +9,34 @@ use {
 pub trait LamportsChecked: WritableAccount + SignerAccount {
     #[inline(always)]
     fn send(&self, to: &impl WritableAccount, amount: u64) -> Result<(), Error> {
-        let mut payer_lamports = self.mut_lamports()?;
-        let mut recipient_lamports = to.mut_lamports()?;
+        let payer_lamports = self.lamports();
+        let recipient_lamports = to.lamports();
 
-        *payer_lamports = payer_lamports
-            .checked_sub(amount)
-            .ok_or(ProgramError::ArithmeticOverflow)?;
-        *recipient_lamports = recipient_lamports
-            .checked_add(amount)
-            .ok_or(ProgramError::ArithmeticOverflow)?;
+        self.set_lamports(
+            payer_lamports
+                .checked_sub(amount)
+                .ok_or(ProgramError::ArithmeticOverflow)?,
+        );
+        to.set_lamports(
+            recipient_lamports
+                .checked_add(amount)
+                .ok_or(ProgramError::ArithmeticOverflow)?,
+        );
 
         Ok(())
     }
 
     #[inline(always)]
     fn send_all(&self, to: &impl WritableAccount) -> Result<(), Error> {
-        let amount = *self.lamports()?;
-        let mut payer_lamports = self.mut_lamports()?;
-        let mut recipient_lamports = to.mut_lamports()?;
+        let amount = self.lamports();
+        let recipient_lamports = to.lamports();
 
-        *payer_lamports = payer_lamports
-            .checked_sub(amount)
-            .ok_or(ProgramError::ArithmeticOverflow)?;
-        *recipient_lamports = recipient_lamports
-            .checked_add(amount)
-            .ok_or(ProgramError::ArithmeticOverflow)?;
+        self.set_lamports(0);
+        to.set_lamports(
+            recipient_lamports
+                .checked_add(amount)
+                .ok_or(ProgramError::ArithmeticOverflow)?,
+        );
 
         Ok(())
     }

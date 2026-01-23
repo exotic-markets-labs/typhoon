@@ -14,7 +14,9 @@ borsh = ["dep:borsh"]
 [dependencies]
 borsh = { workspace = true, optional = true }
 bytemuck.workspace = true
-pinocchio-system.workspace = true
 pinocchio.workspace = true
+solana-account-view.workspace = true
+solana-address.workspace = true
+solana-program-error.workspace = true
 typhoon-errors.workspace = true
 typhoon-traits.workspace = true

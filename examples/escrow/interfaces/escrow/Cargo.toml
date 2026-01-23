@@ -7,20 +7,15 @@ edition.workspace = true
 crate-type = ["rlib"]
 
 [features]
-client = [
-    "std",
-    "dep:typhoon-instruction-builder",
-    "dep:solana-pubkey",
-    "dep:solana-instruction",
-]
+client = ["std", "dep:typhoon-instruction-builder", "dep:solana-instruction"]
 std = []
 
 [dependencies]
 bytemuck = { workspace = true, features = ["derive"] }
+solana-address = { workspace = true, features = ["bytemuck"] }
+solana-instruction = { workspace = true, optional = true }
 typhoon.workspace = true
 typhoon-instruction-builder = { workspace = true, optional = true }
-solana-pubkey = { workspace = true, optional = true }
-solana-instruction = { workspace = true, optional = true }
 
 [package.metadata.typhoon.builder-dependencies]
 escrow = { path = "../../programs/escrow" }

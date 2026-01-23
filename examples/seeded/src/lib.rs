@@ -18,7 +18,7 @@ pub const ROUTER: EntryFn = basic_router! {
 };
 
 #[context]
-#[args(admin: Pubkey, bump: u8)]
+#[args(admin: Address, bump: u8)]
 pub struct Init {
     pub payer: Mut<Signer>,
     #[constraint(
@@ -61,7 +61,7 @@ pub fn increment(ctx: Increment) -> ProgramResult {
 #[no_space]
 pub struct Counter {
     #[key]
-    pub admin: Pubkey,
+    pub admin: Address,
     pub bump: u8,
     _padding: [u8; 7],
     pub count: u64,

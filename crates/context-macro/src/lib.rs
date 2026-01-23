@@ -130,8 +130,8 @@ impl ToTokens for TokenGenerator {
             impl #impl_generics HandlerContext<'_, 'info, 'c> for #name #ty_generics #where_clause {
                 #[inline(always)]
                 fn from_entrypoint(
-                    program_id: &Pubkey,
-                    accounts: &mut &'info [AccountInfo],
+                    program_id: &Address,
+                    accounts: &mut &'info [AccountView],
                     instruction_data: &mut &'c [u8],
                 ) -> ProgramResult<Self> {
                     let [#(#name_list,)* rem @ ..] = accounts else {

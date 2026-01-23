@@ -1,17 +1,14 @@
-mod instruction {
-    pub use pinocchio::instruction::{Seed, Signer as CpiSigner};
-}
-
 use {
     bytemuck::{AnyBitPattern, NoUninit},
     pinocchio::{
-        account_info::AccountInfo,
-        program_error::ProgramError,
-        pubkey::{Pubkey, *},
-        seeds,
+        address::{self, declare_id, Address},
+        cpi::{Seed, Signer as CpiSigner},
+        error::ProgramError,
+        hint,
+        instruction::seeds,
         sysvars::{rent::Rent, Sysvar},
+        AccountView,
     },
-    pinocchio_pubkey::declare_id,
     typhoon_account_macro::*,
     typhoon_accounts::*,
     typhoon_context::*,
@@ -37,7 +34,7 @@ pub struct Counter {
 #[repr(C)]
 pub struct CounterData {
     #[key]
-    pub payer: Pubkey,
+    pub payer: Address,
     pub bump: u8,
 }
 
@@ -53,7 +50,7 @@ pub struct InitContext {
     #[constraint(
         init_if_needed,
         payer = payer,
-        seeded = [payer.key()],
+        seeded = [payer.address()],
         bump = counter_data.data()?.bump,
         has_one = payer
     )]

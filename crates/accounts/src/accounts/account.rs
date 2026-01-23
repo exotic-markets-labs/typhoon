@@ -1,21 +1,21 @@
 use {
-    crate::{discriminator_matches, FromAccountInfo, FromRaw, ReadableAccount, RefFromBytes},
-    core::marker::PhantomData,
-    pinocchio::{
-        account_info::{AccountInfo, Ref},
-        hint::unlikely,
-        program_error::ProgramError,
-        pubkey::pubkey_eq,
+    crate::{
+        discriminator_matches, FromAccountInfo, FromRaw, ReadableAccount, RefFromBytes, System,
     },
+    core::marker::PhantomData,
+    pinocchio::hint::unlikely,
+    solana_account_view::{AccountView, Ref},
+    solana_address::address_eq,
+    solana_program_error::ProgramError,
     typhoon_errors::{Error, ErrorCode},
-    typhoon_traits::{Discriminator, Owner},
+    typhoon_traits::{Discriminator, Owner, ProgramId},
 };
 
 pub struct Account<'a, T>
 where
     T: Discriminator + RefFromBytes,
 {
-    pub(crate) info: &'a AccountInfo,
+    pub(crate) info: &'a AccountView,
     pub(crate) _phantom: PhantomData<T>,
 }
 
@@ -24,7 +24,7 @@ where
     T: Owner + Discriminator + RefFromBytes,
 {
     #[inline(always)]
-    fn try_from_info(info: &'a AccountInfo) -> Result<Self, Error> {
+    fn try_from_info(info: &'a AccountView) -> Result<Self, Error> {
         // Check data length first - this is the cheapest check and most likely to fail
         if unlikely(info.data_len() < T::DISCRIMINATOR.len()) {
             return Err(ProgramError::AccountDataTooSmall.into());
@@ -35,15 +35,17 @@ where
             return Err(ErrorCode::AccountDiscriminatorMismatch.into());
         }
 
+        let owner = unsafe { info.owner() };
+
         // Verify account ownership - checked after discriminator for better branch prediction
-        if unlikely(!pubkey_eq(info.owner(), &T::OWNER)) {
+        if unlikely(!address_eq(owner, &T::OWNER)) {
             return Err(ProgramError::InvalidAccountOwner.into());
         }
 
         // Handle special case: zero-lamport system accounts (least common case)
-        if unlikely(pubkey_eq(info.owner(), &pinocchio_system::ID)) {
+        if unlikely(address_eq(owner, &System::ID)) {
             // Only perform additional lamports check for system accounts
-            if *info.try_borrow_lamports()? == 0 {
+            if info.lamports() == 0 {
                 return Err(ProgramError::UninitializedAccount.into());
             }
         }
@@ -55,7 +57,7 @@ where
     }
 }
 
-impl<'a, T> From<Account<'a, T>> for &'a AccountInfo
+impl<'a, T> From<Account<'a, T>> for &'a AccountView
 where
     T: Discriminator + RefFromBytes,
 {
@@ -65,12 +67,12 @@ where
     }
 }
 
-impl<T> AsRef<AccountInfo> for Account<'_, T>
+impl<T> AsRef<AccountView> for Account<'_, T>
 where
     T: Discriminator + RefFromBytes,
 {
     #[inline(always)]
-    fn as_ref(&self) -> &AccountInfo {
+    fn as_ref(&self) -> &AccountView {
         self.info
     }
 }
@@ -87,7 +89,7 @@ where
 
     #[inline(always)]
     fn data<'a>(&'a self) -> Result<Self::Data<'a>, Error> {
-        Ref::filter_map(self.info.try_borrow_data()?, T::read)
+        Ref::filter_map(self.info.try_borrow()?, T::read)
             .map_err(|_| ProgramError::InvalidAccountData.into())
     }
 
@@ -114,7 +116,7 @@ impl<'a, T> FromRaw<'a> for Account<'a, T>
 where
     T: RefFromBytes + Discriminator,
 {
-    fn from_raw(info: &'a AccountInfo) -> Self {
+    fn from_raw(info: &'a AccountView) -> Self {
         Self {
             info,
             _phantom: PhantomData,

@@ -1,9 +1,6 @@
 use {
     crate::{Mint, TokenProgram},
-    pinocchio::{
-        account_info::AccountInfo, instruction::Signer as CpiSigner, pubkey::Pubkey,
-        sysvars::rent::Rent,
-    },
+    pinocchio::{cpi::Signer as CpiSigner, sysvars::rent::Rent, AccountView, Address},
     pinocchio_token::instructions::InitializeMint2,
     typhoon_accounts::{
         Account, FromAccountInfo, InterfaceAccount, Mut, ReadableAccount, Signer, SignerCheck,
@@ -16,7 +13,7 @@ use {
 
 pub trait SplCreateMint<'a, T: ReadableAccount>
 where
-    Self: Sized + Into<&'a AccountInfo>,
+    Self: Sized + Into<&'a AccountView>,
     T: ReadableAccount + FromAccountInfo<'a>,
 {
     #[inline]
@@ -24,9 +21,9 @@ where
         self,
         rent: &Rent,
         payer: &impl WritableAccount,
-        mint_authority: &Pubkey,
+        mint_authority: &Address,
         decimals: u8,
-        freeze_authority: Option<&Pubkey>,
+        freeze_authority: Option<&Address>,
         seeds: Option<&[CpiSigner]>,
     ) -> Result<Mut<T>, Error> {
         let info = self.into();
@@ -38,7 +35,7 @@ where
             decimals,
             freeze_authority,
         }
-        .invoke_signed(seeds.unwrap_or_default())?;
+        .invoke()?;
 
         Mut::try_from_info(info)
     }
@@ -59,6 +56,6 @@ macro_rules! impl_trait {
     };
 }
 
-impl_trait!(&'a AccountInfo);
+impl_trait!(&'a AccountView);
 impl_trait!(SystemAccount<'a>);
 impl_trait!(UncheckedAccount<'a>);

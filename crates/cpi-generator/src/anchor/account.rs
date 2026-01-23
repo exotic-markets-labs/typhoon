@@ -23,7 +23,7 @@ pub fn gen_accounts(accounts: &[Account], types: &[TypeDef]) -> proc_macro2::Tok
         let discriminator = &account.discriminator;
         let traits_impl = quote! {
             impl Owner for #ident {
-                const OWNER: Pubkey = PROGRAM_ID;
+                const OWNER: Address = PROGRAM_ID;
             }
 
             impl Discriminator for #ident {

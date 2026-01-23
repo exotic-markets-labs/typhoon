@@ -14,11 +14,11 @@ borsh = [
     "typhoon-utility/borsh",
     "typhoon-context/borsh",
 ]
-std = ["pinocchio/std"]
+alloc = ["pinocchio/alloc"]
 
 [dependencies]
 pinocchio.workspace = true
-pinocchio-pubkey.workspace = true
+solana-instruction-view = { workspace = true, features = ["slice-cpi"] }
 typhoon-accounts.workspace = true
 typhoon-account-macro.workspace = true
 typhoon-errors.workspace = true

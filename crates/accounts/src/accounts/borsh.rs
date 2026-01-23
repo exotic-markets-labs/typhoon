@@ -1,22 +1,23 @@
 use {
     super::Mut,
     crate::{
-        discriminator_matches, Discriminator, FromAccountInfo, ReadableAccount, Signer,
+        discriminator_matches, Discriminator, FromAccountInfo, ReadableAccount, Signer, System,
         WritableAccount,
     },
     core::cell::RefCell,
-    pinocchio::{
-        account_info::AccountInfo, hint::unlikely, program_error::ProgramError, pubkey::pubkey_eq,
-    },
+    pinocchio::hint::unlikely,
+    solana_account_view::AccountView,
+    solana_address::address_eq,
+    solana_program_error::ProgramError,
     typhoon_errors::{Error, ErrorCode},
-    typhoon_traits::Owner,
+    typhoon_traits::{Owner, ProgramId},
 };
 
 pub struct BorshAccount<'a, T>
 where
     T: Discriminator,
 {
-    info: &'a AccountInfo,
+    info: &'a AccountView,
     data: RefCell<T>,
 }
 
@@ -25,7 +26,7 @@ where
     T: Owner + Discriminator + borsh::BorshSerialize + borsh::BorshDeserialize,
 {
     #[inline(always)]
-    fn try_from_info(info: &'a AccountInfo) -> Result<Self, Error> {
+    fn try_from_info(info: &'a AccountView) -> Result<Self, Error> {
         // Check data length first - this is the cheapest check and most likely to fail
         if unlikely(info.data_len() < T::DISCRIMINATOR.len()) {
             return Err(ProgramError::AccountDataTooSmall.into());
@@ -36,22 +37,23 @@ where
             return Err(ErrorCode::AccountDiscriminatorMismatch.into());
         }
 
+        let owner = unsafe { info.owner() };
         // Verify account ownership - checked after discriminator for better branch prediction
-        if unlikely(!pubkey_eq(info.owner(), &T::OWNER)) {
+        if unlikely(!address_eq(owner, &T::OWNER)) {
             return Err(ProgramError::InvalidAccountOwner.into());
         }
 
         // Handle special case: zero-lamport system accounts (least common case)
-        if unlikely(pubkey_eq(info.owner(), &pinocchio_system::ID)) {
+        if unlikely(address_eq(owner, &System::ID)) {
             // Only perform additional lamports check for system accounts
-            if *info.try_borrow_lamports()? == 0 {
+            if info.lamports() == 0 {
                 return Err(ProgramError::UninitializedAccount.into());
             }
         }
 
         // Deserialize the state data (this is the most expensive operation, done last)
         let state =
-            T::deserialize(&mut &unsafe { info.borrow_data_unchecked() }[T::DISCRIMINATOR.len()..])
+            T::deserialize(&mut &unsafe { info.borrow_unchecked() }[T::DISCRIMINATOR.len()..])
                 .map_err(|_| ProgramError::BorshIoError)?;
 
         Ok(BorshAccount {
@@ -61,7 +63,7 @@ where
     }
 }
 
-impl<'a, T> From<BorshAccount<'a, T>> for &'a AccountInfo
+impl<'a, T> From<BorshAccount<'a, T>> for &'a AccountView
 where
     T: Owner + Discriminator,
 {
@@ -71,12 +73,12 @@ where
     }
 }
 
-impl<T> AsRef<AccountInfo> for BorshAccount<'_, T>
+impl<T> AsRef<AccountView> for BorshAccount<'_, T>
 where
     T: Discriminator,
 {
     #[inline(always)]
-    fn as_ref(&self) -> &AccountInfo {
+    fn as_ref(&self) -> &AccountView {
         self.info
     }
 }
@@ -155,7 +157,7 @@ where
             .try_borrow()
             .map_err(|_| ProgramError::AccountBorrowFailed)?;
 
-        data.serialize(&mut self.0.info.try_borrow_mut_data()?.as_mut())
+        data.serialize(&mut self.0.info.try_borrow_mut()?.as_mut())
             .map_err(|_| ProgramError::BorshIoError.into())
     }
 }

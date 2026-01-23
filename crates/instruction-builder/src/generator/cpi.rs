@@ -172,9 +172,9 @@ impl Generator for CpiGenerator {
                 }
             }).unzip();
             let (program_id_field, program_id_getter) = if has_optional {
-                (quote!(&'a AccountInfo), Some(quote!(.key())))
+                (quote!(&'a AccountView), Some(quote!(.address())))
             } else {
-                (quote!(&'a Pubkey), None)
+                (quote!(&'a Address), None)
             };
 
             token.extend(quote! {
@@ -192,14 +192,14 @@ impl Generator for CpiGenerator {
                     #[inline(always)]
                     pub fn invoke_signed(&self, seeds: &[instruction::CpiSigner]) -> ProgramResult #result_ty {
                         let mut bytes = [bytes::UNINIT_BYTE; 1 #(+ #data_len)*];
-                        let mut metas = [bytes::UNINIT_META; #accumulated_len];
-                        let mut infos = [bytes::UNINIT_INFO; #accumulated_len];
+                        let mut metas = [bytes::UNINIT_INS_ACC; #accumulated_len];
+                        let mut infos = [bytes::UNINIT_ACC_VIEW; #accumulated_len];
                         let mut writer = bytes::MaybeUninitWriter::new(&mut bytes, 0);
                         writer.write_bytes(&[#dis])?;
 
                         #(#assigns)*
 
-                        let instruction = instruction::Instruction {
+                        let instruction = instruction::InstructionView {
                             program_id:  self.program #program_id_getter,
                             data: writer.initialized(),
                             accounts: unsafe { core::slice::from_raw_parts(metas.as_ptr() as *const _, #accumulated_len) }
@@ -207,7 +207,7 @@ impl Generator for CpiGenerator {
 
                         invoke_signed(
                             &instruction,
-                            unsafe { &*(infos.as_ptr() as *const [&AccountInfo; #accumulated_len]) },
+                            unsafe { &*(infos.as_ptr() as *const [&AccountView; #accumulated_len]) },
                             seeds
                         )?;
 

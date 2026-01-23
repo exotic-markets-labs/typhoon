@@ -1,7 +1,7 @@
-use {pinocchio::pubkey::Pubkey, typhoon_traits::ProgramId};
+use {solana_address::Address, typhoon_traits::ProgramId};
 
 pub struct System;
 
 impl ProgramId for System {
-    const ID: Pubkey = pinocchio_system::ID;
+    const ID: Address = Address::new_from_array([0; 32]);
 }

@@ -1,11 +1,11 @@
-use {pinocchio::account_info::AccountInfo, typhoon_traits::Discriminator};
+use {solana_account_view::AccountView, typhoon_traits::Discriminator};
 
 /// Discriminator matching with length-optimized comparison strategies.
 /// Uses different comparison methods based on discriminator length:
 /// - `1-8` bytes: Unaligned integer reads for maximum performance
 /// - `>8` bytes: Standard slice comparison
 #[inline(always)]
-pub fn discriminator_matches<T: Discriminator>(info: &AccountInfo) -> bool {
+pub fn discriminator_matches<T: Discriminator>(info: &AccountView) -> bool {
     let discriminator = T::DISCRIMINATOR;
     let len = discriminator.len();
     let data_ptr = info.data_ptr();

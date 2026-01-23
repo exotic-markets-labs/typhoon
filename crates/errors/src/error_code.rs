@@ -1,4 +1,4 @@
-use pinocchio::program_error::{ProgramError, ToStr};
+use solana_program_error::{ProgramError, ToStr};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum ErrorCode {
@@ -45,10 +45,7 @@ impl From<ErrorCode> for ProgramError {
 }
 
 impl ToStr for ErrorCode {
-    fn to_str<E>(&self) -> &'static str
-    where
-        E: 'static + ToStr + TryFrom<u32>,
-    {
+    fn to_str(&self) -> &'static str {
         match self {
             ErrorCode::UnknownInstruction => "Error: Unknown instruction",
             ErrorCode::AccountNotSigner => "Error: Account is not a signer",

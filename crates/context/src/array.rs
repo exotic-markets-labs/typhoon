@@ -1,6 +1,8 @@
 use {
     crate::{Context, HandlerContext},
     core::mem::MaybeUninit,
+    solana_account_view::AccountView,
+    solana_address::Address,
 };
 
 /// An extractor to handle fixed array contexts.
@@ -21,8 +23,8 @@ where
 {
     #[inline(always)]
     fn from_entrypoint(
-        program_id: &'a pinocchio::pubkey::Pubkey,
-        accounts: &mut &'b [pinocchio::account_info::AccountInfo],
+        program_id: &'a Address,
+        accounts: &mut &'b [AccountView],
         instruction_data: &mut &'c [u8],
     ) -> Result<Self, typhoon_errors::Error> {
         let mut result = [const { MaybeUninit::uninit() }; N];

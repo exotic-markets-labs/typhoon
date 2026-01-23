@@ -44,7 +44,7 @@ pub fn derive_account(item: proc_macro::TokenStream) -> proc_macro::TokenStream 
 
     quote! {
         impl Owner for #name #ty_generics #where_clause {
-            const OWNER: Pubkey = crate::ID;
+            const OWNER: Address = crate::ID;
         }
 
         impl Discriminator for #name #ty_generics #where_clause {

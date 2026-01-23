@@ -1,8 +1,6 @@
 use {
-    crate::HandlerContext,
-    borsh::BorshDeserialize,
-    pinocchio::{account_info::AccountInfo, program_error::ProgramError, pubkey::Pubkey},
-    typhoon_errors::Error,
+    crate::HandlerContext, borsh::BorshDeserialize, solana_account_view::AccountView,
+    solana_address::Address, solana_program_error::ProgramError, typhoon_errors::Error,
 };
 
 pub struct BorshArg<T>(pub T);
@@ -13,8 +11,8 @@ where
 {
     #[inline(always)]
     fn from_entrypoint(
-        _program_id: &Pubkey,
-        _accounts: &mut &[AccountInfo],
+        _program_id: &Address,
+        _accounts: &mut &[AccountView],
         instruction_data: &mut &[u8],
     ) -> Result<Self, Error> {
         let arg = T::deserialize(instruction_data).map_err(|_| ProgramError::BorshIoError)?;
@@ -34,11 +32,11 @@ mod tests {
             .serialize(&mut instruction_data.as_mut_slice())
             .unwrap();
         assert_eq!(instruction_data, [42, 0, 0, 0, 0, 0, 0, 0]);
-        let mut accounts: &[AccountInfo] = &[];
+        let mut accounts: &[AccountView] = &[];
 
         let mut instruction_data_slice = instruction_data.as_slice();
         let result: BorshArg<u64> = BorshArg::from_entrypoint(
-            &Pubkey::default(),
+            &Address::default(),
             &mut accounts,
             &mut instruction_data_slice,
         )

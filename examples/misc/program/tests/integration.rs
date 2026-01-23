@@ -3,10 +3,10 @@ use {
     misc_interface::{
         pda::RANDOM_PDA, AssertInstruction, InitializeContext, InitializeInstruction, SimpleContext,
     },
+    solana_address::Address,
     solana_instruction::{AccountMeta, Instruction},
     solana_keypair::{Keypair, Signer},
     solana_native_token::LAMPORTS_PER_SOL,
-    solana_pubkey::Pubkey,
     solana_transaction::Transaction,
     std::path::PathBuf,
 };
@@ -32,9 +32,9 @@ fn integration() {
 
     let ix = Instruction {
         accounts: vec![
-            AccountMeta::new_readonly(Pubkey::new_unique(), false),
-            AccountMeta::new_readonly(Pubkey::new_unique(), false),
-            AccountMeta::new_readonly(Pubkey::new_unique(), false),
+            AccountMeta::new_readonly(Address::new_unique(), false),
+            AccountMeta::new_readonly(Address::new_unique(), false),
+            AccountMeta::new_readonly(Address::new_unique(), false),
         ],
         data: vec![0],
         program_id: misc_interface::ID.into(),
@@ -55,7 +55,7 @@ fn integration() {
         context: InitializeContext {
             account,
             payer: admin_pk,
-            system_program: Pubkey::default(),
+            system_program: Address::default(),
         },
     }
     .into_instruction();

@@ -79,6 +79,7 @@ jobs:
             "anchor-cpi",
             "counter",
             "cpi",
+            "escrow",
             "hello-world",
             "instruction-data",
             "misc",

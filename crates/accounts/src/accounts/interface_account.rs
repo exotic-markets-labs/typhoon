@@ -1,23 +1,21 @@
 use {
     crate::{
         discriminator_matches, Discriminator, FromAccountInfo, FromRaw, ReadableAccount,
-        RefFromBytes,
+        RefFromBytes, System,
     },
     core::marker::PhantomData,
-    pinocchio::{
-        account_info::{AccountInfo, Ref},
-        hint::unlikely,
-        program_error::ProgramError,
-    },
+    pinocchio::hint::unlikely,
+    solana_account_view::{AccountView, Ref},
+    solana_program_error::ProgramError,
     typhoon_errors::{Error, ErrorCode},
-    typhoon_traits::Owners,
+    typhoon_traits::{Owners, ProgramId},
 };
 
 pub struct InterfaceAccount<'a, T>
 where
     T: Discriminator + RefFromBytes,
 {
-    pub(crate) info: &'a AccountInfo,
+    pub(crate) info: &'a AccountView,
     pub(crate) _phantom: PhantomData<T>,
 }
 
@@ -26,7 +24,7 @@ where
     T: Discriminator + RefFromBytes + Owners,
 {
     #[inline(always)]
-    fn try_from_info(info: &'a AccountInfo) -> Result<Self, Error> {
+    fn try_from_info(info: &'a AccountView) -> Result<Self, Error> {
         // Check data length first - this is the cheapest check and most likely to fail
         if unlikely(info.data_len() < T::DISCRIMINATOR.len()) {
             return Err(ProgramError::AccountDataTooSmall.into());
@@ -38,14 +36,14 @@ where
         }
 
         // Verify account ownership against multiple allowed owners - checked after discriminator for better branch prediction
-        if unlikely(!T::OWNERS.contains(info.owner())) {
+        if unlikely(!T::OWNERS.contains(unsafe { info.owner() })) {
             return Err(ProgramError::InvalidAccountOwner.into());
         }
 
         // Handle special case: zero-lamport system accounts (least common case)
-        if unlikely(info.is_owned_by(&pinocchio_system::ID)) {
+        if unlikely(info.owned_by(&System::ID)) {
             // Only perform additional lamports check for system accounts
-            if *info.try_borrow_lamports()? == 0 {
+            if info.lamports() == 0 {
                 return Err(ProgramError::UninitializedAccount.into());
             }
         }
@@ -57,7 +55,7 @@ where
     }
 }
 
-impl<'a, T> From<InterfaceAccount<'a, T>> for &'a AccountInfo
+impl<'a, T> From<InterfaceAccount<'a, T>> for &'a AccountView
 where
     T: Discriminator + RefFromBytes,
 {
@@ -67,12 +65,12 @@ where
     }
 }
 
-impl<T> AsRef<AccountInfo> for InterfaceAccount<'_, T>
+impl<T> AsRef<AccountView> for InterfaceAccount<'_, T>
 where
     T: Discriminator + RefFromBytes,
 {
     #[inline(always)]
-    fn as_ref(&self) -> &AccountInfo {
+    fn as_ref(&self) -> &AccountView {
         self.info
     }
 }
@@ -89,7 +87,7 @@ where
 
     #[inline(always)]
     fn data<'a>(&'a self) -> Result<Self::Data<'a>, Error> {
-        Ref::filter_map(self.info.try_borrow_data()?, T::read)
+        Ref::filter_map(self.info.try_borrow()?, T::read)
             .map_err(|_| ProgramError::InvalidAccountData.into())
     }
 
@@ -116,7 +114,7 @@ impl<'a, T> FromRaw<'a> for InterfaceAccount<'a, T>
 where
     T: RefFromBytes + Discriminator,
 {
-    fn from_raw(info: &'a AccountInfo) -> Self {
+    fn from_raw(info: &'a AccountView) -> Self {
         Self {
             info,
             _phantom: PhantomData,

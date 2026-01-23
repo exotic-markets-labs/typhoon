@@ -1,15 +1,12 @@
-use {
-    crate::HandlerContext,
-    pinocchio::{account_info::AccountInfo, pubkey::Pubkey},
-};
+use {crate::HandlerContext, solana_account_view::AccountView, solana_address::Address};
 
-pub struct ProgramIdArg<'a>(pub &'a Pubkey);
+pub struct ProgramIdArg<'a>(pub &'a Address);
 
 impl<'a> HandlerContext<'a, '_, '_> for ProgramIdArg<'a> {
     #[inline(always)]
     fn from_entrypoint(
-        program_id: &'a Pubkey,
-        _accounts: &mut &[AccountInfo],
+        program_id: &'a Address,
+        _accounts: &mut &[AccountView],
         _instruction_data: &mut &[u8],
     ) -> Result<Self, typhoon_errors::Error> {
         Ok(ProgramIdArg(program_id))

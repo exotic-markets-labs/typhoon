@@ -1,9 +1,6 @@
 use {
     crate::{TokenAccount, TokenProgram},
-    pinocchio::{
-        account_info::AccountInfo, instruction::Signer as CpiSigner, pubkey::Pubkey,
-        sysvars::rent::Rent,
-    },
+    pinocchio::{cpi::Signer as CpiSigner, sysvars::rent::Rent, AccountView, Address},
     pinocchio_associated_token_account::instructions::{Create, CreateIdempotent},
     pinocchio_token::instructions::InitializeAccount3,
     typhoon_accounts::{
@@ -17,7 +14,7 @@ use {
 
 pub trait SplCreateToken<'a, T>
 where
-    Self: Sized + Into<&'a AccountInfo>,
+    Self: Sized + Into<&'a AccountView>,
     T: ReadableAccount + FromAccountInfo<'a> + FromRaw<'a>,
 {
     fn create_token_account(
@@ -25,7 +22,7 @@ where
         rent: &Rent,
         payer: &impl WritableAccount,
         mint: &impl ReadableAccount,
-        owner: &Pubkey,
+        owner: &Address,
         seeds: Option<&[CpiSigner]>,
     ) -> Result<Mut<T>, Error> {
         let info = self.into();
@@ -110,6 +107,6 @@ macro_rules! impl_trait {
     };
 }
 
-impl_trait!(&'a AccountInfo);
+impl_trait!(&'a AccountView);
 impl_trait!(SystemAccount<'a>);
 impl_trait!(UncheckedAccount<'a>);

@@ -1,7 +1,8 @@
 use {
     crate::HandlerContext,
     bytemuck::AnyBitPattern,
-    pinocchio::{account_info::AccountInfo, pubkey::Pubkey},
+    solana_account_view::AccountView,
+    solana_address::Address,
     typhoon_errors::{Error, ErrorCode},
 };
 
@@ -14,8 +15,8 @@ where
 {
     #[inline(always)]
     fn from_entrypoint(
-        _program_id: &Pubkey,
-        _accounts: &mut &[AccountInfo],
+        _program_id: &Address,
+        _accounts: &mut &[AccountView],
         instruction_data: &mut &'c [u8],
     ) -> Result<Self, Error> {
         let len = core::mem::size_of::<T>();
