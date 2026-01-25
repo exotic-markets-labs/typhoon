@@ -15,13 +15,12 @@ workspace = true
 
 [dependencies]
 misc-interface.workspace = true
-solana-program-log.workspace = true
 typhoon.workspace = true
 
 [dev-dependencies]
 litesvm.workspace = true
 misc-interface = { workspace = true, features = ["client"] }
-solana-address.workspace = true
+solana-address = { workspace = true, features = ["std"] }
 solana-instruction.workspace = true
 solana-keypair.workspace = true
 solana-native-token.workspace = true
