@@ -19,6 +19,7 @@ alloc = ["pinocchio/alloc"]
 [dependencies]
 pinocchio.workspace = true
 solana-address = { workspace = true, features = [
+    "decode",
     "copy",
     "bytemuck",
 ] } # Fix later to put behind feature flag
@@ -34,3 +35,6 @@ typhoon-program-id-macro.workspace = true
 typhoon-traits.workspace = true
 typhoon-utility.workspace = true
 typhoon-utility-traits.workspace = true
+
+[target.'cfg(not(any(target_os = "solana", target_arch = "bpf")))'.dev-dependencies]
+solana-address = { workspace = true, features = ["curve25519"] }
