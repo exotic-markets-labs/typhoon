@@ -1,7 +1,5 @@
 #![no_std]
 
-use typhoon_errors::Error;
-
 pub mod macros {
     pub use {
         typhoon_account_macro::*, typhoon_context_macro::*, typhoon_cpi_generator_macro::*,
@@ -24,7 +22,7 @@ pub mod instruction {
     pub use pinocchio::instruction::{InstructionAccount, InstructionView};
 }
 
-pub type ProgramResult<T = ()> = Result<T, Error>;
+pub type ProgramResult<T = ()> = Result<T, typhoon_errors::Error>;
 
 pub mod prelude {
     pub use {
