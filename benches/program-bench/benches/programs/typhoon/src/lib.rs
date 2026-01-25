@@ -26,7 +26,7 @@ fn ping() -> ProgramResult {
 }
 
 fn log() -> ProgramResult {
-    msg!("Instruction: Log");
+    solana_program_log::log("Instruction: Log");
     Ok(())
 }
 

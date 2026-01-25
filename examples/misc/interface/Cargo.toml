@@ -8,17 +8,13 @@ publish = false
 crate-type = ["rlib"]
 
 [features]
-client = [
-    "dep:solana-address",
-    "dep:solana-instruction",
-    "dep:typhoon-instruction-builder",
-]
+client = ["dep:solana-instruction", "dep:typhoon-instruction-builder"]
 
 [dependencies]
 bytemuck = { workspace = true, features = ["derive"] }
-const-crypto = "0.3.0"
+const-crypto.workspace = true
+solana-address.workspace = true
 solana-instruction = { workspace = true, optional = true }
-solana-address = { workspace = true, optional = true }
 typhoon-instruction-builder = { workspace = true, optional = true }
 typhoon.workspace = true
 

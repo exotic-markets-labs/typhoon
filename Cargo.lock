@@ -1450,6 +1450,7 @@ name = "typhoon"
 version = "0.1.0"
 dependencies = [
  "pinocchio",
+ "solana-address 2.0.0",
  "solana-instruction-view",
  "typhoon-account-macro",
  "typhoon-accounts",

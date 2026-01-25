@@ -18,6 +18,7 @@ alloc = ["pinocchio/alloc"]
 
 [dependencies]
 pinocchio.workspace = true
+solana-address = { workspace = true, features = ["copy"] }
 solana-instruction-view = { workspace = true, features = ["slice-cpi"] }
 typhoon-accounts.workspace = true
 typhoon-account-macro.workspace = true

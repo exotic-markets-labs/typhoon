@@ -10,6 +10,7 @@ unexpected_cfgs = { level = "warn", check-cfg = [
 
 [workspace.dependencies]
 bytemuck = "1.24"
+const-crypto = "0.3.0"
 litesvm = "0.9.1"
 misc-interface = { path = "interface" }
 solana-address = "2.0"
