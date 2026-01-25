@@ -37,4 +37,4 @@ typhoon-utility.workspace = true
 typhoon-utility-traits.workspace = true
 
 [target.'cfg(not(any(target_os = "solana", target_arch = "bpf")))'.dev-dependencies]
-solana-address = { workspace = true, features = ["curve25519", "syscalls"] }
+solana-address = { workspace = true, features = ["curve25519", "std"] }
