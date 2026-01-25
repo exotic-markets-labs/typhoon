@@ -8,6 +8,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  SOLANA_CLI_VERSION: v3.1.7
 
 jobs:
   run_cargo_checks:
@@ -41,7 +42,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
       - name: Install Solana CLI
         run: |
-          sh -c "$(curl -sSfL https://release.anza.xyz/v3.0.4/install)"
+          sh -c "$(curl -sSfL https://release.anza.xyz/${SOLANA_CLI_VERSION}/install)"
           echo "/home/runner/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
       - name: Run benchmarks
         run: |
@@ -97,7 +98,7 @@ jobs:
       - uses: taiki-e/install-action@just
       - name: Install Solana CLI
         run: |
-          sh -c "$(curl -sSfL https://release.anza.xyz/v3.0.4/install)"
+          sh -c "$(curl -sSfL https://release.anza.xyz/${SOLANA_CLI_VERSION}/install)"
           echo "/home/runner/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
       - name: Build program
         run: just build ${{ matrix.example }}
@@ -128,7 +129,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
       - name: Install Solana CLI
         run: |
-          sh -c "$(curl -sSfL https://release.anza.xyz/v3.0.4/install)"
+          sh -c "$(curl -sSfL https://release.anza.xyz/${SOLANA_CLI_VERSION}/install)"
           echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
       - name: Warm up SBF tools
         run: |
