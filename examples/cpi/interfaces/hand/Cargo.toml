@@ -10,16 +10,16 @@ crate-type = ["rlib"]
 client = [
     "std",
     "dep:typhoon-instruction-builder",
-    "dep:solana-pubkey",
+    "dep:solana-address",
     "dep:solana-instruction",
 ]
 std = []
 
 [dependencies]
-typhoon.workspace = true
-typhoon-instruction-builder = { workspace = true, optional = true }
-solana-pubkey = { workspace = true, optional = true }
+solana-address = { workspace = true, optional = true }
 solana-instruction = { workspace = true, optional = true }
+typhoon-instruction-builder = { workspace = true, optional = true }
+typhoon.workspace = true
 
 [package.metadata.typhoon.builder-dependencies]
 hand = { path = "../../programs/hand" }

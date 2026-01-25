@@ -11,17 +11,17 @@ cpi = ["dep:typhoon-instruction-builder"]
 client = [
     "std",
     "dep:typhoon-instruction-builder",
-    "dep:solana-pubkey",
+    "dep:solana-address",
     "dep:solana-instruction",
 ]
 std = []
 
 [dependencies]
 bytemuck = { workspace = true, features = ["derive"] }
-typhoon.workspace = true
-typhoon-instruction-builder = { workspace = true, optional = true }
-solana-pubkey = { workspace = true, optional = true }
+solana-address = { workspace = true, optional = true }
 solana-instruction = { workspace = true, optional = true }
+typhoon-instruction-builder = { workspace = true, optional = true }
+typhoon.workspace = true
 
 [package.metadata.typhoon.builder-dependencies]
 lever = { path = "../../programs/lever" }

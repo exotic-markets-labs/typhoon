@@ -1,5 +1,5 @@
 error: `seeds` or `seeded` are already defined.
-  --> tests/constraints/seeds_keys.fail.rs:28:9
+  --> tests/constraints/seeds_keys.fail.rs:27:9
    |
-28 |     pub counter: Mut<Account<Counter>>,
+27 |     pub counter: Mut<Account<Counter>>,
    |         ^^^^^^^

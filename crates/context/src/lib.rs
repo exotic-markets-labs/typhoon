@@ -1,7 +1,5 @@
 #![no_std]
 
-use {bytemuck::NoUninit, paste::paste, pinocchio::program_error::ProgramError};
-
 mod args;
 mod array;
 mod iterator;
@@ -10,7 +8,8 @@ mod remaining_accounts;
 
 pub use {args::*, array::*, iterator::*, program_id::*, remaining_accounts::*};
 use {
-    pinocchio::{account_info::AccountInfo, cpi::set_return_data, pubkey::Pubkey},
+    bytemuck::NoUninit, paste::paste, solana_account_view::AccountView, solana_address::Address,
+    solana_instruction_view::cpi::set_return_data, solana_program_error::ProgramError,
     typhoon_errors::Error,
 };
 
@@ -19,8 +18,8 @@ pub trait Context {}
 
 pub trait HandlerContext<'a, 'b, 'c>: Sized {
     fn from_entrypoint(
-        program_id: &'a Pubkey,
-        accounts: &mut &'b [AccountInfo],
+        program_id: &'a Address,
+        accounts: &mut &'b [AccountView],
         instruction_data: &mut &'c [u8],
     ) -> Result<Self, Error>;
 }
@@ -30,8 +29,8 @@ pub trait Handler<'a, 'b, 'c, T> {
 
     fn call(
         self,
-        program_id: &'a Pubkey,
-        accounts: &mut &'b [AccountInfo],
+        program_id: &'a Address,
+        accounts: &mut &'b [AccountView],
         instruction_data: &mut &'c [u8],
     ) -> Result<Self::Output, Error>;
 }
@@ -45,8 +44,8 @@ where
 
     fn call(
         self,
-        _program_id: &Pubkey,
-        _accounts: &mut &[AccountInfo],
+        _program_id: &Address,
+        _accounts: &mut &[AccountView],
         _instruction_data: &mut &[u8],
     ) -> Result<Self::Output, Error> {
         (self)()
@@ -67,8 +66,8 @@ macro_rules! impl_handler {
 
             fn call(
                 self,
-                program_id: &'a Pubkey,
-                accounts: &mut &'b [AccountInfo],
+                program_id: &'a Address,
+                accounts: &mut &'b [AccountView],
                 instruction_data: &mut &'c [u8],
             ) -> Result<Self::Output, Error> {
                 paste! {
@@ -91,8 +90,8 @@ impl_handler!(T1, T2, T3, T4, T5, T6);
 impl_handler!(T1, T2, T3, T4, T5, T6, T7);
 
 pub fn handle<'a, 'b, 'c, T, H>(
-    program_id: &'a Pubkey,
-    mut accounts: &'b [AccountInfo],
+    program_id: &'a Address,
+    mut accounts: &'b [AccountView],
     mut instruction_data: &'c [u8],
     handler: H,
 ) -> Result<(), Error>
@@ -114,7 +113,7 @@ where
 #[macro_export]
 macro_rules! basic_router {
     ($($dis:literal => $fn_ident: ident),+ $(,)?) => {
-        |program_id: &Pubkey, accounts: &[AccountInfo], instruction_data: &[u8]| {
+        |program_id: &Address, accounts: &[AccountView], instruction_data: &[u8]| {
             let (discriminator, data) = instruction_data
                 .split_first()
                 .ok_or(ProgramError::InvalidInstructionData)?;
@@ -135,7 +134,7 @@ macro_rules! basic_router {
     };
 }
 
-pub type EntryFn = fn(&Pubkey, &[AccountInfo], &[u8]) -> Result<(), ProgramError>;
+pub type EntryFn = fn(&Address, &[AccountView], &[u8]) -> Result<(), ProgramError>;
 
 #[macro_export]
 macro_rules! entrypoint {
@@ -150,8 +149,8 @@ macro_rules! entrypoint {
 
         #[ $($inline)* ]
         pub fn process_instruction(
-            program_id: &Pubkey,
-            accounts: &[AccountInfo],
+            program_id: &Address,
+            accounts: &[AccountView],
             instruction_data: &[u8],
         ) -> Result<(), ProgramError> {
             ROUTER(program_id, accounts, instruction_data)

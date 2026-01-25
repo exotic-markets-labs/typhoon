@@ -25,7 +25,7 @@ pub fn gen_instructions(ixs: &[Instruction]) -> TokenStream {
             /// Used for Cross-Program Invocation (CPI) calls.
             #docs
             pub struct #ident<'a> {
-                #(pub #accounts: &'a AccountInfo,)*
+                #(pub #accounts: &'a AccountView,)*
                 #(#arg_fields)*
             }
 
@@ -35,11 +35,11 @@ pub fn gen_instructions(ixs: &[Instruction]) -> TokenStream {
                     self.invoke_signed(&[])
                 }
 
-                pub fn invoke_signed(&self, seeds: &[instruction::CpiSigner]) -> ProgramResult {
+                pub fn invoke_signed(&self, seeds: &[CpiSigner]) -> ProgramResult {
                     #account_metas
                     #instruction_data
 
-                    invoke_signed(
+                    cpi::invoke_signed(
                         &instruction,
                         &[#(self.#accounts),*],
                         seeds
@@ -47,14 +47,14 @@ pub fn gen_instructions(ixs: &[Instruction]) -> TokenStream {
                 }
 
                 #[inline(always)]
-                pub fn invoke_with_remaining(&self, seeds: &[instruction::CpiSigner], remaining: &[AccountInfo]) -> ProgramResult {
+                pub fn invoke_with_remaining(&self, seeds: &[CpiSigner], remaining: &[AccountView]) -> ProgramResult {
                     self.invoke_signed_with_remaining(&[], remaining)
                 }
 
-                pub fn invoke_signed_with_remaining(&self, seeds: &[instruction::CpiSigner], remaining: &[AccountInfo]) -> ProgramResult {
+                pub fn invoke_signed_with_remaining(&self, seeds: &[CpiSigner], remaining: &[AccountView]) -> ProgramResult {
                     let accounts_len: usize = core::cmp::min(remaining.len() + #len, 64);
-                    let mut account_infos = [bytes::UNINIT_INFO; 64];
-                    let mut account_metas = [bytes::UNINIT_META; 64];
+                    let mut account_infos = [bytes::UNINIT_ACC_VIEW; 64];
+                    let mut account_metas = [bytes::UNINIT_INS_ACC; 64];
 
                     for (d, s) in account_metas[..#len].iter_mut().zip([#(#metas),*]) {
                         d.write(s);
@@ -66,14 +66,14 @@ pub fn gen_instructions(ixs: &[Instruction]) -> TokenStream {
 
                     for i in 0..remaining.len() {
                         let account = &remaining[i];
-                        account_metas[#len + i].write(instruction::AccountMeta::new(account.key(), account.is_writable(), account.is_signer()));
+                        account_metas[#len + i].write(instruction::InstructionAccount::new(account.address(), account.is_writable(), account.is_signer()));
                         account_infos[#len + i].write(&account);
                     }
 
                     let account_metas =  unsafe { core::slice::from_raw_parts(account_metas.as_ptr() as _, accounts_len) };
                     #instruction_data
 
-                    slice_invoke_signed(
+                    cpi::invoke_signed_with_slice(
                         &instruction,
                         unsafe { core::slice::from_raw_parts(account_infos.as_ptr() as _, accounts_len) },
                         seeds
@@ -90,8 +90,7 @@ pub fn gen_instructions(ixs: &[Instruction]) -> TokenStream {
 
 fn gen_instruction_data(args: &[Field], discriminator: &[u8]) -> (Vec<TokenStream>, TokenStream) {
     let discriminator_len = discriminator.len();
-    let buffer_size = 1232 - discriminator_len;
-    let discriminator_expr: Expr = syn::parse_quote!(&[#(#discriminator),*]);
+    let discriminator_expr: Expr = syn::parse_quote!([#(#discriminator),*]);
     let (arg_fields, arg_ser): (Vec<TokenStream>, Vec<TokenStream>) = args
         .iter()
         .map(|arg| {
@@ -107,25 +106,31 @@ fn gen_instruction_data(args: &[Field], discriminator: &[u8]) -> (Vec<TokenStrea
 
     let instruction_data = if arg_ser.is_empty() {
         quote! {
-            let mut instruction_data = [bytes::UNINIT_BYTE; #discriminator_len];
+            let mut instruction_data = core::mem::MaybeUninit::<[u8; #discriminator_len]>::uninit();
 
-            bytes::write_bytes(&mut instruction_data, #discriminator_expr);
+            unsafe {
+                let ptr = instruction_data.as_mut_ptr() as *mut u8;
+                core::ptr::copy_nonoverlapping(#discriminator_expr.as_ptr(), ptr, #discriminator_len);
+            }
 
-            let instruction = instruction::Instruction {
+            let instruction = instruction::InstructionView {
                 program_id: &PROGRAM_ID,
                 accounts: &account_metas,
-                data: unsafe { core::slice::from_raw_parts(instruction_data.as_ptr() as _, #discriminator_len) },
+                data: unsafe { instruction_data.assume_init_ref() },
             };
         }
     } else {
         quote! {
-            let mut instruction_data = [bytes::UNINIT_BYTE; #buffer_size];
-            bytes::write_bytes(&mut instruction_data, #discriminator_expr);
+            let mut instruction_data = [bytes::UNINIT_BYTE; 1232];
+            unsafe {
+                let ptr = instruction_data.as_mut_ptr() as *mut u8;
+                core::ptr::copy_nonoverlapping(#discriminator_expr.as_ptr(), ptr, #discriminator_len);
+            }
 
             let mut writer = bytes::MaybeUninitWriter::new(&mut instruction_data, #discriminator_len);
             #(#arg_ser)*
 
-            let instruction = instruction::Instruction {
+            let instruction = instruction::InstructionView {
                 program_id: &PROGRAM_ID,
                 accounts: &account_metas,
                 data: writer.initialized(),
@@ -156,7 +161,7 @@ fn gen_account_instruction(
                 let is_signer = account.is_signer;
 
                 metas.push(quote! {
-                    instruction::AccountMeta::new(self.#ident.key(), #is_writable, #is_signer)
+                    instruction::InstructionAccount::new(self.#ident.address(), #is_writable, #is_signer)
                 });
                 fields.push(ident);
             }
@@ -171,7 +176,7 @@ fn gen_account_metas(metas: &[TokenStream]) -> TokenStream {
     let len = metas.len();
 
     quote! {
-        let account_metas: [instruction::AccountMeta; #len] = [#(#metas),*];
+        let account_metas: [instruction::InstructionAccount; #len] = [#(#metas),*];
     }
 }
 
@@ -186,14 +191,17 @@ mod tests {
 
         let (fields, data) = gen_instruction_data(&args, &discriminator);
         let expected_data = quote! {
-            let mut instruction_data = [bytes::UNINIT_BYTE; 4usize];
+            let mut instruction_data = core::mem::MaybeUninit::<[u8; 4usize]>::uninit();
 
-            bytes::write_bytes(&mut instruction_data, &[1u8, 2u8, 3u8, 4u8]);
+            unsafe {
+                let ptr = instruction_data.as_mut_ptr() as *mut u8;
+                core::ptr::copy_nonoverlapping([1u8, 2u8, 3u8, 4u8].as_ptr(), ptr, 4usize);
+            }
 
-            let instruction = instruction::Instruction {
+            let instruction = instruction::InstructionView {
                 program_id: &PROGRAM_ID,
                 accounts: &account_metas,
-                data: unsafe { core::slice::from_raw_parts(instruction_data.as_ptr() as _, 4usize) },
+                data: unsafe { instruction_data.assume_init_ref() },
             };
         };
         assert!(fields.is_empty());
@@ -208,13 +216,16 @@ mod tests {
 
         let (fields, data) = gen_instruction_data(&args, &discriminator);
         let expected_data = quote! {
-            let mut instruction_data = [bytes::UNINIT_BYTE; 1228usize];
-            bytes::write_bytes(&mut instruction_data, &[1u8, 2u8, 3u8, 4u8]);
+            let mut instruction_data = [bytes::UNINIT_BYTE; 1232];
+            unsafe {
+                let ptr = instruction_data.as_mut_ptr() as *mut u8;
+                core::ptr::copy_nonoverlapping([1u8, 2u8, 3u8, 4u8].as_ptr(), ptr, 4usize);
+            }
 
             let mut writer = bytes::MaybeUninitWriter::new(&mut instruction_data, 4usize);
             borsh::ser::BorshSerialize::serialize(&self.amount, &mut writer).map_err(|_| ProgramError::BorshIoError)?;
 
-            let instruction = instruction::Instruction {
+            let instruction = instruction::InstructionView {
                 program_id: &PROGRAM_ID,
                 accounts: &account_metas,
                 data: writer.initialized(),
@@ -246,8 +257,8 @@ mod tests {
             #(#metas),*
         };
         let expected = quote! {
-            instruction::AccountMeta::new(self.test_account.key(), true, false),
-            instruction::AccountMeta::new(self.test_account2.key(), false, true)
+            instruction::InstructionAccount::new(self.test_account.address(), true, false),
+            instruction::InstructionAccount::new(self.test_account2.address(), false, true)
         };
 
         assert_eq!(result.to_string(), expected.to_string());
@@ -260,7 +271,7 @@ mod tests {
         let metas = vec![quote!(meta1), quote!(meta2)];
         let result = gen_account_metas(&metas);
         let expected = quote! {
-            let account_metas: [instruction::AccountMeta; 2usize] = [meta1, meta2];
+            let account_metas: [instruction::InstructionAccount; 2usize] = [meta1, meta2];
         };
 
         assert_eq!(result.to_string(), expected.to_string());

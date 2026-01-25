@@ -1,22 +1,21 @@
 use {
-    crate::{FromAccountInfo, ReadableAccount},
-    pinocchio::{
-        account_info::{AccountInfo, Ref},
-        hint::unlikely,
-        program_error::ProgramError,
-        pubkey::pubkey_eq,
-    },
+    crate::{FromAccountInfo, ReadableAccount, System},
+    pinocchio::hint::unlikely,
+    solana_account_view::{AccountView, Ref},
+    solana_address::address_eq,
+    solana_program_error::ProgramError,
     typhoon_errors::Error,
+    typhoon_traits::ProgramId,
 };
 
 pub struct SystemAccount<'a> {
-    info: &'a AccountInfo,
+    info: &'a AccountView,
 }
 
 impl<'a> FromAccountInfo<'a> for SystemAccount<'a> {
     #[inline(always)]
-    fn try_from_info(info: &'a AccountInfo) -> Result<Self, Error> {
-        if unlikely(!pubkey_eq(info.owner(), &pinocchio_system::ID)) {
+    fn try_from_info(info: &'a AccountView) -> Result<Self, Error> {
+        if unlikely(!address_eq(unsafe { info.owner() }, &System::ID)) {
             return Err(ProgramError::InvalidAccountOwner.into());
         }
 
@@ -24,16 +23,16 @@ impl<'a> FromAccountInfo<'a> for SystemAccount<'a> {
     }
 }
 
-impl<'a> From<SystemAccount<'a>> for &'a AccountInfo {
+impl<'a> From<SystemAccount<'a>> for &'a AccountView {
     #[inline(always)]
     fn from(value: SystemAccount<'a>) -> Self {
         value.info
     }
 }
 
-impl AsRef<AccountInfo> for SystemAccount<'_> {
+impl AsRef<AccountView> for SystemAccount<'_> {
     #[inline(always)]
-    fn as_ref(&self) -> &AccountInfo {
+    fn as_ref(&self) -> &AccountView {
         self.info
     }
 }
@@ -47,11 +46,11 @@ impl ReadableAccount for SystemAccount<'_> {
 
     #[inline(always)]
     fn data<'a>(&'a self) -> Result<Self::Data<'a>, Error> {
-        self.info.try_borrow_data().map_err(Into::into)
+        self.info.try_borrow().map_err(Into::into)
     }
 
     #[inline]
     fn data_unchecked(&self) -> Result<&Self::DataUnchecked, Error> {
-        Ok(unsafe { self.info.borrow_data_unchecked() })
+        Ok(unsafe { self.info.borrow_unchecked() })
     }
 }

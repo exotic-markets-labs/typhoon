@@ -1,6 +1,6 @@
 use {
     escrow_interface::state::Escrow,
-    typhoon::{instruction::CpiSigner, lib::CloseAccount, prelude::*},
+    typhoon::prelude::*,
     typhoon_token::{
         spl_instructions::{CloseAccount as SplCloseAccount, Transfer},
         AtaTokenProgram, Mint, SplCreateToken, TokenAccount, TokenProgram,
@@ -47,7 +47,12 @@ pub fn take(ctx: Take) -> ProgramResult {
     let seed = escrow.seed.to_le_bytes();
 
     let bump = [escrow.bump];
-    let seeds = seeds!(b"escrow", ctx.maker.key(), seed.as_ref(), &bump);
+    let seeds = seeds!(
+        b"escrow",
+        ctx.maker.address().as_ref(),
+        seed.as_ref(),
+        &bump
+    );
     let signer = CpiSigner::from(&seeds);
 
     Transfer {

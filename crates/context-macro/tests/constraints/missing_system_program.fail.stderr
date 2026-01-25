@@ -1,11 +1,11 @@
 error: One constraint requires including the `Program<System>` account.
-  --> tests/constraints/missing_system_program.fail.rs:20:1
+  --> tests/constraints/missing_system_program.fail.rs:19:1
    |
-20 | / pub struct InitContext {
-21 | |     pub payer: Mut<Signer>,
-22 | |     #[constraint(
-23 | |         init,
+19 | / pub struct InitContext {
+20 | |     pub payer: Mut<Signer>,
+21 | |     #[constraint(
+22 | |         init,
 ...  |
-27 | |     pub counter: Mut<Account<Counter>>,
-28 | | }
+26 | |     pub counter: Mut<Account<Counter>>,
+27 | | }
    | |_^

@@ -60,8 +60,8 @@ pub fn initialize(ctx: Init) -> ProgramResult {
         admin: *ctx
             .authority
             .as_ref()
-            .map(|a| a.key())
-            .unwrap_or(ctx.payer.key()),
+            .map(|a| a.address())
+            .unwrap_or(ctx.payer.address()),
         count: 0,
         _padding: [0; 7],
     };
@@ -80,7 +80,7 @@ pub fn increment(ctx: Increment) -> ProgramResult {
 #[repr(C)]
 pub struct Counter {
     pub count: u64,
-    pub admin: Pubkey,
+    pub admin: Address,
     pub bump: u8,
     _padding: [u8; 7],
 }

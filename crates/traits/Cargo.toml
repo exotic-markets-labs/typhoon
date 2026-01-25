@@ -8,4 +8,4 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-pinocchio.workspace = true
+solana-address.workspace = true

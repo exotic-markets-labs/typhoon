@@ -1,20 +1,17 @@
 use {
-    crate::HandlerContext,
-    core::marker::PhantomData,
-    paste::paste,
-    pinocchio::{account_info::AccountInfo, program_error::ProgramError},
-    typhoon_accounts::FromAccountInfo,
-    typhoon_errors::Error,
+    crate::HandlerContext, core::marker::PhantomData, paste::paste,
+    solana_account_view::AccountView, solana_address::Address, solana_program_error::ProgramError,
+    typhoon_accounts::FromAccountInfo, typhoon_errors::Error,
 };
 
 trait FromInfos<'a>: Sized {
-    fn from_infos(accounts: &mut &'a [AccountInfo]) -> Result<Self, Error>;
+    fn from_infos(accounts: &mut &'a [AccountView]) -> Result<Self, Error>;
 }
 
 macro_rules! impl_from_infos {
     ($($t:ident),+) => {
         impl<'a, $($t),+> FromInfos<'a> for ($($t),+) where $($t: FromAccountInfo<'a>),+ {
-            fn from_infos(accounts: &mut &'a [AccountInfo]) -> Result<Self, Error> {
+            fn from_infos(accounts: &mut &'a [AccountView]) -> Result<Self, Error> {
                 paste! {
                     let [$( [<acc_ $t:lower>], )+ rem @ ..] = *accounts else {
                         return Err(Error::new(ProgramError::NotEnoughAccountKeys));
@@ -39,7 +36,7 @@ impl_from_infos!(T1, T2, T3, T4);
 impl_from_infos!(T1, T2, T3, T4, T5);
 
 impl<'a, T: FromAccountInfo<'a>> FromInfos<'a> for (T,) {
-    fn from_infos(accounts: &mut &'a [AccountInfo]) -> Result<Self, Error> {
+    fn from_infos(accounts: &mut &'a [AccountView]) -> Result<Self, Error> {
         let [acc, rem @ ..] = *accounts else {
             return Err(Error::new(ProgramError::NotEnoughAccountKeys));
         };
@@ -54,14 +51,14 @@ impl<'a, T: FromAccountInfo<'a>> FromInfos<'a> for (T,) {
 /// An iterator over account infos, yielding tuples of type `T` that can be constructed from
 /// the current slice of accounts. The iterator advances by consuming the accounts as each item is produced.
 pub struct AccountIter<'a, T> {
-    accounts: &'a [AccountInfo],
+    accounts: &'a [AccountView],
     _phantom: PhantomData<T>,
 }
 
 impl<'b, T> HandlerContext<'_, 'b, '_> for AccountIter<'b, T> {
     fn from_entrypoint(
-        _program_id: &pinocchio::pubkey::Pubkey,
-        accounts: &mut &'b [AccountInfo],
+        _program_id: &Address,
+        accounts: &mut &'b [AccountView],
         _instruction_data: &mut &[u8],
     ) -> Result<Self, typhoon_errors::Error> {
         Ok(AccountIter {

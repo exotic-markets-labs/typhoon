@@ -1,9 +1,9 @@
 use {
     litesvm::LiteSVM,
+    solana_address::Address,
     solana_instruction::{AccountMeta, Instruction},
     solana_keypair::Keypair,
     solana_native_token::LAMPORTS_PER_SOL,
-    solana_pubkey::{pubkey, Pubkey},
     solana_signer::Signer,
     solana_transaction::Transaction,
     std::path::PathBuf,
@@ -20,7 +20,7 @@ fn read_program(name: &str) -> Vec<u8> {
     std::fs::read(so_path).unwrap()
 }
 
-const ID: Pubkey = pubkey!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+const ID: Address = Address::from_str_const("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
 generate_instructions_client!(hand);
 
@@ -33,12 +33,12 @@ fn anchor_cpi_test() {
     svm.airdrop(&admin_pk, 10 * LAMPORTS_PER_SOL).unwrap();
 
     // Add lever program to SVM
-    let lever_id = pubkey!("E64FVeubGC4NPNF2UBJYX4AkrVowf74fRJD9q6YhwstN");
+    let lever_id = Address::from_str_const("E64FVeubGC4NPNF2UBJYX4AkrVowf74fRJD9q6YhwstN");
     let lever_bytes = read_program("lever");
     svm.add_program(lever_id, &lever_bytes).unwrap();
 
     // Add hand program to SVM
-    let hand_id = pubkey!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+    let hand_id = Address::from_str_const("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
     let hand_bytes = read_program("hand");
     svm.add_program(hand_id, &hand_bytes).unwrap();
 

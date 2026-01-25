@@ -127,9 +127,9 @@ impl AccountGenerator<'_> {
                 };
 
                 let create_pda = if define_key {
-                    quote!(let #pda_key = create_program_address(&#seeds_token, &#program_id)?;)
+                    quote!(let #pda_key = Address::create_program_address(&#seeds_token, &#program_id)?;)
                 } else {
-                    quote!(create_program_address(&#seeds_token, &#program_id)?;)
+                    quote!(Address::create_program_address(&#seeds_token, &#program_id)?;)
                 };
                 Ok(quote! {
                     let #pda_bump = #bump;
@@ -156,11 +156,11 @@ impl AccountGenerator<'_> {
 
                 let key_token = if define_key {
                     quote! {
-                        let (#pda_key, #pda_bump) = find_program_address(&#seeds_token, &#program_id);
+                        let (#pda_key, #pda_bump) = Address::find_program_address(&#seeds_token, &#program_id);
                     }
                 } else {
                     quote! {
-                        let (_, #pda_bump) = find_program_address(&#seeds_token, &#program_id);
+                        let (_, #pda_bump) = Address::find_program_address(&#seeds_token, &#program_id);
                     }
                 };
                 Ok(key_token)
@@ -179,14 +179,14 @@ impl AccountGenerator<'_> {
             let account_ty = &self.account.inner_ty;
             quote! {
                 let seeds = #account_ty::derive_signer_seeds_with_bump(#punctuated_keys, &bump);
-                let signer = instruction::CpiSigner::from(&seeds);
+                let signer = CpiSigner::from(&seeds);
             }
         } else {
             match punctuated_keys {
                 SeedsExpr::Punctuated(punctuated) => {
                     quote! {
                         let seeds = seeds!(#punctuated, &bump);
-                        let signer = instruction::CpiSigner::from(&seeds);
+                        let signer = CpiSigner::from(&seeds);
                     }
                 }
                 SeedsExpr::Single(expr) => {
@@ -195,11 +195,11 @@ impl AccountGenerator<'_> {
                         let expr_len = expr.len();
                         let mut buffer = [bytes::UNINIT_SEED; MAX_SEEDS];
                         for (uninit_byte, &src_byte) in buffer[..expr_len].iter_mut().zip(&expr) {
-                            uninit_byte.write(instruction::Seed::from(src_byte));
+                            uninit_byte.write(Seed::from(src_byte));
                         }
-                        buffer[expr_len].write(instruction::Seed::from(&bump));
+                        buffer[expr_len].write(Seed::from(&bump));
 
-                        let signer = instruction::CpiSigner::from(unsafe { core::slice::from_raw_parts(buffer.as_ptr() as *const instruction::Seed, expr_len + 1) });
+                        let signer = CpiSigner::from(unsafe { core::slice::from_raw_parts(buffer.as_ptr() as *const Seed, expr_len + 1) });
                     }
                 }
             }
@@ -291,7 +291,7 @@ impl AccountGenerator<'_> {
             let pda = self.get_pda(pda_ctx, false, true)?;
             token.extend(pda);
             token.extend(quote! {
-                if pinocchio::hint::unlikely(!pinocchio::pubkey::pubkey_eq(#name.key(), &#pda_key)) {
+                if hint::unlikely(!address::address_eq(#name.address(), &#pda_key)) {
                     return Err(Error::new(ProgramError::InvalidSeeds).with_account(#name_str));
                 }
             });
@@ -305,7 +305,7 @@ impl AccountGenerator<'_> {
             } => {
                 if let Some(mint) = mint {
                     token.extend(quote! {
-                        if pinocchio::hint::unlikely(!pinocchio::pubkey::pubkey_eq(#var_name.mint(), #mint.key())) {
+                        if hint::unlikely(!address::address_eq(#var_name.mint(), #mint.address())) {
                             return Err(ErrorCode::TokenConstraintViolated.into());
                         }
                     });
@@ -313,7 +313,7 @@ impl AccountGenerator<'_> {
 
                 if let Some(owner) = owner {
                     token.extend(quote! {
-                        if pinocchio::hint::unlikely(!pinocchio::pubkey::pubkey_eq(#var_name.owner(), #owner.key())) {
+                        if hint::unlikely(!address::address_eq(#var_name.owner(), #owner.address())) {
                             return Err(ErrorCode::TokenConstraintViolated.into());
                         }
                     });
@@ -327,7 +327,7 @@ impl AccountGenerator<'_> {
                     let error = error.as_ref().unwrap_or(&basic_error);
 
                     quote! {
-                        if pinocchio::hint::unlikely(!pinocchio::pubkey::pubkey_eq(&#var_name.#target, #target.key())) {
+                        if hint::unlikely(!address::address_eq(&#var_name.#target, #target.address())) {
                             return Err(#error.into());
                         }
                     }
@@ -341,7 +341,7 @@ impl AccountGenerator<'_> {
             let error = error.as_ref().unwrap_or(&basic_error);
 
             token.extend(quote! {
-                if pinocchio::hint::unlikely(!(#assert)) {
+                if hint::unlikely(!(#assert)) {
                     return Err(#error.into());
                 }
             });
@@ -403,7 +403,7 @@ impl AccountGenerator<'_> {
             if init_ctx.is_init_if_needed {
                 let account_token = self.account_token()?;
                 quote! {
-                    let #return_ty = if !#name.is_owned_by(&Pubkey::default()) {
+                    let #return_ty = if !#name.owned_by(&Address::default()) {
                         #account_token
                         #return_ty
                     }else {
@@ -420,7 +420,7 @@ impl AccountGenerator<'_> {
 
         if self.account.meta.is_optional {
             token.extend(quote! {
-                let #return_ty = if #name.key() == program_id {
+                let #return_ty = if #name.address() == program_id {
                     None
                 } else {
                     #account_checks_token
@@ -436,7 +436,7 @@ impl AccountGenerator<'_> {
             let error = error.as_ref().unwrap_or(&basic_error);
 
             token.extend(quote! {
-                if pinocchio::hint::unlikely(!pinocchio::pubkey::pubkey_eq(#name.key(), #check)) {
+                if hint::unlikely(!address::address_eq(#name.address(), #check)) {
                     return Err(#error.into());
                 }
             });

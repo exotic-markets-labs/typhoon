@@ -1,13 +1,7 @@
 use {
-    litesvm::LiteSVM,
-    seeds::Counter,
-    solana_keypair::Keypair,
-    solana_native_token::LAMPORTS_PER_SOL,
-    solana_pubkey::{pubkey, Pubkey},
-    solana_signer::Signer,
-    solana_transaction::Transaction,
-    std::path::PathBuf,
-    typhoon::lib::RefFromBytes,
+    litesvm::LiteSVM, seeds::Counter, solana_address::Address, solana_keypair::Keypair,
+    solana_native_token::LAMPORTS_PER_SOL, solana_signer::Signer, solana_transaction::Transaction,
+    std::path::PathBuf, typhoon::lib::RefFromBytes,
     typhoon_instruction_builder::generate_instructions_client,
 };
 
@@ -18,7 +12,7 @@ fn read_program() -> Vec<u8> {
     std::fs::read(so_path).unwrap()
 }
 
-const ID: Pubkey = pubkey!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+const ID: Address = Address::from_str_const("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
 generate_instructions_client!(seeds);
 
@@ -38,7 +32,7 @@ fn integration_test() {
     svm.add_program(ID, &program_bytes).unwrap();
 
     // Create the counter
-    let (counter_pk, _) = Pubkey::find_program_address(&[b"counter"], &ID);
+    let (counter_pk, _) = Address::find_program_address(&[b"counter"], &ID);
 
     let ix = InitializeInstruction {
         ctx: InitContext {

@@ -1,6 +1,6 @@
 #![no_std]
 
-use {lever_interface::PowerStatus, typhoon::prelude::*};
+use {lever_interface::PowerStatus, solana_program_log::log, typhoon::prelude::*};
 
 nostd_panic_handler!();
 no_allocator!();
@@ -23,8 +23,8 @@ pub fn switch_power(ctx: SetPowerStatus) -> ProgramResult {
     power.change_status();
 
     match power.is_on() {
-        true => msg!("The power is now on."),
-        false => msg!("The power is now off!"),
+        true => log("The power is now on."),
+        false => log("The power is now off!"),
     };
     Ok(())
 }
@@ -33,8 +33,8 @@ pub fn check_power(ctx: CheckStatus) -> ProgramResult<u8> {
     let power = ctx.power.as_ref().unwrap().data()?;
 
     match power.is_on() {
-        true => msg!("The power is now on."),
-        false => msg!("The power is now off!"),
+        true => log("The power is now on."),
+        false => log("The power is now off!"),
     };
 
     Ok(1)

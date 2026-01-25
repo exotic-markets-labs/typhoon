@@ -7,6 +7,6 @@ use {
 #[repr(C)]
 pub struct Counter {
     #[key]
-    pub authority: Pubkey,
+    pub authority: Address,
     pub count: u64,
 }

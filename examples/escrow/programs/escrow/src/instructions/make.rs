@@ -12,7 +12,7 @@ pub struct Make {
     #[constraint(
         init,
         payer = maker,
-        seeds = [b"escrow", maker.key(), &[0]],
+        seeds = [b"escrow", maker.address().as_ref(), &[0]],
         bump
     )]
     pub escrow: Mut<Account<Escrow>>,
@@ -35,9 +35,9 @@ pub fn make(ctx: Make) -> ProgramResult {
     let mut escrow_state = ctx.escrow.mut_data()?;
 
     *escrow_state = Escrow {
-        maker: *ctx.maker.key(),
-        mint_a: *ctx.mint_a.key(),
-        mint_b: *ctx.mint_b.key(),
+        maker: *ctx.maker.address(),
+        mint_a: *ctx.mint_a.address(),
+        mint_b: *ctx.mint_b.address(),
         seed: 0,
         receive: ctx.args.receive,
         bump: ctx.bumps.escrow,

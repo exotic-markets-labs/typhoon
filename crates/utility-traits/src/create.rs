@@ -1,5 +1,5 @@
 use {
-    pinocchio::{account_info::AccountInfo, instruction, pubkey::Pubkey, sysvars::rent::Rent},
+    pinocchio::{cpi, sysvars::rent::Rent, AccountView, Address},
     typhoon_accounts::{
         Account, FromRaw, Mut, ReadableAccount, RefFromBytes, Signer, SignerCheck, SystemAccount,
         UncheckedAccount, WritableAccount,
@@ -11,7 +11,7 @@ use {
 
 pub trait CreateAccountCpi<'a, T>
 where
-    Self: Sized + Into<&'a AccountInfo>,
+    Self: Sized + Into<&'a AccountView>,
     T: ReadableAccount + FromRaw<'a>,
 {
     type D: Discriminator;
@@ -21,9 +21,9 @@ where
         self,
         rent: &Rent,
         payer: &impl WritableAccount,
-        owner: &Pubkey,
+        owner: &Address,
         space: usize,
-        seeds: Option<&[instruction::Signer]>,
+        seeds: Option<&[cpi::Signer]>,
     ) -> Result<Mut<T>, Error> {
         let info = self.into();
         create_or_assign(info, rent, payer, owner, space, seeds)?;
@@ -61,6 +61,6 @@ macro_rules! impl_trait {
     };
 }
 
-impl_trait!(&'a AccountInfo);
+impl_trait!(&'a AccountView);
 impl_trait!(SystemAccount<'a>);
 impl_trait!(UncheckedAccount<'a>);

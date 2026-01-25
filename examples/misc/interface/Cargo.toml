@@ -8,19 +8,15 @@ publish = false
 crate-type = ["rlib"]
 
 [features]
-client = [
-    "dep:solana-pubkey",
-    "dep:solana-instruction",
-    "dep:typhoon-instruction-builder",
-]
+client = ["dep:solana-instruction", "dep:typhoon-instruction-builder"]
 
 [dependencies]
-const-crypto = "0.3.0"
 bytemuck = { workspace = true, features = ["derive"] }
-typhoon.workspace = true
-solana-pubkey = { workspace = true, optional = true }
+const-crypto.workspace = true
+solana-address.workspace = true
 solana-instruction = { workspace = true, optional = true }
 typhoon-instruction-builder = { workspace = true, optional = true }
+typhoon.workspace = true
 
 [package.metadata.typhoon.builder-dependencies]
 misc = { path = "../program" }

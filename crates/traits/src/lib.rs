@@ -1,21 +1,21 @@
 #![no_std]
 
-use pinocchio::pubkey::Pubkey;
+use solana_address::Address;
 
 pub trait ProgramId {
-    const ID: Pubkey;
+    const ID: Address;
 }
 
 pub trait ProgramIds {
-    const IDS: &'static [Pubkey];
+    const IDS: &'static [Address];
 }
 
 pub trait Owner {
-    const OWNER: Pubkey;
+    const OWNER: Address;
 }
 
 pub trait Owners {
-    const OWNERS: &'static [Pubkey];
+    const OWNERS: &'static [Address];
 }
 
 pub trait Discriminator {

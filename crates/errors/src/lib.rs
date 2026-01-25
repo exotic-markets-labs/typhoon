@@ -3,19 +3,25 @@
 mod error_code;
 mod extension;
 
-use pinocchio::program_error::{ProgramError, ToStr};
+use {
+    core::marker::PhantomData,
+    solana_address::error::AddressError,
+    solana_program_error::{ProgramError, ToStr},
+};
 pub use {error_code::*, extension::*};
 
-pub struct Error {
+pub struct Error<E = ErrorCode> {
     error: ProgramError,
     account_name: Option<&'static str>,
+    _phantom: PhantomData<E>,
 }
 
-impl Error {
+impl<E> Error<E> {
     pub fn new(error: impl Into<ProgramError>) -> Self {
         Error {
             error: error.into(),
             account_name: None,
+            _phantom: PhantomData,
         }
     }
 
@@ -29,11 +35,11 @@ impl Error {
     }
 }
 
-impl ToStr for Error {
-    fn to_str<E>(&self) -> &'static str
-    where
-        E: 'static + ToStr + TryFrom<u32>,
-    {
+impl<E> ToStr for Error<E>
+where
+    E: ToStr + TryFrom<u32> + 'static,
+{
+    fn to_str(&self) -> &'static str {
         if let ProgramError::Custom(code) = self.error {
             if (100..200).contains(&code) {
                 return self.error.to_str::<ErrorCode>();
@@ -43,27 +49,39 @@ impl ToStr for Error {
     }
 }
 
-impl From<ProgramError> for Error {
+impl<E> From<ProgramError> for Error<E> {
     fn from(error: ProgramError) -> Self {
         Error {
             error,
             account_name: None,
+            _phantom: PhantomData,
         }
     }
 }
 
-impl From<ErrorCode> for Error {
+impl<E> From<ErrorCode> for Error<E> {
     fn from(value: ErrorCode) -> Self {
         Error {
             error: value.into(),
             account_name: None,
+            _phantom: PhantomData,
         }
     }
 }
 
-impl From<Error> for ProgramError {
-    fn from(value: Error) -> Self {
+impl<E> From<Error<E>> for ProgramError {
+    fn from(value: Error<E>) -> Self {
         value.error
+    }
+}
+
+impl<E> From<AddressError> for Error<E> {
+    fn from(value: AddressError) -> Self {
+        Self {
+            error: value.into(),
+            account_name: None,
+            _phantom: PhantomData,
+        }
     }
 }
 

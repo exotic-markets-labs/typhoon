@@ -14,5 +14,6 @@ workspace = true
 
 [dependencies]
 bytemuck.workspace = true
+solana-program-log.workspace = true
 typhoon.workspace = true
 lever-interface.workspace = true

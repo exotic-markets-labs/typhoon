@@ -1,7 +1,5 @@
 #![no_std]
 
-use typhoon_errors::Error;
-
 pub mod macros {
     pub use {
         typhoon_account_macro::*, typhoon_context_macro::*, typhoon_cpi_generator_macro::*,
@@ -21,26 +19,25 @@ pub mod bytes {
 }
 
 pub mod instruction {
-    pub use pinocchio::instruction::{AccountMeta, Instruction, Seed, Signer as CpiSigner};
+    pub use pinocchio::instruction::{InstructionAccount, InstructionView};
 }
 
-pub type ProgramResult<T = ()> = Result<T, Error>;
+pub type ProgramResult<T = ()> = Result<T, typhoon_errors::Error>;
 
 pub mod prelude {
-    #[cfg(not(feature = "std"))]
-    pub use pinocchio::nostd_panic_handler;
     pub use {
         super::{bytes, instruction, lib::*, macros::*, ProgramResult},
         pinocchio::{
             self,
-            account_info::AccountInfo,
-            cpi::*,
-            default_allocator, default_panic_handler, msg, no_allocator, program_entrypoint,
-            program_error::{ProgramError, ToStr},
-            pubkey::*,
-            seeds,
+            address::{self, declare_id, MAX_SEEDS},
+            cpi::{self, Seed, Signer as CpiSigner},
+            default_panic_handler,
+            error::{ProgramError, ToStr},
+            hint,
+            instruction::seeds,
+            no_allocator, nostd_panic_handler, program_entrypoint,
             sysvars::{clock::Clock, fees::Fees, rent::Rent, Sysvar},
+            AccountView, Address,
         },
-        pinocchio_pubkey::{declare_id, from_str as pubkey_from_str},
     };
 }

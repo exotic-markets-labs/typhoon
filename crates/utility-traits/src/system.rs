@@ -1,5 +1,5 @@
 use {
-    pinocchio::{account_info::AccountInfo, pubkey::Pubkey},
+    pinocchio::{AccountView, Address},
     pinocchio_system::instructions::{Allocate, Assign, Transfer},
     typhoon_accounts::{
         Mut, Signer as SignerAccount, SignerCheck, SystemAccount, UncheckedAccount, WritableAccount,
@@ -7,7 +7,7 @@ use {
     typhoon_errors::Error,
 };
 
-pub trait SystemCpi<'a>: WritableAccount + Into<&'a AccountInfo>
+pub trait SystemCpi<'a>: WritableAccount + Into<&'a AccountView>
 where
     Self: Sized,
 {
@@ -22,7 +22,7 @@ where
     }
 
     #[inline(always)]
-    fn assign(&self, owner: &Pubkey) -> Result<(), Error> {
+    fn assign(&self, owner: &Address) -> Result<(), Error> {
         Assign {
             account: self.as_ref(),
             owner,

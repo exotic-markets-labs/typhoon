@@ -10,7 +10,7 @@ use {
 /// Usage:
 /// ```rust
 /// # use {
-/// #    pinocchio::program_error::{ProgramError, ToStr},
+/// #    pinocchio::error::{ProgramError, ToStr},
 /// #    typhoon_errors::Error,
 /// #    typhoon_errors_macro::TyphoonError
 /// # };
@@ -55,9 +55,7 @@ pub fn typhoon_error(input: TokenStream) -> TokenStream {
         }
 
         impl ToStr for #name {
-            fn to_str<E>(&self) -> &'static str
-            where
-                E: 'static + ToStr + TryFrom<u32>,
+            fn to_str(&self) -> &'static str
             {
                 match self {
                     #(#to_str_arms)*

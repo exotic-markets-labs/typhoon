@@ -58,9 +58,9 @@ fn generate_accounts(accounts: &[InstructionAccount]) -> (Vec<TokenStream>, Vec<
             let name = &acc.name;
             let is_signer = acc.meta.is_signer;
             let field = if acc.meta.is_optional {
-                quote!(pub #name: Option<::solana_pubkey::Pubkey>,)
+                quote!(pub #name: Option<::solana_address::Address>,)
             } else {
-                quote!(pub #name: ::solana_pubkey::Pubkey,)
+                quote!(pub #name: ::solana_address::Address,)
             };
 
             let push = if acc.meta.is_optional {

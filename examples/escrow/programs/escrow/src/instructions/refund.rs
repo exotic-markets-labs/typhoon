@@ -1,6 +1,6 @@
 use {
     escrow_interface::state::Escrow,
-    typhoon::{instruction::CpiSigner, lib::CloseAccount, prelude::*},
+    typhoon::prelude::*,
     typhoon_token::{
         spl_instructions::{CloseAccount as SplCloseAccount, Transfer},
         TokenAccount, TokenProgram,
@@ -25,7 +25,7 @@ pub struct Refund {
 pub fn refund(ctx: Refund) -> ProgramResult {
     let escrow = ctx.escrow.data()?;
     let seed = escrow.seed.to_le_bytes();
-    let seeds = seeds!(b"escrow", ctx.maker.key(), seed.as_ref());
+    let seeds = seeds!(b"escrow", ctx.maker.address().as_ref(), seed.as_ref());
     let signer = CpiSigner::from(&seeds);
 
     let amount = { ctx.vault.data()?.amount() };

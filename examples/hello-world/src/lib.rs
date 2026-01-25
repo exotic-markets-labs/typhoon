@@ -13,7 +13,7 @@ pub const ROUTER: EntryFn = basic_router! {
 };
 
 pub fn hello_world(ProgramIdArg(program_id): ProgramIdArg) -> ProgramResult {
-    pinocchio::log::sol_log("Hello World");
+    solana_msg::sol_log("Hello World");
 
     assert_eq!(program_id, &crate::ID);
 

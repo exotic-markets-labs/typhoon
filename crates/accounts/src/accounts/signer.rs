@@ -1,14 +1,14 @@
 use {
     crate::{FromAccountInfo, FromRaw, ReadableAccount, SignerAccount, UncheckedAccount},
     core::{marker::PhantomData, ops::Deref},
-    pinocchio::account_info::AccountInfo,
+    solana_account_view::AccountView,
     typhoon_errors::{Error, ErrorCode},
 };
 
 pub type SignerNoCheck<'a, T> = Signer<'a, T, NoCheck>;
 
 pub trait SignerCheck {
-    fn check(_info: &AccountInfo) -> Result<(), Error> {
+    fn check(_info: &AccountView) -> Result<(), Error> {
         Ok(())
     }
 }
@@ -16,7 +16,7 @@ pub trait SignerCheck {
 pub struct Check;
 
 impl SignerCheck for Check {
-    fn check(info: &AccountInfo) -> Result<(), Error> {
+    fn check(info: &AccountView) -> Result<(), Error> {
         if info.is_signer() {
             Ok(())
         } else {
@@ -44,7 +44,7 @@ where
     T: ReadableAccount + FromAccountInfo<'a>,
 {
     #[inline(always)]
-    fn try_from_info(info: &'a AccountInfo) -> Result<Self, Error> {
+    fn try_from_info(info: &'a AccountView) -> Result<Self, Error> {
         C::check(info)?;
 
         Ok(Signer {
@@ -54,10 +54,10 @@ where
     }
 }
 
-impl<'a, T, C> From<Signer<'a, T, C>> for &'a AccountInfo
+impl<'a, T, C> From<Signer<'a, T, C>> for &'a AccountView
 where
     C: SignerCheck,
-    T: ReadableAccount + Into<&'a AccountInfo>,
+    T: ReadableAccount + Into<&'a AccountView>,
 {
     #[inline(always)]
     fn from(value: Signer<'a, T, C>) -> Self {
@@ -65,13 +65,13 @@ where
     }
 }
 
-impl<T, C> AsRef<AccountInfo> for Signer<'_, T, C>
+impl<T, C> AsRef<AccountView> for Signer<'_, T, C>
 where
     C: SignerCheck,
     T: ReadableAccount,
 {
     #[inline(always)]
-    fn as_ref(&self) -> &AccountInfo {
+    fn as_ref(&self) -> &AccountView {
         self.acc.as_ref()
     }
 }
@@ -122,7 +122,7 @@ where
     T: ReadableAccount + FromRaw<'a>,
     C: SignerCheck,
 {
-    fn from_raw(info: &'a AccountInfo) -> Self {
+    fn from_raw(info: &'a AccountView) -> Self {
         Self {
             acc: T::from_raw(info),
             _phantom: PhantomData,

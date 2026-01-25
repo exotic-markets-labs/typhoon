@@ -18,10 +18,10 @@ misc-interface.workspace = true
 typhoon.workspace = true
 
 [dev-dependencies]
-solana-pubkey.workspace = true
-solana-instruction.workspace = true
-solana-transaction.workspace = true
-solana-native-token.workspace = true
-solana-keypair.workspace = true
-misc-interface = { workspace = true, features = ["client"] }
 litesvm.workspace = true
+misc-interface = { workspace = true, features = ["client"] }
+solana-address = { workspace = true, features = ["std"] }
+solana-instruction.workspace = true
+solana-keypair.workspace = true
+solana-native-token.workspace = true
+solana-transaction.workspace = true

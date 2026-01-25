@@ -1,10 +1,6 @@
 use {
     pinocchio::{
-        account_info::AccountInfo,
-        hint::unlikely,
-        instruction::Signer,
-        pubkey::{pubkey_eq, Pubkey},
-        sysvars::rent::Rent,
+        address::address_eq, cpi::Signer, hint::unlikely, sysvars::rent::Rent, AccountView, Address,
     },
     pinocchio_system::instructions::{Allocate, Assign, CreateAccount, Transfer},
     typhoon_accounts::WritableAccount,
@@ -13,10 +9,10 @@ use {
 
 #[inline(always)]
 pub fn create_or_assign(
-    account: &AccountInfo,
+    account: &AccountView,
     rent: &Rent,
     payer: &impl WritableAccount,
-    owner: &Pubkey,
+    owner: &Address,
     space: usize,
     seeds: Option<&[Signer]>,
 ) -> Result<(), Error> {
@@ -24,19 +20,19 @@ pub fn create_or_assign(
     if current_lamports == 0 {
         CreateAccount {
             from: payer.as_ref(),
-            lamports: rent.minimum_balance(space),
+            lamports: rent.try_minimum_balance(space)?,
             owner,
             space: space as u64,
             to: account,
         }
         .invoke_signed(seeds.unwrap_or_default())?;
     } else {
-        if unlikely(pubkey_eq(payer.key(), account.key())) {
+        if unlikely(address_eq(payer.address(), account.address())) {
             return Err(ErrorCode::TryingToInitPayerAsProgramAccount.into());
         }
 
         let required_lamports = rent
-            .minimum_balance(space)
+            .try_minimum_balance(space)?
             .max(1)
             .saturating_sub(current_lamports);
 

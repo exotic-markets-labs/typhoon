@@ -4,10 +4,8 @@ use {
         Discriminator, FromAccountInfo, FromRaw, InterfaceAccount, ReadableAccount, RefFromBytes,
         Signer, SignerAccount, SignerCheck, WritableAccount,
     },
-    pinocchio::{
-        account_info::{AccountInfo, RefMut},
-        program_error::ProgramError,
-    },
+    solana_account_view::{AccountView, RefMut},
+    solana_program_error::ProgramError,
     typhoon_errors::Error,
 };
 
@@ -18,7 +16,7 @@ where
     T: FromAccountInfo<'a> + ReadableAccount,
 {
     #[inline(always)]
-    fn try_from_info(info: &'a AccountInfo) -> Result<Self, Error> {
+    fn try_from_info(info: &'a AccountView) -> Result<Self, Error> {
         if !info.is_writable() {
             return Err(ProgramError::Immutable.into());
         }
@@ -27,19 +25,19 @@ where
     }
 }
 
-impl<T> AsRef<AccountInfo> for Mut<T>
+impl<T> AsRef<AccountView> for Mut<T>
 where
     T: ReadableAccount,
 {
     #[inline(always)]
-    fn as_ref(&self) -> &AccountInfo {
+    fn as_ref(&self) -> &AccountView {
         self.0.as_ref()
     }
 }
 
-impl<'a, T> From<Mut<T>> for &'a AccountInfo
+impl<'a, T> From<Mut<T>> for &'a AccountView
 where
-    T: ReadableAccount + Into<&'a AccountInfo>,
+    T: ReadableAccount + Into<&'a AccountView>,
 {
     #[inline(always)]
     fn from(value: Mut<T>) -> Self {
@@ -78,7 +76,7 @@ macro_rules! impl_writable {
 
             #[inline(always)]
             fn mut_data<'a>(&'a self) -> Result<Self::DataMut<'a>, Error> {
-                self.0.as_ref().try_borrow_mut_data().map_err(Into::into)
+                self.0.as_ref().try_borrow_mut().map_err(Into::into)
             }
         }
     };
@@ -96,7 +94,7 @@ macro_rules! impl_writable_signer {
                 Self: 'a;
             #[inline(always)]
             fn mut_data<'a>(&'a self) -> Result<Self::DataMut<'a>, Error> {
-                self.0.as_ref().try_borrow_mut_data().map_err(Into::into)
+                self.0.as_ref().try_borrow_mut().map_err(Into::into)
             }
         }
     };
@@ -116,7 +114,7 @@ where
         Self: 'a;
     #[inline(always)]
     fn mut_data<'a>(&'a self) -> Result<Self::DataMut<'a>, Error> {
-        RefMut::filter_map(self.0.as_ref().try_borrow_mut_data()?, T::read_mut)
+        RefMut::filter_map(self.0.as_ref().try_borrow_mut()?, T::read_mut)
             .map_err(|_| ProgramError::InvalidAccountData.into())
     }
 }
@@ -132,7 +130,7 @@ where
         Self: 'a;
     #[inline(always)]
     fn mut_data<'a>(&'a self) -> Result<Self::DataMut<'a>, Error> {
-        RefMut::filter_map(self.0.as_ref().try_borrow_mut_data()?, T::read_mut)
+        RefMut::filter_map(self.0.as_ref().try_borrow_mut()?, T::read_mut)
             .map_err(|_| ProgramError::InvalidAccountData.into())
     }
 }
@@ -145,7 +143,7 @@ impl<T: Discriminator + RefFromBytes> WritableAccount for Mut<Account<'_, T>> {
 
     #[inline(always)]
     fn mut_data<'a>(&'a self) -> Result<Self::DataMut<'a>, Error> {
-        RefMut::filter_map(self.0.as_ref().try_borrow_mut_data()?, T::read_mut)
+        RefMut::filter_map(self.0.as_ref().try_borrow_mut()?, T::read_mut)
             .map_err(|_| ProgramError::InvalidAccountData.into())
     }
 }
@@ -158,7 +156,7 @@ impl<T: Discriminator + RefFromBytes> WritableAccount for Mut<InterfaceAccount<'
 
     #[inline(always)]
     fn mut_data<'a>(&'a self) -> Result<Self::DataMut<'a>, Error> {
-        RefMut::filter_map(self.0.as_ref().try_borrow_mut_data()?, T::read_mut)
+        RefMut::filter_map(self.0.as_ref().try_borrow_mut()?, T::read_mut)
             .map_err(|_| ProgramError::InvalidAccountData.into())
     }
 }
@@ -176,7 +174,7 @@ where
     T: ReadableAccount + FromRaw<'a>,
 {
     #[inline(always)]
-    pub fn from_raw_info(info: &'a AccountInfo) -> Self {
+    pub fn from_raw_info(info: &'a AccountView) -> Self {
         Mut(T::from_raw(info))
     }
 }

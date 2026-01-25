@@ -18,5 +18,5 @@ unexpected_cfgs = { level = "warn", check-cfg = [
 
 [dependencies]
 borsh = { version = "1.5", features = ["derive"], default-features = false }
-bytemuck = { version = "1.21.0", features = ["min_const_generics"] }
+bytemuck = { version = "1.24.0", features = ["min_const_generics"] }
 typhoon = { path = "../../../../crates/lib", features = ["borsh"] }

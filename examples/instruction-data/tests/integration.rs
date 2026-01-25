@@ -1,9 +1,9 @@
 use {
     instruction_data::{Buffer, InitArgs, PodU64},
     litesvm::LiteSVM,
+    solana_address::Address,
     solana_keypair::Keypair,
     solana_native_token::LAMPORTS_PER_SOL,
-    solana_pubkey::{pubkey, Pubkey},
     solana_signer::Signer,
     solana_transaction::Transaction,
     std::path::PathBuf,
@@ -18,7 +18,7 @@ fn read_program() -> Vec<u8> {
     std::fs::read(so_path).unwrap()
 }
 
-const ID: Pubkey = pubkey!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+const ID: Address = Address::from_str_const("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
 generate_instructions_client!(instruction_data);
 

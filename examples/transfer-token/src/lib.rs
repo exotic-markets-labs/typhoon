@@ -39,8 +39,8 @@ pub struct MintFromEscrow {
         init,
         payer = payer,
         mint::decimals = args.decimals,
-        mint::authority = escrow.key(),
-        mint::freeze_authority = owner.key()
+        mint::authority = escrow.address(),
+        mint::freeze_authority = owner.address()
     )]
     pub mint: Mut<SignerNoCheck<InterfaceAccount<Mint>>>,
     #[constraint(
@@ -70,7 +70,7 @@ pub fn mint_from_escrow(ctx: MintFromEscrow) -> ProgramResult {
         mint_authority: ctx.escrow.as_ref(),
         amount: ctx.args.amount,
     }
-    .invoke_signed(&[instruction::CpiSigner::from(&seeds!(
+    .invoke_signed(&[CpiSigner::from(&seeds!(
         b"escrow".as_ref(),
         &[ctx.bumps.escrow]
     ))])?;

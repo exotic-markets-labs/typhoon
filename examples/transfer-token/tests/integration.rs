@@ -5,9 +5,9 @@ use {
         spl_token::state::{Account, Mint},
         TOKEN_ID,
     },
+    solana_address::Address,
     solana_keypair::Keypair,
     solana_native_token::LAMPORTS_PER_SOL,
-    solana_pubkey::{pubkey, Pubkey},
     solana_signer::Signer,
     solana_transaction::Transaction,
     spl_associated_token_account_interface::address::get_associated_token_address,
@@ -23,7 +23,7 @@ fn read_program() -> Vec<u8> {
     std::fs::read(so_path).unwrap()
 }
 
-const ID: Pubkey = pubkey!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+const ID: Address = Address::from_str_const("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
 generate_instructions_client!(transfer_token);
 
@@ -42,7 +42,7 @@ fn integration_test() {
     let mint_kp = Keypair::new();
     let mint_pk = mint_kp.pubkey();
     let account_pk = get_associated_token_address(&recipient_pk, &mint_pk);
-    let escrow_pk = Pubkey::find_program_address(&[&"escrow".as_ref()], &ID).0;
+    let escrow_pk = Address::find_program_address(&[&"escrow".as_ref()], &ID).0;
 
     svm.airdrop(&payer_pk, 10 * LAMPORTS_PER_SOL).unwrap();
 

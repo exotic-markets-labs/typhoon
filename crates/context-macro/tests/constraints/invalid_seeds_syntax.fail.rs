@@ -1,7 +1,6 @@
 use {
     bytemuck::{AnyBitPattern, NoUninit},
-    pinocchio::pubkey::Pubkey,
-    pinocchio_pubkey::declare_id,
+    pinocchio::{address::declare_id, Address},
     typhoon_account_macro::*,
     typhoon_context_macro::*,
     typhoon_program_id_macro::program_id,
@@ -17,7 +16,7 @@ pub struct Counter {
 }
 
 #[context]
-#[args(admin: Pubkey)]
+#[args(admin: Address)]
 pub struct InitContext {
     pub payer: Mut<Signer>,
     #[constraint(
