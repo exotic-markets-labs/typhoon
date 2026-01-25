@@ -10,7 +10,7 @@ use {
 /// Usage:
 /// ```rust
 /// # use {
-/// #    pinocchio::program_error::{ProgramError, ToStr},
+/// #    pinocchio::error::{ProgramError, ToStr},
 /// #    typhoon_errors::Error,
 /// #    typhoon_errors_macro::TyphoonError
 /// # };

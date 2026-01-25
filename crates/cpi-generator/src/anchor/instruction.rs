@@ -191,14 +191,17 @@ mod tests {
 
         let (fields, data) = gen_instruction_data(&args, &discriminator);
         let expected_data = quote! {
-            let mut instruction_data = [bytes::UNINIT_BYTE; 4usize];
+            let mut instruction_data = core::mem::MaybeUninit::<[u8; 4usize]>::uninit();
 
-            bytes::write_bytes(&mut instruction_data, &[1u8, 2u8, 3u8, 4u8]);
+            unsafe {
+                let ptr = instruction_data.as_mut_ptr() as *mut u8;
+                core::ptr::copy_nonoverlapping([1u8, 2u8, 3u8, 4u8].as_ptr(), ptr, 4usize);
+            }
 
-            let instruction = instruction::Instruction {
+            let instruction = instruction::InstructionView {
                 program_id: &PROGRAM_ID,
                 accounts: &account_metas,
-                data: unsafe { core::slice::from_raw_parts(instruction_data.as_ptr() as _, 4usize) },
+                data: unsafe { instruction_data.assume_init_ref() },
             };
         };
         assert!(fields.is_empty());
@@ -213,13 +216,16 @@ mod tests {
 
         let (fields, data) = gen_instruction_data(&args, &discriminator);
         let expected_data = quote! {
-            let mut instruction_data = [bytes::UNINIT_BYTE; 1228usize];
-            bytes::write_bytes(&mut instruction_data, &[1u8, 2u8, 3u8, 4u8]);
+            let mut instruction_data = [bytes::UNINIT_BYTE; 1232];
+            unsafe {
+                let ptr = instruction_data.as_mut_ptr() as *mut u8;
+                core::ptr::copy_nonoverlapping([1u8, 2u8, 3u8, 4u8].as_ptr(), ptr, 4usize);
+            }
 
             let mut writer = bytes::MaybeUninitWriter::new(&mut instruction_data, 4usize);
             borsh::ser::BorshSerialize::serialize(&self.amount, &mut writer).map_err(|_| ProgramError::BorshIoError)?;
 
-            let instruction = instruction::Instruction {
+            let instruction = instruction::InstructionView {
                 program_id: &PROGRAM_ID,
                 accounts: &account_metas,
                 data: writer.initialized(),

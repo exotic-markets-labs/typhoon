@@ -27,7 +27,7 @@ mod tests {
         let generated =
             gen_program_id("test", "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS").to_string();
         let expected = quote! {
-            pub const PROGRAM_ID: Address = [218u8 , 7u8 , 92u8 , 178u8 , 255u8 , 94u8 , 198u8 , 129u8 , 118u8 , 19u8 , 222u8 , 83u8 , 11u8 , 105u8 , 42u8 , 135u8 , 53u8 , 71u8 , 119u8 , 105u8 , 218u8 , 71u8 , 67u8 , 12u8 , 189u8 , 129u8 , 84u8 , 51u8 , 92u8 , 74u8 , 131u8 , 39u8];
+            pub const PROGRAM_ID: Address = Address::from_str_const("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
             pub struct TestProgram;
 
