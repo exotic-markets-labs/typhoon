@@ -37,7 +37,7 @@ pub fn pull_lever(ctx: PullLever) -> ProgramResult {
         ctx: SetPowerStatusContext {
             power: ctx.power.as_ref(),
         },
-        program: ctx.lever_program.key(),
+        program: ctx.lever_program.address(),
     }
     .invoke()?;
     Ok(())

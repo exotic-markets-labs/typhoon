@@ -28,7 +28,7 @@ fn generate_ctx(ctxs: &hashbrown::HashMap<String, Context>) -> TokenStream {
         let arg_writer = args_assign.map(|el| quote!(writer.write_bytes(#el)?;));
         let has_optional = ctx.accounts.iter().any(|acc| acc.meta.is_optional);
         let program_field = if has_optional {
-            Some(quote!(program: &'a AccountInfo,))
+            Some(quote!(program: &'a AccountView,))
         } else {
             None
         };
@@ -44,8 +44,8 @@ fn generate_ctx(ctxs: &hashbrown::HashMap<String, Context>) -> TokenStream {
                     &self,
                     #program_field
                     writer: &mut bytes::MaybeUninitWriter,
-                    metas: &mut [core::mem::MaybeUninit<instruction::AccountMeta<'a>>],
-                    infos: &mut [core::mem::MaybeUninit<&'a AccountInfo>],
+                    metas: &mut [core::mem::MaybeUninit<instruction::InstructionAccount<'a>>],
+                    infos: &mut [core::mem::MaybeUninit<&'a AccountView>],
                 ) -> ProgramResult {
                     #arg_writer
 
@@ -88,20 +88,20 @@ fn generate_accounts(
         let is_signer = acc.meta.is_signer;
 
         let field = if is_optional {
-            quote!(pub #name: Option<&'a AccountInfo>,)
+            quote!(pub #name: Option<&'a AccountView>,)
         } else {
-            quote!(pub #name: &'a AccountInfo,)
+            quote!(pub #name: &'a AccountView,)
         };
         let meta = if is_optional {
             quote! {
                 if let Some(#name) = self.#name {
-                    instruction::AccountMeta::new(#name.key(), #is_mutable, #is_signer)
+                    instruction::InstructionAccount::new(#name.address(), #is_mutable, #is_signer)
                 }else {
-                    instruction::AccountMeta::new(program.key(), false, false)
+                    instruction::InstructionAccount::new(program.address(), false, false)
                 }
             }
         } else {
-            quote!(instruction::AccountMeta::new(self.#name.key(), #is_mutable, #is_signer))
+            quote!(instruction::InstructionAccount::new(self.#name.address(), #is_mutable, #is_signer))
         };
 
         let info = if is_optional {
@@ -136,7 +136,7 @@ impl Generator for CpiGenerator {
                     Some(quote!(<#ty>)),
                     quote! {
                         bytemuck::pod_read_unaligned(
-                            &get_return_data().ok_or(ErrorCode::InvalidReturnData)?,
+                            &cpi::get_return_data().ok_or(ErrorCode::InvalidReturnData)?.as_slice(),
                         )
                     },
                 )
@@ -190,7 +190,7 @@ impl Generator for CpiGenerator {
                     }
 
                     #[inline(always)]
-                    pub fn invoke_signed(&self, seeds: &[instruction::CpiSigner]) -> ProgramResult #result_ty {
+                    pub fn invoke_signed(&self, seeds: &[CpiSigner]) -> ProgramResult #result_ty {
                         let mut bytes = [bytes::UNINIT_BYTE; 1 #(+ #data_len)*];
                         let mut metas = [bytes::UNINIT_INS_ACC; #accumulated_len];
                         let mut infos = [bytes::UNINIT_ACC_VIEW; #accumulated_len];
@@ -205,7 +205,7 @@ impl Generator for CpiGenerator {
                             accounts: unsafe { core::slice::from_raw_parts(metas.as_ptr() as *const _, #accumulated_len) }
                         };
 
-                        invoke_signed(
+                        cpi::invoke_signed(
                             &instruction,
                             unsafe { &*(infos.as_ptr() as *const [&AccountView; #accumulated_len]) },
                             seeds

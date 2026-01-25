@@ -18,7 +18,10 @@ alloc = ["pinocchio/alloc"]
 
 [dependencies]
 pinocchio.workspace = true
-solana-address = { workspace = true, features = ["copy"] }
+solana-address = { workspace = true, features = [
+    "copy",
+    "bytemuck",
+] } # Fix later to put behind feature flag
 solana-instruction-view = { workspace = true, features = ["slice-cpi"] }
 typhoon-accounts.workspace = true
 typhoon-account-macro.workspace = true
