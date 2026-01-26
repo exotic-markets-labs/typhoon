@@ -5,7 +5,8 @@ edition = "2021"
 publish = false
 
 [features]
-logging = []
+default = ["logging"]
+logging = ["typhoon/logging"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]

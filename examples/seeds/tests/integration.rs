@@ -1,7 +1,13 @@
 use {
-    litesvm::LiteSVM, seeds::Counter, solana_address::Address, solana_keypair::Keypair,
-    solana_native_token::LAMPORTS_PER_SOL, solana_signer::Signer, solana_transaction::Transaction,
-    std::path::PathBuf, typhoon::lib::RefFromBytes,
+    litesvm::{types::FailedTransactionMetadata, LiteSVM},
+    seeds::Counter,
+    solana_address::Address,
+    solana_keypair::Keypair,
+    solana_native_token::LAMPORTS_PER_SOL,
+    solana_signer::Signer,
+    solana_transaction::Transaction,
+    std::path::PathBuf,
+    typhoon::lib::RefFromBytes,
     typhoon_instruction_builder::generate_instructions_client,
 };
 
@@ -72,6 +78,7 @@ fn integration_test() {
     let hash = svm.latest_blockhash();
     let tx =
         Transaction::new_signed_with_payer(&[ix], Some(&random_kp.pubkey()), &[&random_kp], hash);
-    svm.send_transaction(tx)
-        .expect_err("Random signer should be able to increment");
+    let FailedTransactionMetadata { meta, .. } = svm.send_transaction(tx).unwrap_err();
+    assert_eq!(meta.logs[1], "Program log: Error: Invalid owner");
+    assert_eq!(meta.logs[2], "Program log: Account origin: counter");
 }

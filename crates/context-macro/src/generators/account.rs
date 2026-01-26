@@ -328,7 +328,7 @@ impl AccountGenerator<'_> {
 
                     quote! {
                         if hint::unlikely(!address::address_eq(&#var_name.#target, #target.address())) {
-                            return Err(#error.into());
+                            return Err(Error::from(#error).with_account(#name_str));
                         }
                     }
                 });

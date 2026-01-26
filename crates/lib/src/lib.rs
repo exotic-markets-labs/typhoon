@@ -25,6 +25,8 @@ pub mod instruction {
 pub type ProgramResult<T = ()> = Result<T, typhoon_errors::Error>;
 
 pub mod prelude {
+    #[cfg(feature = "logging")]
+    pub use typhoon_errors::{log_error, LogError};
     pub use {
         super::{bytes, instruction, lib::*, macros::*, ProgramResult},
         pinocchio::{

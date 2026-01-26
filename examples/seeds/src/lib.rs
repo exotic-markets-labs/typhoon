@@ -10,10 +10,12 @@ use {
 
 program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
-impl_error_logger!(SeedsError);
 nostd_panic_handler!();
 no_allocator!();
 entrypoint!();
+
+#[cfg(feature = "logging")]
+pub type LogError = SeedsError;
 
 pub const ROUTER: EntryFn = basic_router! {
     0 => initialize,
