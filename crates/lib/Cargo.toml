@@ -15,6 +15,7 @@ borsh = [
     "typhoon-context/borsh",
 ]
 alloc = ["pinocchio/alloc"]
+logging = ["typhoon-errors/logging"]
 
 [dependencies]
 pinocchio.workspace = true

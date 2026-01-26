@@ -124,7 +124,7 @@ macro_rules! basic_router {
             };
 
             #[cfg(feature = "logging")]
-            result.inspect_err(log_error)?;
+            result.inspect_err(|e| log_error::<LogError>(e))?;
 
             #[cfg(not(feature = "logging"))]
             result?;
