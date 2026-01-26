@@ -4,8 +4,6 @@ use {lever_interface::PowerStatus, solana_program_log::log, typhoon::prelude::*}
 
 nostd_panic_handler!();
 no_allocator!();
-
-impl_error_logger!(ErrorCode);
 entrypoint!();
 
 pub const ROUTER: EntryFn = basic_router! {
