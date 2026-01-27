@@ -49,12 +49,13 @@ fn generate_ctx(ctxs: &hashbrown::HashMap<String, Context>) -> TokenStream {
                 ) -> ProgramResult {
                     #arg_writer
 
-                    for (d, s) in metas.iter_mut().zip([#(#metas),*]) {
-                        d.write(s);
-                    }
-
-                    for (d, s) in infos.iter_mut().zip([#(#infos),*]) {
-                        d.write(s);
+                    for ((meta_dest, info_dest), (meta_src, info_src)) in metas
+                        .iter_mut()
+                        .zip(infos.iter_mut())
+                        .zip(core::iter::zip([#(#metas),*], [#(#infos),*]))
+                    {
+                        meta_dest.write(meta_src);
+                        info_dest.write(info_src);
                     }
 
                     Ok(())
