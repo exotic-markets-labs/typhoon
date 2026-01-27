@@ -1,58 +1,58 @@
 use {
-    pinocchio::{
-        address::address_eq, cpi::Signer, hint::unlikely, sysvars::rent::Rent, AccountView, Address,
-    },
-    pinocchio_system::instructions::{Allocate, Assign, CreateAccount, Transfer},
-    typhoon_accounts::WritableAccount,
-    typhoon_errors::{Error, ErrorCode},
+    pinocchio::{cpi::Signer, sysvars::rent::Rent, AccountView, Address, ProgramResult},
+    pinocchio_system::instructions::{Assign, CreateAccount, Transfer},
 };
 
+/// Create an account with a minimum balance to be rent-exempt.
+///
+/// When creating a PDA `account`, the PDA signer seeds must be provided
+/// via the `signers`.
+///
+/// The account will be funded by the `payer` if its current lamports
+/// are insufficient for rent-exemption. The payer can be a PDA signer
+/// owned by the system program and its signer seeds can be provided
+/// via the `signers`.
 #[inline(always)]
-pub fn create_or_assign(
+pub fn create_account_with_minimum_balance_signed(
     account: &AccountView,
-    rent: &Rent,
-    payer: &impl WritableAccount,
-    owner: &Address,
     space: usize,
-    seeds: Option<&[Signer]>,
-) -> Result<(), Error> {
-    let current_lamports = account.lamports();
-    if current_lamports == 0 {
+    owner: &Address,
+    payer: &AccountView,
+    rent_sysvar: &Rent,
+    signers: &[Signer],
+) -> ProgramResult {
+    let lamports = rent_sysvar.try_minimum_balance(space)?;
+
+    if account.lamports() == 0 {
+        // Create the account if it does not exist.
         CreateAccount {
-            from: payer.as_ref(),
-            lamports: rent.try_minimum_balance(space)?,
-            owner,
-            space: space as u64,
+            from: payer,
             to: account,
+            lamports,
+            space: space as u64,
+            owner,
         }
-        .invoke_signed(seeds.unwrap_or_default())?;
+        .invoke_signed(signers)
     } else {
-        if unlikely(address_eq(payer.address(), account.address())) {
-            return Err(ErrorCode::TryingToInitPayerAsProgramAccount.into());
-        }
+        let required_lamports = lamports.saturating_sub(account.lamports());
 
-        let required_lamports = rent
-            .try_minimum_balance(space)?
-            .max(1)
-            .saturating_sub(current_lamports);
-
+        // Transfer lamports from `payer` to `account` if needed.
         if required_lamports > 0 {
             Transfer {
-                from: payer.as_ref(),
+                from: payer,
                 to: account,
                 lamports: required_lamports,
             }
-            .invoke()?;
+            .invoke_signed(signers)?;
         }
 
-        Allocate {
-            account,
-            space: space as u64,
-        }
-        .invoke_signed(seeds.unwrap_or_default())?;
+        // Assign the account to the specified owner.
+        Assign { account, owner }.invoke_signed(signers)?;
 
-        Assign { account, owner }.invoke_signed(seeds.unwrap_or_default())?;
+        // Allocate the required space for the account.
+        //
+        // SAFETY: There are no active borrows of the `account`.
+        // This was checked by the `Assign` CPI above.
+        unsafe { account.resize_unchecked(space) }
     }
-
-    Ok(())
 }

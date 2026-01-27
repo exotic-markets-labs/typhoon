@@ -8,7 +8,7 @@ use {
     },
     typhoon_errors::Error,
     typhoon_traits::ProgramId,
-    typhoon_utility::create_or_assign,
+    typhoon_utility::create_account_with_minimum_balance_signed,
 };
 
 pub trait SplCreateMint<'a, T: ReadableAccount>
@@ -27,7 +27,14 @@ where
         seeds: Option<&[CpiSigner]>,
     ) -> Result<Mut<T>, Error> {
         let info = self.into();
-        create_or_assign(info, rent, payer, &TokenProgram::ID, Mint::LEN, seeds)?;
+        create_account_with_minimum_balance_signed(
+            info,
+            Mint::LEN,
+            &TokenProgram::ID,
+            payer.as_ref(),
+            rent,
+            seeds.unwrap_or_default(),
+        )?;
 
         InitializeMint2 {
             mint: info,
