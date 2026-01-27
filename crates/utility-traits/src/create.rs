@@ -6,7 +6,7 @@ use {
     },
     typhoon_errors::Error,
     typhoon_traits::Discriminator,
-    typhoon_utility::create_or_assign,
+    typhoon_utility::create_account_with_minimum_balance_signed,
 };
 
 pub trait CreateAccountCpi<'a, T>
@@ -26,7 +26,14 @@ where
         seeds: Option<&[cpi::Signer]>,
     ) -> Result<Mut<T>, Error> {
         let info = self.into();
-        create_or_assign(info, rent, payer, owner, space, seeds)?;
+        create_account_with_minimum_balance_signed(
+            info,
+            space,
+            owner,
+            payer.as_ref(),
+            rent,
+            seeds.unwrap_or_default(),
+        )?;
 
         {
             let data = info.data_ptr();

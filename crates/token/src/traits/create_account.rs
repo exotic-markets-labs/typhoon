@@ -9,7 +9,7 @@ use {
     },
     typhoon_errors::Error,
     typhoon_traits::ProgramId,
-    typhoon_utility::create_or_assign,
+    typhoon_utility::create_account_with_minimum_balance_signed,
 };
 
 pub trait SplCreateToken<'a, T>
@@ -26,13 +26,13 @@ where
         seeds: Option<&[CpiSigner]>,
     ) -> Result<Mut<T>, Error> {
         let info = self.into();
-        create_or_assign(
+        create_account_with_minimum_balance_signed(
             info,
-            rent,
-            payer,
-            &TokenProgram::ID,
             TokenAccount::LEN,
-            seeds,
+            &TokenProgram::ID,
+            payer.as_ref(),
+            rent,
+            seeds.unwrap_or_default(),
         )?;
 
         InitializeAccount3 {
