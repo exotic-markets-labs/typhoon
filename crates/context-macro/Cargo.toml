@@ -1,6 +1,6 @@
 [package]
 name = "typhoon-context-macro"
-description = "TODO"
+description = "Procedural macro for generating instruction context structs"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

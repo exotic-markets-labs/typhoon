@@ -1,6 +1,6 @@
 [package]
 name = "typhoon-cpi-generator"
-description = "TODO"
+description = "Code generation for cross-program invocations from IDLs"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

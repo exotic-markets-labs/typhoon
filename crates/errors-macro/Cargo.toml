@@ -1,6 +1,6 @@
 [package]
 name = "typhoon-errors-macro"
-description = "TODO"
+description = "Procedural macro for deriving custom error types"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

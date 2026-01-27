@@ -1,6 +1,6 @@
 [package]
 name = "typhoon-utility-traits"
-description = "TODO"
+description = "Trait extensions for account operations"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
