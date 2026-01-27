@@ -1,6 +1,6 @@
 [package]
 name = "typhoon-discriminator-macro"
-description = "TODO"
+description = "Procedural macro for generating discriminators"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

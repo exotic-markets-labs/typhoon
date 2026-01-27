@@ -1,6 +1,6 @@
 [package]
 name = "typhoon-instruction-builder"
-description = "TODO"
+description = "Code generation for instruction clients and CPI builders"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

@@ -1,6 +1,6 @@
 [package]
 name = "typhoon-cpi-generator-macro"
-description = "TODO"
+description = "Procedural macro for generating CPI clients from IDL files"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

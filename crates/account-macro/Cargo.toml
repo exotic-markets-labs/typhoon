@@ -1,6 +1,6 @@
 [package]
 name = "typhoon-account-macro"
-description = "TODO"
+description = "Procedural macro for deriving account state implementations"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

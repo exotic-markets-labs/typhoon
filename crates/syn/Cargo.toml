@@ -1,6 +1,6 @@
 [package]
 name = "typhoon-syn"
-description = "TODO"
+description = "Syntax tree utilities and helpers for macro processing"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

@@ -1,6 +1,6 @@
 [package]
 name = "typhoon-idl-generator"
-description = "TODO"
+description = "IDL generation from Rust program code"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

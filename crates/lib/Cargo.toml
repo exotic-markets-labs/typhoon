@@ -1,6 +1,6 @@
 [package]
 name = "typhoon"
-description = "TODO"
+description = "Main library"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

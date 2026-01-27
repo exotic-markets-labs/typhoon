@@ -1,6 +1,6 @@
 [package]
 name = "typhoon-discriminator"
-description = "TODO"
+description = "Discriminator generation utilities"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

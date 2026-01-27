@@ -1,6 +1,6 @@
 [package]
 name = "typhoon-program-id-macro"
-description = "TODO"
+description = "Procedural macro for declaring program IDs"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
