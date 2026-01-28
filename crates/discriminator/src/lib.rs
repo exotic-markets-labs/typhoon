@@ -1,6 +1,6 @@
 #![no_std]
 
-use sha2::{Digest, Sha256};
+use const_crypto::sha2::Sha256;
 
 pub struct DiscriminatorBuilder<'a> {
     pub name: &'a str,
@@ -8,28 +8,23 @@ pub struct DiscriminatorBuilder<'a> {
 }
 
 impl<'a> DiscriminatorBuilder<'a> {
-    pub fn new(name: &'a str) -> Self {
+    pub const fn new(name: &'a str) -> Self {
         DiscriminatorBuilder {
             name,
             layout_version: 1,
         }
     }
 
-    pub fn layout(mut self, version: u8) -> Self {
+    pub const fn layout(mut self, version: u8) -> Self {
         self.layout_version = version;
         self
     }
 
-    pub fn build(self) -> [u8; 8] {
-        let mut hasher = Sha256::new();
-        hasher.update(self.name);
-        let hash = hasher.finalize();
+    pub const fn build(self) -> [u8; 8] {
+        let hasher = Sha256::new().update(self.name.as_bytes());
+        let [b0, b1, b2, b3, ..] = hasher.finalize();
 
-        let mut discriminator = [0; 8];
-        discriminator[..4].copy_from_slice(&hash[..4]);
-        discriminator[4] = self.layout_version;
-
-        discriminator
+        [b0, b1, b2, b3, self.layout_version, 0, 0, 0]
     }
 }
 
