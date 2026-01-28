@@ -33,7 +33,6 @@ CRATES=(
     "idl-generator"
     "account-macro"
     "instruction-builder"
-    "discriminator-macro"
     "cpi-generator-macro"
     "program-id-macro"
     "context-macro"

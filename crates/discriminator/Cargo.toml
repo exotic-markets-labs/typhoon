@@ -9,4 +9,4 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-sha2.workspace = true
+const-crypto.workspace = true
