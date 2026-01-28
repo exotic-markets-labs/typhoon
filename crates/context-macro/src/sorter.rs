@@ -1,6 +1,6 @@
 use {
     crate::{context::ParsingContext, visitor::ContextVisitor},
-    std::collections::HashMap,
+    std::collections::{BinaryHeap, HashMap, HashSet},
     typhoon_syn::{
         constraints::{
             ConstraintAddress, ConstraintAssert, ConstraintAssociatedToken, ConstraintBump,
@@ -85,6 +85,26 @@ impl ContextVisitor for DependencyLinker {
     }
 }
 
+// Wrapper for using indices with BinaryHeap (min-heap by name)
+#[derive(Eq, PartialEq)]
+struct HeapNode {
+    index: usize,
+    name: String,
+}
+
+impl Ord for HeapNode {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        // Reverse for min-heap behavior
+        other.name.cmp(&self.name)
+    }
+}
+
+impl PartialOrd for HeapNode {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
 pub fn sort_accounts(context: &mut ParsingContext) -> Result<(), syn::Error> {
     let account_dependencies = context
         .accounts
@@ -114,55 +134,49 @@ pub fn sort_accounts(context: &mut ParsingContext) -> Result<(), syn::Error> {
         }
     }
 
-    let mut queue = Vec::new();
-    let mut result = Vec::new();
-
-    for (i, &degree) in in_degree.iter().enumerate() {
-        if degree == 0 {
-            queue.push(i);
-        }
-    }
-
-    queue.sort_by(|&a, &b| {
-        account_dependencies[a]
-            .0
-            .name
-            .cmp(&account_dependencies[b].0.name)
-    });
-
-    while let Some(current) = queue.pop() {
-        result.push(current);
-
-        let mut neighbors = adj_list[current].clone();
-        neighbors.sort_by(|&a, &b| {
+    // Sort adjacency lists once upfront
+    for neighbors in &mut adj_list {
+        neighbors.sort_unstable_by(|&a, &b| {
             account_dependencies[a]
                 .0
                 .name
                 .cmp(&account_dependencies[b].0.name)
         });
+    }
 
-        for &neighbor in &neighbors {
+    let mut heap = BinaryHeap::new();
+    let mut result = Vec::with_capacity(account_dependencies.len());
+
+    for (i, &degree) in in_degree.iter().enumerate() {
+        if degree == 0 {
+            heap.push(HeapNode {
+                index: i,
+                name: account_dependencies[i].0.name.to_string(),
+            });
+        }
+    }
+
+    while let Some(HeapNode { index: current, .. }) = heap.pop() {
+        result.push(current);
+
+        for &neighbor in &adj_list[current] {
             in_degree[neighbor] -= 1;
             if in_degree[neighbor] == 0 {
-                let pos = queue
-                    .binary_search_by(|&probe| {
-                        account_dependencies[probe]
-                            .0
-                            .name
-                            .cmp(&account_dependencies[neighbor].0.name)
-                    })
-                    .unwrap_or_else(|pos| pos);
-                queue.insert(pos, neighbor);
+                heap.push(HeapNode {
+                    index: neighbor,
+                    name: account_dependencies[neighbor].0.name.to_string(),
+                });
             }
         }
     }
 
     if result.len() != account_dependencies.len() {
+        let result_set: HashSet<usize> = result.iter().copied().collect();
         let mut remaining: Vec<usize> = (0..account_dependencies.len())
-            .filter(|&i| !result.contains(&i))
+            .filter(|i| !result_set.contains(i))
             .collect();
 
-        remaining.sort_by(|&a, &b| {
+        remaining.sort_unstable_by(|&a, &b| {
             account_dependencies[a]
                 .0
                 .name
