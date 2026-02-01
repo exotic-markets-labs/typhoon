@@ -20,7 +20,7 @@ pub fn gen_type(idl_ty: &IdlType) -> Type {
         IdlType::U128 => parse_quote!(u128),
         IdlType::I128 => parse_quote!(i128),
         IdlType::Bytes => parse_quote!(Vec<u8>),
-        IdlType::String => parse_quote!(Address),
+        IdlType::String => parse_quote!(Vec<u8>),
         IdlType::Pubkey => parse_quote!(Pubkey),
         IdlType::Option(inner) => {
             let ty = gen_type(inner);
