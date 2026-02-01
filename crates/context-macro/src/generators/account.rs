@@ -1,7 +1,7 @@
 use {
     proc_macro2::TokenStream,
     quote::{format_ident, quote},
-    syn::{parse_quote, Expr, Ident},
+    syn::{parse_quote, punctuated::Punctuated, Expr, Ident, Token},
     typhoon_syn::{
         constraints::{ConstraintAddress, ConstraintAssert},
         error,
@@ -65,6 +65,22 @@ impl<'a> AccountGenerator<'a> {
     }
 }
 
+/// Generates temporary `let` bindings for each seed expression to extend
+/// the lifetime of any temporaries (e.g. `&args.amount.to_le_bytes()`).
+fn seed_temp_bindings(
+    name: &Ident,
+    punctuated: &Punctuated<Expr, Token![,]>,
+) -> (TokenStream, Vec<Ident>) {
+    let mut bindings = TokenStream::new();
+    let mut temps = Vec::new();
+    for (i, expr) in punctuated.iter().enumerate() {
+        let temp = format_ident!("__seed_{}_{}", name, i);
+        bindings.extend(quote! { let #temp = #expr; });
+        temps.push(temp);
+    }
+    (bindings, temps)
+}
+
 impl AccountGenerator<'_> {
     pub fn needs_programs(&self) -> Vec<String> {
         let mut programs = Vec::with_capacity(3);
@@ -109,9 +125,9 @@ impl AccountGenerator<'_> {
 
         match &ctx.bump {
             Some(ref bump) if !find => {
-                let seeds_token = if ctx.is_seeded {
+                let (seed_bindings, seeds_token) = if ctx.is_seeded {
                     let var_name = format_ident!("{}_state", self.account.name);
-                    quote!(#var_name.seeds_with_bump(&[#pda_bump]))
+                    (quote!(), quote!(#var_name.seeds_with_bump(&[#pda_bump])))
                 } else {
                     let Some(ref seed_keys) = ctx.keys else {
                         error!(
@@ -121,8 +137,11 @@ impl AccountGenerator<'_> {
                     };
 
                     match seed_keys {
-                        SeedsExpr::Punctuated(punctuated) => quote!([#punctuated, &[#pda_bump]]),
-                        SeedsExpr::Single(expr) => quote!(#expr(&[#pda_bump])),
+                        SeedsExpr::Punctuated(punctuated) => {
+                            let (bindings, temps) = seed_temp_bindings(name, punctuated);
+                            (bindings, quote!([#(#temps),*, &[#pda_bump]]))
+                        }
+                        SeedsExpr::Single(expr) => (quote!(), quote!(#expr(&[#pda_bump]))),
                     }
                 };
 
@@ -133,6 +152,7 @@ impl AccountGenerator<'_> {
                 };
                 Ok(quote! {
                     let #pda_bump = #bump;
+                    #seed_bindings
                     #create_pda
                 })
             }
@@ -144,22 +164,27 @@ impl AccountGenerator<'_> {
                     );
                 };
 
-                let seeds_token = if ctx.is_seeded {
+                let (seed_bindings, seeds_token) = if ctx.is_seeded {
                     let inner_ty = &self.account.inner_ty;
-                    quote!(#inner_ty::derive(#seed_keys))
+                    (quote!(), quote!(#inner_ty::derive(#seed_keys)))
                 } else {
                     match seed_keys {
-                        SeedsExpr::Punctuated(punctuated) => quote!([#punctuated]),
-                        SeedsExpr::Single(expr) => quote!(#expr),
+                        SeedsExpr::Punctuated(punctuated) => {
+                            let (bindings, temps) = seed_temp_bindings(name, punctuated);
+                            (bindings, quote!([#(#temps),*]))
+                        }
+                        SeedsExpr::Single(expr) => (quote!(), quote!(#expr)),
                     }
                 };
 
                 let key_token = if define_key {
                     quote! {
+                        #seed_bindings
                         let (#pda_key, #pda_bump) = Address::find_program_address(&#seeds_token, &#program_id);
                     }
                 } else {
                     quote! {
+                        #seed_bindings
                         let (_, #pda_bump) = Address::find_program_address(&#seeds_token, &#program_id);
                     }
                 };
@@ -184,8 +209,10 @@ impl AccountGenerator<'_> {
         } else {
             match punctuated_keys {
                 SeedsExpr::Punctuated(punctuated) => {
+                    let (bindings, temps) = seed_temp_bindings(&self.account.name, punctuated);
                     quote! {
-                        let seeds = seeds!(#punctuated, &bump);
+                        #bindings
+                        let seeds = seeds!(#(#temps),*, &bump);
                         let signer = CpiSigner::from(&seeds);
                     }
                 }
