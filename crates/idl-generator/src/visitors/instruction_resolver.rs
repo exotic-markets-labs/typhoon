@@ -7,7 +7,7 @@ use typhoon_syn::Instruction;
 #[derive(Default)]
 pub struct InstructionResolver {
     router_cache: Option<ProgramNode>,
-    context_cache: Option<Vec<InstructionNode>>,
+    context_cache: Vec<InstructionNode>,
 }
 
 impl InstructionResolver {
@@ -31,9 +31,7 @@ impl KorokVisitor for InstructionResolver {
         let Some(Node::Instruction(instruction)) = &korok.node else {
             return Ok(());
         };
-
-        let cache = self.context_cache.get_or_insert_with(Vec::new);
-        cache.push(instruction.clone());
+        self.context_cache.push(instruction.clone());
         Ok(())
     }
 
@@ -55,6 +53,15 @@ impl KorokVisitor for InstructionResolver {
 
         // if let
         let ix = Instruction::try_from(item_fn)?;
+        let Some(cache_ix) = router_cache
+            .instructions
+            .iter_mut()
+            .find(|el| el.name.as_str() == CamelCaseString::new(ix.name.to_string()).as_str())
+        else {
+            return Err(codama::CodamaError::NodeNotFound);
+        };
+
+        // TODO modify the ix
 
         // item_fn.sig.inputs.
 

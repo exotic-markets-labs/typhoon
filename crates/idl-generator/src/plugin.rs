@@ -2,8 +2,8 @@ use {
     crate::{
         utils::extract_type,
         visitors::{
-            ContextVisitor, InstructionVisitor, RouterVisitor, SetAccountVisitor, SetErrorsVisitor,
-            SetProgramIdVisitor,
+            ContextVisitor, InstructionResolver, RouterVisitor, SetAccountVisitor,
+            SetErrorsVisitor, SetProgramIdVisitor,
         },
     },
     codama::{
@@ -49,6 +49,7 @@ impl KorokPlugin for TyphoonPlugin {
     }
 
     fn on_root_node_set(&self, visitable: &mut dyn KorokVisitable) -> CodamaResult<()> {
+        visitable.accept(&mut InstructionResolver::new())?;
         visitable.accept(&mut SetProgramIdVisitor::new())?;
         visitable.accept(&mut SetProgramMetadataVisitor::new())?;
         visitable.accept(&mut CombineModulesVisitor::new())?;
