@@ -1,17 +1,15 @@
 use {
-    crate::visitors::SetBorshTypesVisitor,
     base64::{prelude::BASE64_STANDARD, Engine},
     codama::{
-        AccountNode, CamelCaseString, CombineTypesVisitor, ComposeVisitor,
-        ConstantDiscriminatorNode, ConstantValueNode, DefinedTypeNode, DiscriminatorNode, Docs,
-        KorokVisitor, Node, SetLinkTypesVisitor, TypeNode,
+        AccountNode, CamelCaseString, CombineTypesVisitor, ConstantDiscriminatorNode,
+        ConstantValueNode, DefinedTypeNode, DiscriminatorNode, Docs, KorokVisitor, Node, TypeNode,
     },
     typhoon_discriminator::DiscriminatorBuilder,
     typhoon_syn::Docs as TyphoonDocs,
 };
 
 pub struct SetAccountVisitor {
-    visitor: Box<dyn KorokVisitor>,
+    visitor: CombineTypesVisitor,
 }
 
 impl Default for SetAccountVisitor {
@@ -23,12 +21,7 @@ impl Default for SetAccountVisitor {
 impl SetAccountVisitor {
     pub fn new() -> Self {
         Self {
-            visitor: Box::new(
-                ComposeVisitor::new()
-                    .with(SetBorshTypesVisitor::new())
-                    .with(SetLinkTypesVisitor::new())
-                    .with(CombineTypesVisitor::new()),
-            ),
+            visitor: CombineTypesVisitor::new(),
         }
     }
 }
@@ -65,6 +58,45 @@ impl KorokVisitor for SetAccountVisitor {
                 0,
             ))],
         }));
+
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use {
+        super::*,
+        codama::{CodamaResult, IdentifyFieldTypesVisitor, KorokVisitable, Node, StructKorok},
+        syn::{parse_quote, Item},
+    };
+
+    #[test]
+    fn test_visit_struct() -> CodamaResult<()> {
+        let item: Item = parse_quote! {
+            #[derive(NoUninit, AnyBitPattern, AccountState, Copy, Clone)]
+            #[repr(C)]
+            pub struct Counter {
+                pub count: u64,
+            }
+        };
+
+        let mut korok = StructKorok::parse(&item)?;
+        korok.accept(&mut IdentifyFieldTypesVisitor::new())?;
+        korok.accept(&mut SetAccountVisitor::new())?;
+
+        let Some(Node::Account(account)) = korok.node else {
+            panic!("Expected Account node");
+        };
+
+        assert_eq!(account.name.as_str(), "counter");
+        match account.data {
+            codama::NestedTypeNode::Value(s) => {
+                assert_eq!(s.fields.len(), 1);
+                assert_eq!(s.fields[0].name.as_str(), "count");
+            }
+            _ => panic!("Expected Struct data"),
+        }
 
         Ok(())
     }

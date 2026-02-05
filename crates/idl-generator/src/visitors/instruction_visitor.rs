@@ -3,19 +3,21 @@ use {
     codama_koroks::UnsupportedItemKorok,
     hashbrown::HashMap,
     syn::Item,
+    typhoon_syn::Instruction,
 };
 
-pub struct ApplyInstructionVisitor {
-    pub instructions: HashMap<String, InstructionNode>,
+#[derive(Default)]
+pub struct InstructionVisitor {
+    ix_cache: Option<String>,
 }
 
-impl ApplyInstructionVisitor {
-    pub fn new(instructions: HashMap<String, InstructionNode>) -> Self {
-        ApplyInstructionVisitor { instructions }
+impl InstructionVisitor {
+    pub fn new() -> Self {
+        InstructionVisitor::default()
     }
 }
 
-impl KorokVisitor for ApplyInstructionVisitor {
+impl KorokVisitor for InstructionVisitor {
     fn visit_unsupported_item(
         &mut self,
         korok: &mut UnsupportedItemKorok,
@@ -28,8 +30,8 @@ impl KorokVisitor for ApplyInstructionVisitor {
             return Ok(());
         };
 
-        if let Some(ix) = self.instructions.remove(&item_fn.sig.ident.to_string()) {
-            korok.node = Some(Node::Instruction(ix));
+        if let Ok(ix) = Instruction::try_from(item_fn) {
+            // korok.node = Some(Instruction)
         }
 
         Ok(())

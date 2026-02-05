@@ -1,14 +1,19 @@
 use {
-    crate::visitors::{
-        get_type_node, ApplyInstructionVisitor, ProgramVisitor, SetAccountVisitor,
-        SetDefinedTypesVisitor, SetErrorsVisitor, SetProgramIdVisitor,
+    crate::{
+        utils::extract_type,
+        visitors::{
+            ContextVisitor, InstructionVisitor, RouterVisitor, SetAccountVisitor, SetErrorsVisitor,
+            SetProgramIdVisitor,
+        },
     },
     codama::{
-        CamelCaseString, CodamaResult, CombineModulesVisitor, ComposeVisitor,
-        ConstantDiscriminatorNode, ConstantValueNode, DefinedTypeLinkNode, DiscriminatorNode, Docs,
+        get_type_node, ApplyTypeModifiersVisitor, ApplyTypeOverridesVisitor, CamelCaseString,
+        CodamaResult, CombineModulesVisitor, ComposeVisitor, ConstantDiscriminatorNode,
+        ConstantValueNode, DefinedTypeLinkNode, DiscriminatorNode, Docs, IdentifyFieldTypesVisitor,
         InstructionAccountNode, InstructionArgumentNode, InstructionNode,
         InstructionOptionalAccountStrategy, IsAccountSigner, NumberFormat::U8, NumberTypeNode,
-        NumberValueNode, SetProgramMetadataVisitor, StructFieldTypeNode, StructTypeNode, TypeNode,
+        NumberValueNode, SetDefaultValuesVisitor, SetDefinedTypesVisitor, SetPdasVisitor,
+        SetProgramMetadataVisitor, StructFieldTypeNode, StructTypeNode, TypeNode,
     },
     codama_korok_plugins::KorokPlugin,
     codama_korok_visitors::KorokVisitable,
@@ -20,35 +25,38 @@ use {
 pub struct TyphoonPlugin;
 
 impl KorokPlugin for TyphoonPlugin {
-    fn run(
-        &self,
-        visitable: &mut dyn KorokVisitable,
-        next: &dyn Fn(&mut dyn KorokVisitable) -> CodamaResult<()>,
-    ) -> CodamaResult<()> {
-        next(visitable)?;
+    fn on_initialized(&self, visitable: &mut dyn KorokVisitable) -> CodamaResult<()> {
+        visitable.accept(&mut RouterVisitor::new())?;
+        Ok(())
+    }
 
-        let mut program_visitor = ProgramVisitor::new();
-        visitable.accept(&mut program_visitor)?;
+    fn on_fields_set(&self, visitable: &mut dyn KorokVisitable) -> CodamaResult<()> {
+        visitable.accept(&mut IdentifyFieldTypesVisitor::new())?;
+        visitable.accept(&mut ApplyTypeOverridesVisitor::new())?;
+        visitable.accept(&mut ApplyTypeModifiersVisitor::new())?;
+        visitable.accept(&mut SetDefaultValuesVisitor::new())?;
+        Ok(())
+    }
 
-        let ixs = resolve_instructions(&program_visitor)?;
+    fn on_program_items_set(&self, visitable: &mut dyn KorokVisitable) -> CodamaResult<()> {
+        visitable.accept(&mut SetDefinedTypesVisitor::new())?;
+        visitable.accept(&mut ContextVisitor::new())?;
+        // visitable.accept(&mut SetPdasVisitor::new())?; //TODO
+        visitable.accept(&mut SetAccountVisitor::new())?;
+        // visitable.accept(&mut SetInstructionsVisitor::new())?; //TODO
+        visitable.accept(&mut SetErrorsVisitor::new())?;
+        Ok(())
+    }
 
-        let mut default_visitor = ComposeVisitor::new()
-            .with(ApplyInstructionVisitor::new(ixs))
-            .with(SetAccountVisitor::new())
-            .with(SetDefinedTypesVisitor::new())
-            .with(SetErrorsVisitor::new(program_visitor.errors_name))
-            .with(SetProgramIdVisitor::new())
-            .with(SetProgramMetadataVisitor::new())
-            .with(CombineModulesVisitor::new());
-
-        visitable.accept(&mut default_visitor)?;
+    fn on_root_node_set(&self, visitable: &mut dyn KorokVisitable) -> CodamaResult<()> {
+        visitable.accept(&mut SetProgramIdVisitor::new())?;
+        visitable.accept(&mut SetProgramMetadataVisitor::new())?;
+        visitable.accept(&mut CombineModulesVisitor::new())?;
         Ok(())
     }
 }
 
-fn resolve_instructions(
-    program: &ProgramVisitor,
-) -> CodamaResult<HashMap<String, InstructionNode>> {
+fn resolve_instructions(program: &RouterVisitor) -> CodamaResult<HashMap<String, InstructionNode>> {
     let mut result = HashMap::new();
     for (dis, ix) in &program.instruction_list.0 {
         let name = ix.to_string();
@@ -145,24 +153,4 @@ fn resolve_instructions(
     }
 
     Ok(result)
-}
-
-fn extract_type(ty: &Type) -> Result<TypeNode, syn::Error> {
-    if let Some(ty_node) = get_type_node(ty) {
-        Ok(ty_node)
-    } else {
-        let Type::Path(ty_path) = ty else {
-            return Err(Error::new_spanned(ty, "Invalid defined type."));
-        };
-
-        let seg = ty_path
-            .path
-            .segments
-            .last()
-            .ok_or(Error::new_spanned(ty, "Invalid defined path type."))?;
-
-        Ok(TypeNode::Link(DefinedTypeLinkNode::new(
-            seg.ident.to_string(),
-        )))
-    }
 }
