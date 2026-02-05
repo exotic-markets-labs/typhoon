@@ -32,8 +32,10 @@ fn integration_test() {
     svm.add_program(ID, &program_bytes).unwrap();
 
     // Create the counter
-    let (counter_pk, counter_bump) =
-        Address::find_program_address(&Counter::derive(&admin_pk.to_bytes().into()), &ID);
+    let (counter_pk, counter_bump) = Address::find_program_address(
+        &Counter::derive(&admin_pk.to_bytes().into()).as_seeds(),
+        &ID,
+    );
 
     let arg = InitArgs {
         admin: admin_pk.to_bytes().into(),
