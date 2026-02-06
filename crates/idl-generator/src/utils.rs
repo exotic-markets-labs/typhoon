@@ -1,5 +1,7 @@
-use codama::{get_type_node, DefinedTypeLinkNode, TypeNode};
-use syn::{Error, Type};
+use {
+    codama::{get_type_node, DefinedTypeLinkNode, TypeNode},
+    syn::{Error, Type},
+};
 
 pub fn extract_type(ty: &Type) -> Result<TypeNode, syn::Error> {
     if let Some(ty_node) = get_type_node(ty) {

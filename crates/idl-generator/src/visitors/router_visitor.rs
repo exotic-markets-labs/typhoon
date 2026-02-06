@@ -1,12 +1,10 @@
 use {
-    crate::helpers::AttributesHelper,
     codama::{
         CamelCaseString, ConstAst, ConstantDiscriminatorNode, ConstantValueNode, DiscriminatorNode,
         InstructionNode, KorokVisitor, Node, NumberFormat::U8, NumberTypeNode, NumberValueNode,
         ProgramNode,
     },
     hashbrown::HashMap,
-    syn::Item,
     typhoon_syn::{Context, Instruction, InstructionsList},
 };
 

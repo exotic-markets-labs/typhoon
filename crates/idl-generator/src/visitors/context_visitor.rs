@@ -1,11 +1,12 @@
-use codama::{
-    CamelCaseString, DefinedTypeLinkNode, Docs, InstructionAccountNode, InstructionArgumentNode,
-    InstructionNode, IsAccountSigner, KorokVisitor, Node, StructFieldTypeNode, StructTypeNode,
-    TypeNode,
+use {
+    crate::{helpers::AttributesHelper, utils::extract_type},
+    codama::{
+        CamelCaseString, DefinedTypeLinkNode, Docs, InstructionAccountNode,
+        InstructionArgumentNode, InstructionNode, IsAccountSigner, KorokVisitor, Node,
+        StructFieldTypeNode, StructTypeNode, TypeNode,
+    },
+    typhoon_syn::{Arguments, InstructionAccount},
 };
-use typhoon_syn::{Arguments, InstructionAccount};
-
-use crate::{helpers::AttributesHelper, utils::extract_type};
 
 #[derive(Default)]
 pub struct ContextVisitor {

@@ -3,6 +3,7 @@ use {
     typhoon_syn::Errors,
 };
 
+#[derive(Default)]
 pub struct SetErrorsVisitor;
 
 impl SetErrorsVisitor {
@@ -46,9 +47,11 @@ impl KorokVisitor for SetErrorsVisitor {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use codama::{CodamaResult, EnumKorok, KorokVisitable};
-    use syn::{parse_quote, Item};
+    use {
+        super::*,
+        codama::{CodamaResult, EnumKorok, KorokVisitable},
+        syn::{parse_quote, Item},
+    };
 
     #[test]
     fn test_visit_enum() -> CodamaResult<()> {
