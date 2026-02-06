@@ -48,27 +48,15 @@ jobs:
         run: |
           chmod +x scripts/run-benchmarks.sh
           ./scripts/run-benchmarks.sh
-      - name: Commit updated benchmark results
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      - name: Verify benchmark results are in sync
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-
-          # Check if there are changes to BENCHMARK.md
           if git diff --quiet benches/BENCHMARK.md; then
-            echo "No changes to benchmark results"
+            echo "Benchmark results are in sync"
           else
-            echo "Benchmark results have changed, committing updates"
-            git add benches/BENCHMARK.md
-            git commit -m "chore: update benchmark results [skip ci]"
-            git push origin main
+            echo "Benchmark results are out of sync. Run benchmarks and commit updated benches/BENCHMARK.md."
+            git diff -- benches/BENCHMARK.md
+            exit 1
           fi
-      - name: Upload benchmark results
-        uses: actions/upload-artifact@v4
-        with:
-          name: benchmark-results
-          path: benches/BENCHMARK.md
-          retention-days: 30
 
   run_examples_tests:
     runs-on: ubuntu-latest
