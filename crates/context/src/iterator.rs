@@ -1,5 +1,5 @@
 use {
-    crate::HandlerContext, core::marker::PhantomData, paste::paste,
+    crate::HandlerContext, core::marker::PhantomData, pastey::paste,
     solana_account_view::AccountView, solana_address::Address, solana_program_error::ProgramError,
     typhoon_accounts::FromAccountInfo, typhoon_errors::Error,
 };
