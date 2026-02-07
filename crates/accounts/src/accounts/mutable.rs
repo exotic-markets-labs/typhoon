@@ -17,10 +17,6 @@ where
 {
     #[inline(always)]
     fn try_from_info(info: &'a AccountView) -> Result<Self, Error> {
-        if !info.is_writable() {
-            return Err(ProgramError::Immutable.into());
-        }
-
         Ok(Mut(T::try_from_info(info)?))
     }
 }
