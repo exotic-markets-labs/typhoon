@@ -1,5 +1,6 @@
 mod helpers;
 pub mod plugin;
+mod utils;
 pub mod visitors;
 
 use {
