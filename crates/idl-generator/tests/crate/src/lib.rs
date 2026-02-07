@@ -36,12 +36,26 @@ pub struct Destination {
     pub destination: Mut<SystemAccount>,
 }
 
+#[context]
+pub struct UnusedContext {
+    pub random: SystemAccount,
+}
+
+// TODO add seeds and seeded
+
+#[context]
+#[args(value: u64)]
+pub struct RandomContext {
+    pub account: SystemAccount,
+}
+
 entrypoint!();
 
 pub const ROUTER: EntryFn = basic_router! {
     0 => initialize,
     1 => increment,
     2 => close,
+    3 => random_instruction,
 };
 
 pub fn initialize(_: Init) -> ProgramResult {
@@ -51,6 +65,10 @@ pub fn initialize(_: Init) -> ProgramResult {
 pub fn increment(ctx: CounterMut) -> ProgramResult {
     ctx.counter.mut_data()?.count += 1;
 
+    Ok(())
+}
+
+pub fn random_instruction(Arg(amount): Arg<u64>, context: RandomContext) -> ProgramResult {
     Ok(())
 }
 
@@ -70,5 +88,5 @@ pub struct Counter {
 }
 
 pub struct RandomType {
-    pub data: u32,
+    pub more_data: u32,
 }

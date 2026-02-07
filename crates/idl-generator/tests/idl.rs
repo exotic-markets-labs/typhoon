@@ -31,7 +31,6 @@ fn idl_test() {
 
         out
     };
-    println!("{idl}");
     assert_eq!(
         idl,
         minify_json(
@@ -86,8 +85,27 @@ fn idl_test() {
         "kind": "instructionNode",
         "name": "initialize",
         "accounts": [
+          {
+            "kind": "instructionAccountNode",
+            "name": "payer",
+            "isWritable": true,
+            "isSigner": true
+          },
+          {
+            "kind": "instructionAccountNode",
+            "name": "counter",
+            "isWritable": true,
+            "isSigner": true
+          },
+          {
+            "kind": "instructionAccountNode",
+            "name": "system",
+            "isWritable": false,
+            "isSigner": false
+          }
         ],
         "arguments": [
+          
         ],
         "discriminators": [
           {
@@ -112,8 +130,15 @@ fn idl_test() {
         "kind": "instructionNode",
         "name": "increment",
         "accounts": [
+          {
+            "kind": "instructionAccountNode",
+            "name": "counter",
+            "isWritable": true,
+            "isSigner": false
+          }
         ],
         "arguments": [
+          
         ],
         "discriminators": [
           {
@@ -138,8 +163,21 @@ fn idl_test() {
         "kind": "instructionNode",
         "name": "close",
         "accounts": [
+          {
+            "kind": "instructionAccountNode",
+            "name": "counter",
+            "isWritable": true,
+            "isSigner": false
+          },
+          {
+            "kind": "instructionAccountNode",
+            "name": "destination",
+            "isWritable": true,
+            "isSigner": false
+          }
         ],
         "arguments": [
+          
         ],
         "discriminators": [
           {
@@ -162,62 +200,86 @@ fn idl_test() {
       },
       {
         "kind": "instructionNode",
-        "name": "init",
+        "name": "randomInstruction",
         "accounts": [
           {
             "kind": "instructionAccountNode",
-            "name": "payer",
-            "isWritable": true,
-            "isSigner": true
-          },
-          {
-            "kind": "instructionAccountNode",
-            "name": "counter",
-            "isWritable": true,
-            "isSigner": true
-          },
-          {
-            "kind": "instructionAccountNode",
-            "name": "system",
+            "name": "account",
             "isWritable": false,
             "isSigner": false
           }
         ],
         "arguments": [
-        ]
-      },
-      {
-        "kind": "instructionNode",
-        "name": "counterMut",
-        "accounts": [
           {
-            "kind": "instructionAccountNode",
-            "name": "counter",
-            "isWritable": true,
-            "isSigner": false
+            "kind": "instructionArgumentNode",
+            "name": "amount",
+            "type": {
+              "kind": "numberTypeNode",
+              "format": "u64",
+              "endian": "le"
+            }
+          },
+          {
+            "kind": "instructionArgumentNode",
+            "name": "randomContextArgs",
+            "type": {
+              "kind": "structTypeNode",
+              "fields": [
+                {
+                  "kind": "structFieldTypeNode",
+                  "name": "value",
+                  "type": {
+                    "kind": "numberTypeNode",
+                    "format": "u64",
+                    "endian": "le"
+                  }
+                }
+              ]
+            }
           }
         ],
-        "arguments": [
-        ]
-      },
-      {
-        "kind": "instructionNode",
-        "name": "destination",
-        "accounts": [
+        "discriminators": [
           {
-            "kind": "instructionAccountNode",
-            "name": "destination",
-            "isWritable": true,
-            "isSigner": false
+            "kind": "constantDiscriminatorNode",
+            "offset": 0,
+            "constant": {
+              "kind": "constantValueNode",
+              "type": {
+                "kind": "numberTypeNode",
+                "format": "u8",
+                "endian": "le"
+              },
+              "value": {
+                "kind": "numberValueNode",
+                "number": 3
+              }
+            }
           }
-        ],
-        "arguments": [
         ]
       }
     ],
     "definedTypes": [
+      {
+        "kind": "definedTypeNode",
+        "name": "randomType",
+        "type": {
+          "kind": "structTypeNode",
+          "fields": [
+            {
+              "kind": "structFieldTypeNode",
+              "name": "moreData",
+              "type": {
+                "kind": "numberTypeNode",
+                "format": "u32",
+                "endian": "le"
+              }
+            }
+          ]
+        }
+      }
     ],
     "pdas": [
+      
     ],
     "errors": [
       {
@@ -229,6 +291,7 @@ fn idl_test() {
     ]
   },
   "additionalPrograms": [
+    
   ]
 }"#
         )

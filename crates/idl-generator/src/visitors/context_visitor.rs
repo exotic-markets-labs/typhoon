@@ -10,7 +10,7 @@ use {
 
 #[derive(Default)]
 pub struct ContextVisitor {
-    context_name: Option<String>,
+    in_context: bool,
 }
 
 impl ContextVisitor {
@@ -21,85 +21,80 @@ impl ContextVisitor {
 
 impl KorokVisitor for ContextVisitor {
     fn visit_struct(&mut self, korok: &mut codama_koroks::StructKorok) -> codama::CodamaResult<()> {
-        let previous_context = self.context_name.clone();
-        let is_context = korok.attributes.has_attribute("context");
-        if is_context {
-            self.context_name = Some(korok.ast.ident.to_string());
-        } else {
-            self.context_name = None;
+        let previous_context = self.in_context;
+        if korok.attributes.has_attribute("context") {
+            self.in_context = true;
+            self.visit_children(korok)?;
+            let arguments = korok
+                .attributes
+                .0
+                .iter()
+                .find(|el| el.name() == "args")
+                .map(|attrs| -> Result<_, syn::Error> {
+                    let args = Arguments::try_from(attrs.ast())?;
+                    Ok(vec![InstructionArgumentNode {
+                        name: CamelCaseString::new(format!("{}_args", korok.ast.ident.to_string())),
+                        r#type: match args {
+                            Arguments::Values(arguments) => TypeNode::Struct(StructTypeNode {
+                                fields: arguments
+                                    .iter()
+                                    .map(|el| {
+                                        Ok(StructFieldTypeNode {
+                                            name: CamelCaseString::new(el.name.to_string()),
+                                            default_value_strategy: None,
+                                            docs: Docs::new(),
+                                            r#type: extract_type(&el.ty)?,
+                                            default_value: None,
+                                        })
+                                    })
+                                    .collect::<Result<_, syn::Error>>()?,
+                            }),
+                            Arguments::Struct(ident) => {
+                                TypeNode::Link(DefinedTypeLinkNode::new(ident.to_string()))
+                            }
+                        },
+                        default_value_strategy: None,
+                        docs: Docs::new(),
+                        default_value: None,
+                    }])
+                })
+                .transpose()?
+                .unwrap_or_default();
+            korok.node = Some(Node::Instruction(InstructionNode {
+                name: CamelCaseString::new(korok.ast.ident.to_string()),
+                accounts: korok
+                    .fields
+                    .iter()
+                    .filter_map(|field| match &field.node {
+                        Some(Node::InstructionAccount(account)) => Some(account.clone()),
+                        _ => None,
+                    })
+                    .collect(),
+                arguments,
+                ..Default::default()
+            }));
         }
-        self.visit_children(korok)?;
-        if is_context {
-            let mut accounts = Vec::with_capacity(korok.ast.fields.len());
-            let mut arguments = Vec::with_capacity(1);
-            for field in &korok.fields {
-                match &field.node {
-                    Some(Node::InstructionAccount(account)) => accounts.push(account.clone()),
-                    Some(Node::InstructionArgument(argument)) => arguments.push(argument.clone()),
-                    _ => {}
-                }
-            }
-
-            if !accounts.is_empty() || !arguments.is_empty() {
-                korok.node = Some(Node::Instruction(InstructionNode {
-                    name: CamelCaseString::new(korok.ast.ident.to_string()),
-                    accounts,
-                    arguments,
-                    ..Default::default()
-                }));
-            }
-        }
-        self.context_name = previous_context;
+        self.in_context = previous_context;
         Ok(())
     }
 
     fn visit_field(&mut self, korok: &mut codama_koroks::FieldKorok) -> codama::CodamaResult<()> {
-        let Some(ref context_name) = self.context_name else {
+        if !self.in_context {
             return Ok(());
-        };
-
-        if let Some(attrs) = korok.attributes.0.iter().find(|el| el.name() == "args") {
-            let args = Arguments::try_from(attrs.ast())?;
-            korok.node = Some(Node::InstructionArgument(InstructionArgumentNode {
-                name: CamelCaseString::new(format!("{}_args", context_name)),
-                r#type: match args {
-                    Arguments::Values(arguments) => TypeNode::Struct(StructTypeNode {
-                        fields: arguments
-                            .iter()
-                            .map(|el| {
-                                Ok(StructFieldTypeNode {
-                                    name: CamelCaseString::new(el.name.to_string()),
-                                    default_value_strategy: None,
-                                    docs: Docs::new(),
-                                    r#type: extract_type(&el.ty)?,
-                                    default_value: None,
-                                })
-                            })
-                            .collect::<Result<_, syn::Error>>()?,
-                    }),
-                    Arguments::Struct(ident) => {
-                        TypeNode::Link(DefinedTypeLinkNode::new(ident.to_string()))
-                    }
-                },
-                default_value_strategy: None,
-                docs: Docs::new(),
-                default_value: None,
-            }));
-        } else {
-            let account = InstructionAccount::try_from(korok.ast)?;
-            korok.node = Some(Node::InstructionAccount(InstructionAccountNode {
-                default_value: None,
-                docs: Docs::from(account.docs.clone()),
-                is_optional: account.meta.is_optional,
-                is_signer: if account.meta.is_optional && account.meta.is_signer {
-                    IsAccountSigner::Either
-                } else {
-                    account.meta.is_signer.into()
-                },
-                is_writable: account.meta.is_mutable,
-                name: CamelCaseString::new(account.name.to_string()),
-            }));
         }
+        let account = InstructionAccount::try_from(korok.ast)?;
+        korok.node = Some(Node::InstructionAccount(InstructionAccountNode {
+            default_value: None,
+            docs: Docs::from(account.docs.clone()),
+            is_optional: account.meta.is_optional,
+            is_signer: if account.meta.is_optional && account.meta.is_signer {
+                IsAccountSigner::Either
+            } else {
+                account.meta.is_signer.into()
+            },
+            is_writable: account.meta.is_mutable,
+            name: CamelCaseString::new(account.name.to_string()),
+        }));
 
         Ok(())
     }
