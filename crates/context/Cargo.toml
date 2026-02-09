@@ -18,7 +18,7 @@ bytemuck.workspace = true
 pastey.workspace = true
 solana-account-view.workspace = true
 solana-address.workspace = true
-solana-instruction-view.workspace = true
+solana-instruction-view = { workspace = true, features = ["cpi"] }
 solana-program-error.workspace = true
 typhoon-accounts.workspace = true
 typhoon-errors.workspace = true
