@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Fixed
+
+## [0.2.0] - 2026-02-09
+
+### Added
+
 - CLI (`new`, `add` subcommands) ([#305](https://github.com/exotic-markets-labs/typhoon/pull/305)).
 - `typhoon-traits` crate ([#315](https://github.com/exotic-markets-labs/typhoon/pull/315)).
 - `const` discriminator calculation ([#322](https://github.com/exotic-markets-labs/typhoon/pull/322)).
@@ -43,5 +51,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release.
 
-[Unreleased]: https://github.com/exotic-markets-labs/typhoon/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/exotic-markets-labs/typhoon/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/exotic-markets-labs/typhoon/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/exotic-markets-labs/typhoon/releases/tag/v0.1.0

@@ -16,9 +16,21 @@
 - **Typhoon is in active development, so all APIs are subject to change.**
 - **This code is unaudited. Use at your own risk.**
 
-## 📚 Installation
+## 📦 Installation
 
-To get started with Typhoon, add it to your Rust project using Cargo:
+To get started with Typhoon, you can use the CLI tool to scaffold and manage your projects.
+
+### CLI
+
+Install the Typhoon CLI using Cargo:
+
+```bash
+cargo install --git https://github.com/exotic-markets-labs/typhoon typhoon-cli
+```
+
+### Library
+
+If you prefer to add Typhoon to an existing Rust project:
 
 ```bash
 cargo add typhoon
@@ -36,22 +48,13 @@ use {
     typhoon::prelude::*,
 };
 
-
 program_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
 nostd_panic_handler!();
 no_allocator!();
-entrypoint!();
-
-pub const ROUTER: EntryFn = basic_router! {
-    0 => initialize,
-    1 => increment,
-    2 => close,
-};
-
 
 #[context]
-pub struct InitContext {
+pub struct Init {
     pub payer: Mut<Signer>,
     #[constraint(
         init,
@@ -62,28 +65,36 @@ pub struct InitContext {
 }
 
 #[context]
-pub struct CounterMutContext {
+pub struct CounterMut {
     pub counter: Mut<Account<Counter>>,
 }
 
 #[context]
-pub struct DestinationContext {
+pub struct Destination {
     pub destination: Mut<SystemAccount>,
 }
 
-pub fn initialize(_: InitContext) -> ProgramResult {
+entrypoint!();
+
+pub const ROUTER: EntryFn = basic_router! {
+    0 => initialize,
+    1 => increment,
+    2 => close,
+};
+
+pub fn initialize(_: Init) -> ProgramResult {
     Ok(())
 }
 
-pub fn increment(ctx: CounterMutContext) -> ProgramResult {
+pub fn increment(ctx: CounterMut) -> ProgramResult {
     ctx.counter.mut_data()?.count += 1;
 
     Ok(())
 }
 
 pub fn close(
-    CounterMutContext { counter }: CounterMutContext,
-    DestinationContext { destination }: DestinationContext,
+    CounterMut { counter }: CounterMut,
+    Destination { destination }: Destination,
 ) -> ProgramResult {
     counter.close(&destination)?;
 
@@ -95,7 +106,28 @@ pub fn close(
 pub struct Counter {
     pub count: u64,
 }
+```
 
+## 🛠️ CLI Usage
+
+The Typhoon CLI helps you create and manage your projects.
+
+### New Project
+
+```bash
+typhoon new my-project --program counter
+```
+
+### Add Program
+
+```bash
+typhoon add program token
+```
+
+### Add Instruction
+
+```bash
+typhoon add handler --program counter increment
 ```
 
 ## 📦 Examples
