@@ -47,11 +47,11 @@ pub fn gen_instructions(ixs: &[Instruction]) -> TokenStream {
                 }
 
                 #[inline(always)]
-                pub fn invoke_with_remaining(&self, seeds: &[CpiSigner], remaining: &[AccountView]) -> ProgramResult {
+                pub fn invoke_with_remaining<'a>(&self, remaining: impl ExactSizeIterator<Item = &'a AccountView>) -> ProgramResult {
                     self.invoke_signed_with_remaining(&[], remaining)
                 }
 
-                pub fn invoke_signed_with_remaining(&self, seeds: &[CpiSigner], remaining: &[AccountView]) -> ProgramResult {
+                pub fn invoke_signed_with_remaining<'a>(&self, seeds: &[CpiSigner], remaining: impl ExactSizeIterator<Item = &'a AccountView>) -> ProgramResult {
                     let accounts_len: usize = core::cmp::min(remaining.len() + #len, 64);
                     let mut account_infos = [bytes::UNINIT_ACC_VIEW; 64];
                     let mut account_metas = [bytes::UNINIT_INS_ACC; 64];
@@ -64,10 +64,9 @@ pub fn gen_instructions(ixs: &[Instruction]) -> TokenStream {
                         d.write(s);
                     }
 
-                    for i in 0..remaining.len() {
-                        let account = &remaining[i];
+                    for (i, account) in remaining.enumerate() {
                         account_metas[#len + i].write(instruction::InstructionAccount::new(account.address(), account.is_writable(), account.is_signer()));
-                        account_infos[#len + i].write(&account);
+                        account_infos[#len + i].write(account);
                     }
 
                     let account_metas =  unsafe { core::slice::from_raw_parts(account_metas.as_ptr() as _, accounts_len) };
