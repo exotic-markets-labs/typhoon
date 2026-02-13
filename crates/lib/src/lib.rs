@@ -31,7 +31,7 @@ pub mod prelude {
         super::{bytes, instruction, lib::*, macros::*, ProgramResult},
         pinocchio::{
             self,
-            address::{self, declare_id, MAX_SEEDS},
+            address::{self, address_eq, declare_id, MAX_SEEDS},
             cpi::{self, Seed, Signer as CpiSigner},
             default_panic_handler,
             error::{ProgramError, ToStr},
