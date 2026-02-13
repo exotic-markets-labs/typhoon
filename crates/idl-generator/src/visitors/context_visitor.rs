@@ -33,7 +33,7 @@ impl KorokVisitor for ContextVisitor {
                 .map(|attrs| -> Result<_, syn::Error> {
                     let args = Arguments::try_from(attrs.ast())?;
                     Ok(vec![InstructionArgumentNode {
-                        name: CamelCaseString::new(format!("{}_args", korok.ast.ident.to_string())),
+                        name: CamelCaseString::new(format!("{}_args", korok.ast.ident)),
                         r#type: match args {
                             Arguments::Values(arguments) => TypeNode::Struct(StructTypeNode {
                                 fields: arguments
