@@ -47,8 +47,8 @@ pub fn gen_instructions(ixs: &[Instruction]) -> TokenStream {
                 }
 
                 #[inline(always)]
-                pub fn invoke_with_remaining<'a>(&self, seeds: &[CpiSigner], remaining: impl ExactSizeIterator<Item = &'a AccountView>) -> ProgramResult {
-                    self.invoke_signed_with_remaining(seeds, remaining)
+                pub fn invoke_with_remaining<'a>(&self, remaining: impl ExactSizeIterator<Item = &'a AccountView>) -> ProgramResult {
+                    self.invoke_signed_with_remaining(&[], remaining)
                 }
 
                 pub fn invoke_signed_with_remaining<'a>(&self, seeds: &[CpiSigner], remaining: impl ExactSizeIterator<Item = &'a AccountView>) -> ProgramResult {
