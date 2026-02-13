@@ -133,7 +133,7 @@ impl KorokVisitor for InstructionResolver {
             .iter_mut()
             .find(|el| el.name.as_str() == CamelCaseString::new(ix.name.to_string()).as_str())
         else {
-            return Err(codama::CodamaError::NodeNotFound);
+            return Ok(());
         };
 
         for (arg_name, arg_value) in &ix.args {
