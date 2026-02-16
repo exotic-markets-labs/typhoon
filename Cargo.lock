@@ -131,12 +131,12 @@ dependencies = [
 
 [[package]]
 name = "cargo-manifest"
-version = "0.19.1"
+version = "0.20.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a1d8af896b707212cd0e99c112a78c9497dd32994192a463ed2f7419d29bd8c6"
+checksum = "99c6f1c3eb197d17dde4f1a1170fbe7ce3e5f23f1166ae480875a9f4a9c11c40"
 dependencies = [
  "serde",
- "thiserror 2.0.18",
+ "thiserror",
  "toml 0.8.23",
 ]
 
@@ -204,9 +204,9 @@ checksum = "c3e64b0cc0439b12df2fa678eae89a1c56a529fd067a9115f7827f1fffd22b32"
 
 [[package]]
 name = "codama"
-version = "0.7.2"
+version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "53738b35eeaeb4239b5852536d6837be0518632e5105f002703aa8ad51a735ba"
+checksum = "3bf2f908673e3177aa1c6546b61fac36874efba6754ffa2b6082f676bd8fa3e0"
 dependencies = [
  "codama-errors",
  "codama-korok-plugins",
@@ -220,9 +220,9 @@ dependencies = [
 
 [[package]]
 name = "codama-attributes"
-version = "0.7.2"
+version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e0abb25f3e25f822417c9e4d16f1d5c2c9c9749cc44d8b4f1d1f85cd9091a25a"
+checksum = "ce088c3f23ad6a6f9b69da81751c87212da2c2195f1b3e391619c3b626473c25"
 dependencies = [
  "codama-errors",
  "codama-nodes",
@@ -235,22 +235,22 @@ dependencies = [
 
 [[package]]
 name = "codama-errors"
-version = "0.7.2"
+version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a56050a49f8ad48246bc997f31b8b4f7fbd68a72ee4a278160b2472e7a16c118"
+checksum = "6485d98de3a1cfd25975cc5afca9c8e03da3ae85c0e4ef1ad818579f7fdc640a"
 dependencies = [
  "cargo_toml",
  "proc-macro2",
  "serde_json",
  "syn",
- "thiserror 2.0.18",
+ "thiserror",
 ]
 
 [[package]]
 name = "codama-korok-plugins"
-version = "0.7.2"
+version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "419d9533478cff62eef8dd05eba016d96adaa12c0092650818b2da2277449221"
+checksum = "07c0899cf03caae88577f4423bebb84659778fca4db1caf4f9dd777ac16f8406"
 dependencies = [
  "codama-errors",
  "codama-korok-visitors",
@@ -259,9 +259,9 @@ dependencies = [
 
 [[package]]
 name = "codama-korok-visitors"
-version = "0.7.2"
+version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "971a61ff57237d9dfb77f5ee0c731634eb9da84a6be7f11c45f4e76932346308"
+checksum = "0b3b1d119c0b247a4746f963bb05e7470d7a3729da8f4040144eea4745e73ac1"
 dependencies = [
  "cargo_toml",
  "codama-attributes",
@@ -275,9 +275,9 @@ dependencies = [
 
 [[package]]
 name = "codama-koroks"
-version = "0.7.2"
+version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "778a5dae966a256739e700770724e46d52f9a0276d4296edb8341bd824168370"
+checksum = "5fb43f91eef59c2e4ca8b7c9f54026a5f43f6f3b3c0505ed77be1abd900525ce"
 dependencies = [
  "codama-attributes",
  "codama-errors",
@@ -291,9 +291,9 @@ dependencies = [
 
 [[package]]
 name = "codama-macros"
-version = "0.7.2"
+version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "73e227382a6b9153521b5b986ea0606a8ec47fc315d7db15d7948ea47b0e5fae"
+checksum = "9f20101421d0bc92133bdfb99be7585196e6313c8665bbdb5830701ab7ca85ee"
 dependencies = [
  "codama-attributes",
  "codama-errors",
@@ -306,9 +306,9 @@ dependencies = [
 
 [[package]]
 name = "codama-nodes"
-version = "0.7.2"
+version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1b6ed3ef44346c0dfde0ec15eca42a1a6ae6fcb2d4d05cf0e10345fdb0bee32f"
+checksum = "62b4a10746031fb835ee90b0f1d67844de91e938d93df6167129325bb886a5da"
 dependencies = [
  "codama-errors",
  "codama-nodes-derive",
@@ -319,9 +319,9 @@ dependencies = [
 
 [[package]]
 name = "codama-nodes-derive"
-version = "0.7.2"
+version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "32526738a3362fb89985f159c51a61ea44e4f76e5cc832977526aa017fbe1bea"
+checksum = "e195f4c7b6a93180a3eb59ba53016d4ea4bbef212f78fa6a04835fe244cb3da1"
 dependencies = [
  "codama-errors",
  "codama-syn-helpers",
@@ -333,9 +333,9 @@ dependencies = [
 
 [[package]]
 name = "codama-stores"
-version = "0.7.2"
+version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0b16856faaceb13d9f01462aa7c1df6d8437a27ac7dd3b1ccd4beeba46a24f56"
+checksum = "56bd0a298e94a566dbd3451d1613ba1f7290bfbaa38e66b8ebd0d3688824bd59"
 dependencies = [
  "cargo_toml",
  "codama-errors",
@@ -345,9 +345,9 @@ dependencies = [
 
 [[package]]
 name = "codama-syn-helpers"
-version = "0.7.2"
+version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a623ab0e21a54d14031724ca819e3df539f4948c12514b72bd49a5bc5b03f500"
+checksum = "13dd908283642bba89c720b5f58d43746e7a3506a960b90357ce64e160381374"
 dependencies = [
  "codama-errors",
  "derive_more",
@@ -427,12 +427,36 @@ dependencies = [
 
 [[package]]
 name = "darling"
+version = "0.20.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fc7f46116c46ff9ab3eb1597a45688b6715c6e628b5c133e288e709a29bcb4ee"
+dependencies = [
+ "darling_core 0.20.11",
+ "darling_macro 0.20.11",
+]
+
+[[package]]
+name = "darling"
 version = "0.21.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9cdf337090841a411e2a7f3deb9187445851f91b309c0c0a29e05f74a00a48c0"
 dependencies = [
- "darling_core",
- "darling_macro",
+ "darling_core 0.21.3",
+ "darling_macro 0.21.3",
+]
+
+[[package]]
+name = "darling_core"
+version = "0.20.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0d00b9596d185e565c2207a0b01f8bd1a135483d02d9b7b0a54b11da8d53412e"
+dependencies = [
+ "fnv",
+ "ident_case",
+ "proc-macro2",
+ "quote",
+ "strsim",
+ "syn",
 ]
 
 [[package]]
@@ -451,11 +475,22 @@ dependencies = [
 
 [[package]]
 name = "darling_macro"
+version = "0.20.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fc34b93ccb385b40dc71c6fceac4b2ad23662c7eeb248cf10d529b7e055b6ead"
+dependencies = [
+ "darling_core 0.20.11",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "darling_macro"
 version = "0.21.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d38308df82d1080de0afee5d069fa14b0326a88c14f15c5ccda35b4a6c414c81"
 dependencies = [
- "darling_core",
+ "darling_core 0.21.3",
  "quote",
  "syn",
 ]
@@ -468,6 +503,37 @@ checksum = "e7c1832837b905bbfb5101e07cc24c8deddf52f93225eee6ead5f4d63d53ddcb"
 dependencies = [
  "const-oid",
  "zeroize",
+]
+
+[[package]]
+name = "derive_builder"
+version = "0.20.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "507dfb09ea8b7fa618fcf76e953f4f5e192547945816d5358edffe39f6f94947"
+dependencies = [
+ "derive_builder_macro",
+]
+
+[[package]]
+name = "derive_builder_core"
+version = "0.20.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2d5bcf7b024d6835cfb3d473887cd966994907effbe9227e8c8219824d06c4e8"
+dependencies = [
+ "darling 0.20.11",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "derive_builder_macro"
+version = "0.20.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ab63b0e2bf4d5928aff72e83a7dace85d7bba5fe12dcc3c5a572d78caffd3f3c"
+dependencies = [
+ "derive_builder_core",
+ "syn",
 ]
 
 [[package]]
@@ -603,16 +669,18 @@ checksum = "0cc23270f6e1808e30a928bdc84dea0b9b4136a8bc82338574f23baf47bbd280"
 
 [[package]]
 name = "handlebars"
-version = "5.1.2"
+version = "6.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d08485b96a0e6393e9e4d1b8d48cf74ad6c063cd905eb33f42c1ce3f0377539b"
+checksum = "9b3f9296c208515b87bd915a2f5d1163d4b3f863ba83337d7713cf478055948e"
 dependencies = [
+ "derive_builder",
  "log",
+ "num-order",
  "pest",
  "pest_derive",
  "serde",
  "serde_json",
- "thiserror 1.0.69",
+ "thiserror",
 ]
 
 [[package]]
@@ -701,6 +769,21 @@ name = "memchr"
 version = "2.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8ca58f447f06ed17d5fc4043ce1b10dd205e060fb3ce5b979b8ed8e59ff3f79"
+
+[[package]]
+name = "num-modular"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "17bb261bf36fa7d83f4c294f834e91256769097b3cb505d44831e0a179ac647f"
+
+[[package]]
+name = "num-order"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "537b596b97c40fcf8056d153049eb22f481c17ebce72a513ec9286e4986d1bb6"
+dependencies = [
+ "num-modular",
+]
 
 [[package]]
 name = "once_cell_polyfill"
@@ -1304,9 +1387,9 @@ checksum = "591ef38edfb78ca4771ee32cf494cb8771944bee237a9b91fc9c1424ac4b777b"
 
 [[package]]
 name = "temp-dir"
-version = "0.1.16"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "83176759e9416cf81ee66cb6508dbfe9c96f20b8b56265a39917551c23c70964"
+checksum = "016ef9739649996fcc983b9c588fe3d557cf216d4d98503ce1b057ab5a66d689"
 
 [[package]]
 name = "termcolor"
@@ -1319,31 +1402,11 @@ dependencies = [
 
 [[package]]
 name = "thiserror"
-version = "1.0.69"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b6aaf5339b578ea85b50e080feb250a3e8ae8cfcdff9a461c9ec2904bc923f52"
-dependencies = [
- "thiserror-impl 1.0.69",
-]
-
-[[package]]
-name = "thiserror"
 version = "2.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4288b5bcbc7920c07a1149a35cf9590a2aa808e0bc1eafaade0b80947865fbc4"
 dependencies = [
- "thiserror-impl 2.0.18",
-]
-
-[[package]]
-name = "thiserror-impl"
-version = "1.0.69"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4fee6c4efc90059e10f81e6d42c60a18f76588c3d74cb83a0b242a2b6c7504c1"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
+ "thiserror-impl",
 ]
 
 [[package]]
@@ -1404,6 +1467,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "toml_datetime"
+version = "1.0.0+spec-1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "32c2555c699578a4f59f0cc68e5116c8d7cabbd45e1409b989d4be085b53f13e"
+dependencies = [
+ "serde_core",
+]
+
+[[package]]
 name = "toml_edit"
 version = "0.22.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1419,12 +1491,12 @@ dependencies = [
 
 [[package]]
 name = "toml_edit"
-version = "0.23.10+spec-1.0.0"
+version = "0.25.1+spec-1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "84c8b9f757e028cee9fa244aea147aab2a9ec09d5325a9b01e0a49730c2b5269"
+checksum = "538ed8bc4ada0b2549f2a7be9654aac2dfa358faeabb97d7845c3eb5a297e5d6"
 dependencies = [
  "indexmap",
- "toml_datetime 0.7.5+spec-1.1.0",
+ "toml_datetime 1.0.0+spec-1.1.0",
  "toml_parser",
  "toml_writer",
  "winnow",
@@ -1432,9 +1504,9 @@ dependencies = [
 
 [[package]]
 name = "toml_parser"
-version = "1.0.6+spec-1.1.0"
+version = "1.0.8+spec-1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a3198b4b0a8e11f09dd03e133c0280504d0801269e9afa46362ffde1cbeebf44"
+checksum = "0742ff5ff03ea7e67c8ae6c93cac239e0d9784833362da3f9a9c1da8dfefcbdc"
 dependencies = [
  "winnow",
 ]
@@ -1533,7 +1605,7 @@ dependencies = [
  "serde",
  "solana-keypair",
  "temp-dir",
- "toml_edit 0.23.10+spec-1.0.0",
+ "toml_edit 0.25.1+spec-1.1.0",
 ]
 
 [[package]]
@@ -1764,7 +1836,7 @@ checksum = "d5cec722a3274e47d1524cbe2cea762f2c19d615bd9d73ada21db9066349d57e"
 dependencies = [
  "proc-macro2",
  "quote",
- "thiserror 2.0.18",
+ "thiserror",
  "wincode-derive",
 ]
 
@@ -1774,7 +1846,7 @@ version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8961eb04054a1b2e026b5628e24da7e001350249a787e1a85aa961f33dc5f286"
 dependencies = [
- "darling",
+ "darling 0.21.3",
  "proc-macro2",
  "quote",
  "syn",
