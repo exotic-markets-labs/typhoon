@@ -14,6 +14,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `typhoon-context` dependency ([#334](https://github.com/exotic-markets-labs/typhoon/pull/334)).
+- Expose `address_eq` to prelude ([#335](https://github.com/exotic-markets-labs/typhoon/pull/335)).
+- Error `NodeNotFound` if the fn is not an instruction ([#336](https://github.com/exotic-markets-labs/typhoon/pull/336)).
+- Anchor IDL generator ([#337](https://github.com/exotic-markets-labs/typhoon/pull/337)).
+- CPI invoke to accept `ExactSizeIterator` for remaining accounts ([#338](https://github.com/exotic-markets-labs/typhoon/pull/338)).
+- Reexport the default allocator ([#339](https://github.com/exotic-markets-labs/typhoon/pull/339)).
+
 ## [0.2.0] - 2026-02-09
 
 ### Added
