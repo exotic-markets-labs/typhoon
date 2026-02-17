@@ -5,7 +5,7 @@ use {
     },
     codama::{
         ApplyTypeModifiersVisitor, ApplyTypeOverridesVisitor, CodamaResult, CombineModulesVisitor,
-        IdentifyFieldTypesVisitor, SetDefaultValuesVisitor,
+        IdentifyFieldTypesVisitor, SetDefaultValuesVisitor, SetProgramMetadataVisitor,
     },
     codama_korok_plugins::KorokPlugin,
     codama_korok_visitors::KorokVisitable,
@@ -38,6 +38,7 @@ impl KorokPlugin for TyphoonPlugin {
 
     fn on_root_node_set(&self, visitable: &mut dyn KorokVisitable) -> CodamaResult<()> {
         visitable.accept(&mut SetProgramIdVisitor::new())?;
+        visitable.accept(&mut SetProgramMetadataVisitor::new())?;
         visitable.accept(&mut CombineModulesVisitor::new())?;
         visitable.accept(&mut InstructionResolver::new())?;
         Ok(())
