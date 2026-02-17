@@ -1546,7 +1546,7 @@ checksum = "562d481066bde0658276a35467c4af00bdc6ee726305698a55b86e61d7ad82bb"
 
 [[package]]
 name = "typhoon"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "pinocchio",
  "solana-address 2.1.0",
@@ -1566,7 +1566,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-account-macro"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "bytemuck",
  "proc-macro2",
@@ -1581,7 +1581,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-accounts"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "borsh",
  "bytemuck",
@@ -1595,7 +1595,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-cli"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -1610,7 +1610,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-context"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "borsh",
  "bytemuck",
@@ -1625,7 +1625,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-context-macro"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "bytemuck",
  "pinocchio",
@@ -1648,7 +1648,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-cpi-generator"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "heck",
  "proc-macro2",
@@ -1659,7 +1659,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-cpi-generator-macro"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "serde_json",
  "syn",
@@ -1668,14 +1668,14 @@ dependencies = [
 
 [[package]]
 name = "typhoon-discriminator"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "const-crypto",
 ]
 
 [[package]]
 name = "typhoon-errors"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "solana-address 2.1.0",
  "solana-program-error",
@@ -1684,7 +1684,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-errors-macro"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "pinocchio",
  "quote",
@@ -1695,7 +1695,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-idl-generator"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "base64",
  "codama",
@@ -1714,7 +1714,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-instruction-builder"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "cargo-manifest",
  "hashbrown",
@@ -1727,7 +1727,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-program-id-macro"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "cargo-manifest",
  "heck",
@@ -1738,7 +1738,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-syn"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "heck",
  "proc-macro2",
@@ -1748,7 +1748,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-token"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "pinocchio",
  "pinocchio-associated-token-account",
@@ -1762,14 +1762,14 @@ dependencies = [
 
 [[package]]
 name = "typhoon-traits"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "solana-address 2.1.0",
 ]
 
 [[package]]
 name = "typhoon-utility"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "borsh",
  "pinocchio",
@@ -1779,7 +1779,7 @@ dependencies = [
 
 [[package]]
 name = "typhoon-utility-traits"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "pinocchio",
  "pinocchio-system",
