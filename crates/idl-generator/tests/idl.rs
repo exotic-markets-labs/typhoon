@@ -58,6 +58,14 @@ fn idl_test() {
                 "format": "u64",
                 "endian": "le"
               }
+            },
+            {
+              "kind": "structFieldTypeNode",
+              "name": "another",
+              "type": {
+                "kind": "definedTypeLinkNode",
+                "name": "anotherStruct"
+              }
             }
           ]
         },
@@ -214,9 +222,8 @@ fn idl_test() {
             "kind": "instructionArgumentNode",
             "name": "amount",
             "type": {
-              "kind": "numberTypeNode",
-              "format": "u64",
-              "endian": "le"
+              "kind": "definedTypeLinkNode",
+              "name": "anotherStruct"
             }
           },
           {
@@ -261,16 +268,16 @@ fn idl_test() {
     "definedTypes": [
       {
         "kind": "definedTypeNode",
-        "name": "randomType",
+        "name": "anotherStruct",
         "type": {
           "kind": "structTypeNode",
           "fields": [
             {
               "kind": "structFieldTypeNode",
-              "name": "moreData",
+              "name": "amount",
               "type": {
                 "kind": "numberTypeNode",
-                "format": "u32",
+                "format": "u64",
                 "endian": "le"
               }
             }

@@ -68,7 +68,10 @@ pub fn increment(ctx: CounterMut) -> ProgramResult {
     Ok(())
 }
 
-pub fn random_instruction(Arg(amount): Arg<u64>, context: RandomContext) -> ProgramResult {
+pub fn random_instruction(
+    Arg(amount): Arg<AnotherStruct>,
+    context: RandomContext,
+) -> ProgramResult {
     Ok(())
 }
 
@@ -85,8 +88,15 @@ pub fn close(
 #[repr(C)]
 pub struct Counter {
     pub count: u64,
+    pub another: AnotherStruct,
 }
 
-pub struct RandomType {
+#[derive(NoUninit, AnyBitPattern, Copy, Clone)]
+#[repr(C)]
+pub struct AnotherStruct {
+    pub amount: u64,
+}
+
+pub struct ExcludedType {
     pub more_data: u32,
 }

@@ -1,7 +1,7 @@
 use {
     crate::visitors::{
-        ContextVisitor, InstructionResolver, RouterVisitor, SetAccountVisitor,
-        SetDefinedTypesVisitor, SetErrorsVisitor, SetProgramIdVisitor,
+        ContextVisitor, DefineTypeResolver, InstructionResolver, RouterVisitor, SetAccountVisitor,
+        SetErrorsVisitor, SetProgramIdVisitor,
     },
     codama::{
         ApplyTypeModifiersVisitor, ApplyTypeOverridesVisitor, CodamaResult, CombineModulesVisitor,
@@ -31,7 +31,6 @@ impl KorokPlugin for TyphoonPlugin {
     fn on_program_items_set(&self, visitable: &mut dyn KorokVisitable) -> CodamaResult<()> {
         visitable.accept(&mut ContextVisitor::new())?;
         visitable.accept(&mut SetErrorsVisitor::new())?;
-        visitable.accept(&mut SetDefinedTypesVisitor::new())?;
         visitable.accept(&mut SetAccountVisitor::new())?;
         Ok(())
     }
@@ -41,6 +40,7 @@ impl KorokPlugin for TyphoonPlugin {
         visitable.accept(&mut SetProgramMetadataVisitor::new())?;
         visitable.accept(&mut CombineModulesVisitor::new())?;
         visitable.accept(&mut InstructionResolver::new())?;
+        visitable.accept(&mut DefineTypeResolver::new())?;
         Ok(())
     }
 }
