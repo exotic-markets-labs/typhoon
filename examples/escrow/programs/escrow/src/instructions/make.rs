@@ -8,7 +8,6 @@ use {
 #[args(MakeArgs)]
 pub struct Make {
     pub maker: Mut<Signer>,
-    // TODO fix seeded and seeds
     #[constraint(
         init,
         payer = maker,

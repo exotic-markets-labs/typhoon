@@ -41,6 +41,32 @@ pub struct PdaContext {
     pub program_id: Option<Expr>,
 }
 
+/// Controls how `get_pda` derives the PDA address and bump.
+enum PdaMode {
+    /// Derive both address and bump. Uses `create_program_address` when bump is known.
+    DeriveAddress,
+    /// Derive only the bump. Uses `create_program_address` when bump is known.
+    DeriveBump,
+    /// Always use `find_program_address`, deriving only the bump.
+    FindBump,
+}
+
+struct AccountIdents {
+    key: Ident,
+    bump: Ident,
+    state: Ident,
+}
+
+impl AccountIdents {
+    fn new(name: &Ident) -> Self {
+        Self {
+            key: format_ident!("{}_key", name),
+            bump: format_ident!("{}_bump", name),
+            state: format_ident!("{}_state", name),
+        }
+    }
+}
+
 pub struct AccountGenerator<'a> {
     pub account: &'a InstructionAccount,
     pub account_ty: AccountType,
@@ -81,6 +107,15 @@ fn seed_temp_bindings(
     (bindings, temps)
 }
 
+/// Generates a guard that returns an error when an address comparison fails.
+fn gen_address_guard(lhs: TokenStream, rhs: TokenStream, err: TokenStream) -> TokenStream {
+    quote! {
+        if hint::unlikely(!address::address_eq(#lhs, #rhs)) {
+            return Err(#err);
+        }
+    }
+}
+
 impl AccountGenerator<'_> {
     pub fn needs_programs(&self) -> Vec<String> {
         let mut programs = Vec::with_capacity(3);
@@ -108,51 +143,32 @@ impl AccountGenerator<'_> {
         }
     }
 
-    fn get_pda(
-        &self,
-        ctx: &PdaContext,
-        find: bool,
-        define_key: bool,
-    ) -> Result<TokenStream, syn::Error> {
-        let name = &self.account.name;
-        let pda_key = format_ident!("{}_key", name);
-        let pda_bump = format_ident!("{}_bump", name);
+    fn needs_return_bump(&self) -> bool {
+        self.pda.as_ref().is_some_and(|pda| {
+            pda.bump.is_none() || self.init.as_ref().is_some_and(|i| i.is_init_if_needed)
+        })
+    }
+
+    fn get_pda(&self, ctx: &PdaContext, mode: PdaMode) -> Result<TokenStream, syn::Error> {
+        let idents = AccountIdents::new(&self.account.name);
         let program_id = ctx
             .program_id
             .as_ref()
             .map(|p| quote!(#p))
             .unwrap_or(quote!(program_id));
 
-        match &ctx.bump {
-            Some(ref bump) if !find => {
-                let seeds_token = if ctx.is_seeded {
-                    let var_name = format_ident!("{}_state", self.account.name);
-                    quote!(#var_name.seeds().seeds_with_bump(&[#pda_bump]))
-                } else {
-                    let Some(ref seed_keys) = ctx.keys else {
-                        error!(
-                            &self.account.name,
-                            "No seeds specified for the current PDA."
-                        );
-                    };
+        let use_create = !matches!(mode, PdaMode::FindBump) && ctx.bump.is_some();
+        let define_key = matches!(mode, PdaMode::DeriveAddress);
 
-                    match seed_keys {
-                        SeedsExpr::Punctuated(punctuated) => quote!([#punctuated, &[#pda_bump]]),
-                        SeedsExpr::Single(expr) => quote!(#expr(&[#pda_bump])),
-                    }
-                };
+        if use_create {
+            let bump = ctx.bump.as_ref().unwrap();
+            let pda_bump = &idents.bump;
+            let pda_key = &idents.key;
 
-                let create_pda = if define_key {
-                    quote!(let #pda_key = Address::create_program_address(&#seeds_token, &#program_id)?;)
-                } else {
-                    quote!(Address::create_program_address(&#seeds_token, &#program_id)?;)
-                };
-                Ok(quote! {
-                    let #pda_bump = #bump;
-                    #create_pda
-                })
-            }
-            _ => {
+            let seeds_token = if ctx.is_seeded {
+                let state = &idents.state;
+                quote!(#state.seeds().seeds_with_bump(&[#pda_bump]))
+            } else {
                 let Some(ref seed_keys) = ctx.keys else {
                     error!(
                         &self.account.name,
@@ -160,36 +176,59 @@ impl AccountGenerator<'_> {
                     );
                 };
 
-                let seeds_token = if ctx.is_seeded {
-                    let inner_ty = &self.account.inner_ty;
-                    quote!(#inner_ty::derive(#seed_keys).as_seeds())
-                } else {
-                    match seed_keys {
-                        SeedsExpr::Punctuated(punctuated) => quote!([#punctuated]),
-                        SeedsExpr::Single(expr) => quote!(#expr),
-                    }
-                };
+                match seed_keys {
+                    SeedsExpr::Punctuated(punctuated) => quote!([#punctuated, &[#pda_bump]]),
+                    SeedsExpr::Single(expr) => quote!(#expr(&[#pda_bump])),
+                }
+            };
 
-                let key_token = if define_key {
-                    quote! {
-                        let (#pda_key, #pda_bump) = Address::find_program_address(&#seeds_token, &#program_id);
-                    }
-                } else {
-                    quote! {
-                        let (_, #pda_bump) = Address::find_program_address(&#seeds_token, &#program_id);
-                    }
-                };
-                Ok(key_token)
-            }
+            let create_pda = if define_key {
+                quote!(let #pda_key = Address::create_program_address(&#seeds_token, &#program_id)?;)
+            } else {
+                quote!(Address::create_program_address(&#seeds_token, &#program_id)?;)
+            };
+            Ok(quote! {
+                let #pda_bump = #bump;
+                #create_pda
+            })
+        } else {
+            let Some(ref seed_keys) = ctx.keys else {
+                error!(
+                    &self.account.name,
+                    "No seeds specified for the current PDA."
+                );
+            };
+
+            let seeds_token = if ctx.is_seeded {
+                let inner_ty = &self.account.inner_ty;
+                quote!(#inner_ty::derive(#seed_keys).as_seeds())
+            } else {
+                match seed_keys {
+                    SeedsExpr::Punctuated(punctuated) => quote!([#punctuated]),
+                    SeedsExpr::Single(expr) => quote!(#expr),
+                }
+            };
+
+            let pda_key = &idents.key;
+            let pda_bump = &idents.bump;
+            let key_token = if define_key {
+                quote! {
+                    let (#pda_key, #pda_bump) = Address::find_program_address(&#seeds_token, &#program_id);
+                }
+            } else {
+                quote! {
+                    let (_, #pda_bump) = Address::find_program_address(&#seeds_token, &#program_id);
+                }
+            };
+            Ok(key_token)
         }
     }
 
     fn get_signer_init(&self, ctx: &PdaContext) -> Result<TokenStream, syn::Error> {
-        let pda_bump = format_ident!("{}_bump", self.account.name);
-        let punctuated_keys = ctx.keys.as_ref().ok_or(syn::Error::new_spanned(
-            &self.account.name,
-            "The seeds cannot be empty.",
-        ))?;
+        let idents = AccountIdents::new(&self.account.name);
+        let Some(ref punctuated_keys) = ctx.keys else {
+            error!(&self.account.name, "The seeds cannot be empty.");
+        };
 
         let seeds = if ctx.is_seeded {
             let account_ty = &self.account.inner_ty;
@@ -210,6 +249,10 @@ impl AccountGenerator<'_> {
                     }
                 }
                 SeedsExpr::Single(expr) => {
+                    // SAFETY: `buffer` elements `[0..expr_len]` are initialised by the
+                    // `for` loop, and element `[expr_len]` is written right after. The
+                    // resulting `from_raw_parts` slice covers exactly `expr_len + 1`
+                    // fully-initialised `Seed` values.
                     quote! {
                         let expr = #expr;
                         let expr_len = expr.len();
@@ -225,6 +268,7 @@ impl AccountGenerator<'_> {
             }
         };
 
+        let pda_bump = &idents.bump;
         Ok(quote! {
             // TODO: avoid reusing seeds here and in verifications
             let bump = [#pda_bump];
@@ -241,10 +285,12 @@ impl AccountGenerator<'_> {
         if !self.account.meta.is_mutable || !self.is_init_signer() {
             error!(name, "The account needs to be mutable and signer");
         }
-        let payer = ctx.payer.as_ref().ok_or(syn::Error::new_spanned(
-            name,
-            "A payer needs to be specified for `init` or init_if_needed` constraint.",
-        ))?;
+        let Some(ref payer) = ctx.payer else {
+            error!(
+                name,
+                "A payer needs to be specified for `init` or init_if_needed` constraint."
+            );
+        };
 
         let init_token = match &self.account_ty {
             AccountType::TokenAccount {
@@ -293,29 +339,80 @@ impl AccountGenerator<'_> {
         Ok(init_token)
     }
 
-    pub fn account_token(&self) -> Result<TokenStream, syn::Error> {
-        let mut token = TokenStream::new();
+    fn generate_init(
+        &self,
+        init_ctx: &InitContext,
+        return_ty: &TokenStream,
+    ) -> Result<TokenStream, syn::Error> {
+        let name = &self.account.name;
+        let account_ty = self.account.get_ty();
+
+        let signers = if self.pda.is_some() {
+            quote!(Some(&[signer]))
+        } else {
+            quote!(None)
+        };
+        let init_token = self.get_init_token(init_ctx, signers)?;
+
+        let init_account_token = if let Some(ref pda_ctx) = self.pda {
+            let mode = if init_ctx.is_init_if_needed {
+                PdaMode::FindBump
+            } else {
+                PdaMode::DeriveBump
+            };
+            let pda_token = self.get_pda(pda_ctx, mode)?;
+            let seeds_token = self.get_signer_init(pda_ctx)?;
+            quote! {
+                #pda_token
+                #seeds_token
+                let #name = { #init_token };
+            }
+        } else {
+            quote! {
+                let #name: #account_ty = {
+                    #init_token
+                };
+            }
+        };
+
+        if init_ctx.is_init_if_needed {
+            let account_token = self.account_token()?;
+            Ok(quote! {
+                let #return_ty = if !#name.owned_by(&Address::default()) {
+                    #account_token
+                    #return_ty
+                }else {
+                    #init_account_token
+                    #return_ty
+                };
+            })
+        } else {
+            Ok(init_account_token)
+        }
+    }
+
+    fn verify_pda_address(&self, idents: &AccountIdents) -> Result<TokenStream, syn::Error> {
+        let Some(ref pda_ctx) = self.pda else {
+            return Ok(TokenStream::new());
+        };
+
         let name = &self.account.name;
         let name_str = name.to_string();
-        let account_ty = self.account.get_ty();
-        let var_name = format_ident!("{}_state", name);
-        let pda_key = format_ident!("{}_key", name);
+        let pda_key = &idents.key;
 
-        token.extend(quote!(let #name = <#account_ty as FromAccountInfo>::try_from_info(#name).trace_account(#name_str)?;));
+        let pda = self.get_pda(pda_ctx, PdaMode::DeriveAddress)?;
+        let guard = gen_address_guard(
+            quote!(#name.address()),
+            quote!(&#pda_key),
+            quote!(Error::new(ProgramError::InvalidSeeds).with_account(#name_str)),
+        );
 
-        if self.init_state {
-            token.extend(quote!(let #var_name = #name.data_unchecked()?;));
-        }
+        Ok(quote! { #pda #guard })
+    }
 
-        if let Some(ref pda_ctx) = self.pda {
-            let pda = self.get_pda(pda_ctx, false, true)?;
-            token.extend(pda);
-            token.extend(quote! {
-                if hint::unlikely(!address::address_eq(#name.address(), &#pda_key)) {
-                    return Err(Error::new(ProgramError::InvalidSeeds).with_account(#name_str));
-                }
-            });
-        }
+    fn verify_type_constraints(&self, idents: &AccountIdents) -> TokenStream {
+        let name_str = self.account.name.to_string();
+        let state = &idents.state;
 
         match self.account_ty {
             AccountType::TokenAccount {
@@ -323,73 +420,81 @@ impl AccountGenerator<'_> {
                 ref owner,
                 ..
             } => {
+                let mut token = TokenStream::new();
                 if let Some(mint) = mint {
-                    token.extend(quote! {
-                        if hint::unlikely(!address::address_eq(#var_name.mint(), #mint.address())) {
-                            return Err(ErrorCode::TokenConstraintViolated.into());
-                        }
-                    });
+                    token.extend(gen_address_guard(
+                        quote!(#state.mint()),
+                        quote!(#mint.address()),
+                        quote!(ErrorCode::TokenConstraintViolated.into()),
+                    ));
                 }
 
                 if let Some(owner) = owner {
-                    token.extend(quote! {
-                        if hint::unlikely(!address::address_eq(#var_name.owner(), #owner.address())) {
-                            return Err(ErrorCode::TokenConstraintViolated.into());
-                        }
-                    });
+                    token.extend(gen_address_guard(
+                        quote!(#state.owner()),
+                        quote!(#owner.address()),
+                        quote!(ErrorCode::TokenConstraintViolated.into()),
+                    ));
                 }
+                token
             }
-            AccountType::Mint { .. } => {}
+            AccountType::Mint { .. } => TokenStream::new(),
             AccountType::Other { ref targets, .. } => {
                 let basic_error: Expr = parse_quote!(ErrorCode::HasOneConstraint);
-                let targets = targets.iter().map(|(target, error)| {
-                    let target = &target;
-                    let error = error.as_ref().unwrap_or(&basic_error);
-
-                    quote! {
-                        if hint::unlikely(!address::address_eq(&#var_name.#target, #target.address())) {
-                            return Err(Error::from(#error).with_account(#name_str));
-                        }
-                    }
-                });
-                token.extend(targets);
+                targets
+                    .iter()
+                    .map(|(target, error)| {
+                        let error = error.as_ref().unwrap_or(&basic_error);
+                        gen_address_guard(
+                            quote!(&#state.#target),
+                            quote!(#target.address()),
+                            quote!(Error::from(#error).with_account(#name_str)),
+                        )
+                    })
+                    .collect()
             }
         }
+    }
 
-        for ConstraintAssert { assert, error } in &self.asserts {
-            let basic_error: Expr = parse_quote!(ErrorCode::AssertConstraint);
-            let error = error.as_ref().unwrap_or(&basic_error);
-
-            token.extend(quote! {
-                if hint::unlikely(!(#assert)) {
-                    return Err(#error.into());
+    fn verify_assertions(&self) -> TokenStream {
+        self.asserts
+            .iter()
+            .map(|ConstraintAssert { assert, error }| {
+                let basic_error: Expr = parse_quote!(ErrorCode::AssertConstraint);
+                let error = error.as_ref().unwrap_or(&basic_error);
+                quote! {
+                    if hint::unlikely(!(#assert)) {
+                        return Err(#error.into());
+                    }
                 }
-            });
+            })
+            .collect()
+    }
+
+    pub fn account_token(&self) -> Result<TokenStream, syn::Error> {
+        let name = &self.account.name;
+        let name_str = name.to_string();
+        let account_ty = self.account.get_ty();
+        let idents = AccountIdents::new(name);
+
+        let mut token = quote!(let #name = <#account_ty as FromAccountInfo>::try_from_info(#name).trace_account(#name_str)?;);
+
+        if self.init_state {
+            let state = &idents.state;
+            token.extend(quote!(let #state = #name.data_unchecked()?;));
         }
+
+        token.extend(self.verify_pda_address(&idents)?);
+        token.extend(self.verify_type_constraints(&idents));
+        token.extend(self.verify_assertions());
+
         Ok(token)
     }
 
-    fn needs_return_bump(&self) -> bool {
-        let has_pda = self.pda.is_some();
-        let pda_has_no_bump = self
-            .pda
-            .as_ref()
-            .map(|el| el.bump.is_none())
-            .unwrap_or_default();
-        let is_init_if_needed = self
-            .init
-            .as_ref()
-            .map(|el| el.is_init_if_needed)
-            .unwrap_or_default();
-
-        has_pda && (pda_has_no_bump || is_init_if_needed)
-    }
-
     pub fn generate(self) -> Result<TokenStream, syn::Error> {
-        let mut token = TokenStream::new();
         let name = &self.account.name;
-        let account_ty = self.account.get_ty();
-        let pda_bump = format_ident!("{}_bump", name);
+        let idents = AccountIdents::new(name);
+        let pda_bump = &idents.bump;
 
         let return_ty = if self.needs_return_bump() {
             quote!((#name, #pda_bump))
@@ -398,45 +503,12 @@ impl AccountGenerator<'_> {
         };
 
         let account_checks_token = if let Some(ref init_ctx) = self.init {
-            let signers = if self.pda.is_some() {
-                quote!(Some(&[signer]))
-            } else {
-                quote!(None)
-            };
-            let init_token = self.get_init_token(init_ctx, signers)?;
-            let init_account_token = if let Some(ref pda_ctx) = self.pda {
-                let pda_token = self.get_pda(pda_ctx, init_ctx.is_init_if_needed, false)?;
-                let seeds_token = self.get_signer_init(pda_ctx)?;
-                quote! {
-                    #pda_token
-                    #seeds_token
-                    let #name = { #init_token };
-                }
-            } else {
-                quote! {
-                    let #name: #account_ty = {
-                        #init_token
-                    };
-                }
-            };
-
-            if init_ctx.is_init_if_needed {
-                let account_token = self.account_token()?;
-                quote! {
-                    let #return_ty = if !#name.owned_by(&Address::default()) {
-                        #account_token
-                        #return_ty
-                    }else {
-                        #init_account_token
-                        #return_ty
-                    };
-                }
-            } else {
-                quote!(#init_account_token)
-            }
+            self.generate_init(init_ctx, &return_ty)?
         } else {
             self.account_token()?
         };
+
+        let mut token = TokenStream::new();
 
         if self.account.meta.is_optional {
             token.extend(quote! {
@@ -455,11 +527,11 @@ impl AccountGenerator<'_> {
             let basic_error: Expr = parse_quote!(ErrorCode::AddressConstraint);
             let error = error.as_ref().unwrap_or(&basic_error);
 
-            token.extend(quote! {
-                if hint::unlikely(!address::address_eq(#name.address(), #check)) {
-                    return Err(#error.into());
-                }
-            });
+            token.extend(gen_address_guard(
+                quote!(#name.address()),
+                quote!(#check),
+                quote!(#error.into()),
+            ));
         }
 
         Ok(token)
