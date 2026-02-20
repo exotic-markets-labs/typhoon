@@ -1,11 +1,15 @@
 use {
     crate::{context::ParsingContext, visitor::ContextVisitor},
-    std::collections::HashMap,
+    std::{
+        cmp::Reverse,
+        collections::{BinaryHeap, HashMap, HashSet},
+    },
     typhoon_syn::{
         constraints::{
             ConstraintAddress, ConstraintAssert, ConstraintAssociatedToken, ConstraintBump,
-            ConstraintHasOne, ConstraintPayer, ConstraintToken,
+            ConstraintHasOne, ConstraintPayer, ConstraintSeeded, ConstraintSeeds, ConstraintToken,
         },
+        utils::{ContextExpr, SeedsExpr},
         InstructionAccount,
     },
 };
@@ -23,6 +27,18 @@ impl DependencyLinker {
 
     fn add_dependency(&mut self, ident: &impl ToString) {
         self.dependencies.push(ident.to_string());
+    }
+
+    fn add_dependencies_from_seeds(&mut self, seeds: &SeedsExpr) {
+        let exprs: Box<dyn Iterator<Item = &syn::Expr>> = match seeds {
+            SeedsExpr::Punctuated(punctuated) => Box::new(punctuated.iter()),
+            SeedsExpr::Single(expr) => Box::new(std::iter::once(expr)),
+        };
+        for expr in exprs {
+            for name in &ContextExpr::from(expr.clone()).names {
+                self.add_dependency(name);
+            }
+        }
     }
 
     fn extract_dependencies(account: &InstructionAccount) -> Result<Vec<String>, syn::Error> {
@@ -65,6 +81,18 @@ impl ContextVisitor for DependencyLinker {
         Ok(())
     }
 
+    fn visit_seeds(&mut self, constraint: &ConstraintSeeds) -> Result<(), syn::Error> {
+        self.add_dependencies_from_seeds(&constraint.seeds);
+        Ok(())
+    }
+
+    fn visit_seeded(&mut self, constraint: &ConstraintSeeded) -> Result<(), syn::Error> {
+        if let Some(ref seeds) = constraint.0 {
+            self.add_dependencies_from_seeds(seeds);
+        }
+        Ok(())
+    }
+
     fn visit_has_one(&mut self, constraint: &ConstraintHasOne) -> Result<(), syn::Error> {
         self.add_dependency(&constraint.join_target);
         Ok(())
@@ -85,97 +113,75 @@ impl ContextVisitor for DependencyLinker {
     }
 }
 
+/// Topologically sorts accounts so dependencies are ordered before their dependents.
+///
+/// Uses Kahn's algorithm with a min-heap for deterministic alphabetical tie-breaking
+/// within the same dependency level. Accounts involved in dependency cycles are
+/// appended at the end in alphabetical order.
 pub fn sort_accounts(context: &mut ParsingContext) -> Result<(), syn::Error> {
-    let account_dependencies = context
+    let n = context.accounts.len();
+    if n <= 1 {
+        return Ok(());
+    }
+
+    let account_name = |i: usize| context.accounts[i].name.to_string();
+
+    let index_of: HashMap<String, usize> = (0..n).map(|i| (account_name(i), i)).collect();
+
+    let dependency_indices: Vec<Vec<usize>> = context
         .accounts
         .iter()
         .map(|account| {
-            let dependencies = DependencyLinker::extract_dependencies(account)?;
-            Ok((account, dependencies))
+            let dep_names = DependencyLinker::extract_dependencies(account)?;
+            Ok(dep_names
+                .iter()
+                .filter_map(|name| index_of.get(name).copied())
+                .collect())
         })
-        .collect::<Result<Vec<_>, syn::Error>>()?;
+        .collect::<Result<_, syn::Error>>()?;
 
-    let name_to_index: HashMap<String, usize> = account_dependencies
+    let mut dependency_count = vec![0usize; n];
+    let mut dependents: Vec<Vec<usize>> = vec![vec![]; n];
+
+    for (account, deps) in dependency_indices.iter().enumerate() {
+        for &dep in deps {
+            dependents[dep].push(account);
+            dependency_count[account] += 1;
+        }
+    }
+
+    let mut ready: BinaryHeap<Reverse<(String, usize)>> = dependency_count
         .iter()
         .enumerate()
-        .map(|(i, (account, _))| (account.name.to_string(), i))
+        .filter(|(_, &count)| count == 0)
+        .map(|(i, _)| Reverse((account_name(i), i)))
         .collect();
 
-    let mut in_degree = vec![0; account_dependencies.len()];
-    let mut adj_list: Vec<Vec<usize>> = vec![vec![]; account_dependencies.len()];
+    let mut sorted = Vec::with_capacity(n);
 
-    for (i, (_, dependencies)) in account_dependencies.iter().enumerate() {
-        for dep_name in dependencies {
-            if let Some(&dep_index) = name_to_index.get(dep_name) {
-                // dep_index should come before i
-                adj_list[dep_index].push(i);
-                in_degree[i] += 1;
+    while let Some(Reverse((_, current))) = ready.pop() {
+        sorted.push(current);
+
+        for &dependent in &dependents[current] {
+            dependency_count[dependent] -= 1;
+            if dependency_count[dependent] == 0 {
+                ready.push(Reverse((account_name(dependent), dependent)));
             }
         }
     }
 
-    let mut queue = Vec::new();
-    let mut result = Vec::new();
-
-    for (i, &degree) in in_degree.iter().enumerate() {
-        if degree == 0 {
-            queue.push(i);
-        }
+    if sorted.len() < n {
+        let visited: HashSet<usize> = sorted.iter().copied().collect();
+        let mut remaining: Vec<usize> = (0..n).filter(|i| !visited.contains(i)).collect();
+        remaining.sort_by_key(|&i| account_name(i));
+        sorted.extend(remaining);
     }
 
-    queue.sort_by(|&a, &b| {
-        account_dependencies[a]
-            .0
-            .name
-            .cmp(&account_dependencies[b].0.name)
-    });
-
-    while let Some(current) = queue.pop() {
-        result.push(current);
-
-        let mut neighbors = adj_list[current].clone();
-        neighbors.sort_by(|&a, &b| {
-            account_dependencies[a]
-                .0
-                .name
-                .cmp(&account_dependencies[b].0.name)
-        });
-
-        for &neighbor in &neighbors {
-            in_degree[neighbor] -= 1;
-            if in_degree[neighbor] == 0 {
-                let pos = queue
-                    .binary_search_by(|&probe| {
-                        account_dependencies[probe]
-                            .0
-                            .name
-                            .cmp(&account_dependencies[neighbor].0.name)
-                    })
-                    .unwrap_or_else(|pos| pos);
-                queue.insert(pos, neighbor);
-            }
-        }
-    }
-
-    if result.len() != account_dependencies.len() {
-        let mut remaining: Vec<usize> = (0..account_dependencies.len())
-            .filter(|&i| !result.contains(&i))
-            .collect();
-
-        remaining.sort_by(|&a, &b| {
-            account_dependencies[a]
-                .0
-                .name
-                .cmp(&account_dependencies[b].0.name)
-        });
-
-        result.extend(remaining);
-    }
-
-    context.accounts = result
-        .into_iter()
-        .map(|i| account_dependencies[i].0.clone())
+    let reordered: Vec<InstructionAccount> = sorted
+        .iter()
+        .map(|&i| context.accounts[i].clone())
         .collect();
+    context.accounts = reordered;
 
     Ok(())
 }
