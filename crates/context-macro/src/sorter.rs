@@ -7,7 +7,8 @@ use {
     typhoon_syn::{
         constraints::{
             ConstraintAddress, ConstraintAssert, ConstraintAssociatedToken, ConstraintBump,
-            ConstraintHasOne, ConstraintPayer, ConstraintSeeded, ConstraintSeeds, ConstraintToken,
+            ConstraintHasOne, ConstraintInit, ConstraintInitIfNeeded, ConstraintPayer,
+            ConstraintSeeded, ConstraintSeeds, ConstraintToken,
         },
         utils::{ContextExpr, SeedsExpr},
         InstructionAccount,
@@ -16,12 +17,16 @@ use {
 
 pub struct DependencyLinker {
     dependencies: Vec<String>,
+    has_init: bool,
+    has_associated_token: bool,
 }
 
 impl DependencyLinker {
     fn new() -> Self {
         Self {
             dependencies: Vec::new(),
+            has_init: false,
+            has_associated_token: false,
         }
     }
 
@@ -44,11 +49,30 @@ impl DependencyLinker {
     fn extract_dependencies(account: &InstructionAccount) -> Result<Vec<String>, syn::Error> {
         let mut linker = Self::new();
         linker.visit_account(account)?;
+
+        if linker.has_init && linker.has_associated_token {
+            linker.add_dependency(&"system_program");
+            linker.add_dependency(&"token_program");
+        }
+
         Ok(linker.dependencies)
     }
 }
 
 impl ContextVisitor for DependencyLinker {
+    fn visit_init(&mut self, _constraint: &ConstraintInit) -> Result<(), syn::Error> {
+        self.has_init = true;
+        Ok(())
+    }
+
+    fn visit_init_if_needed(
+        &mut self,
+        _constraint: &ConstraintInitIfNeeded,
+    ) -> Result<(), syn::Error> {
+        self.has_init = true;
+        Ok(())
+    }
+
     fn visit_payer(&mut self, constraint: &ConstraintPayer) -> Result<(), syn::Error> {
         self.add_dependency(&constraint.target);
         Ok(())
@@ -74,6 +98,7 @@ impl ContextVisitor for DependencyLinker {
         &mut self,
         constraint: &ConstraintAssociatedToken,
     ) -> Result<(), syn::Error> {
+        self.has_associated_token = true;
         match constraint {
             ConstraintAssociatedToken::Mint(ident) => self.add_dependency(ident),
             ConstraintAssociatedToken::Authority(ident) => self.add_dependency(ident),
