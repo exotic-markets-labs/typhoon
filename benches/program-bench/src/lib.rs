@@ -1,10 +1,10 @@
 use {
     litesvm::LiteSVM,
     serde::{Deserialize, Serialize},
+    solana_address::Address,
     solana_hash::Hash,
     solana_keypair::Keypair,
     solana_native_token::LAMPORTS_PER_SOL,
-    solana_pubkey::Pubkey,
     solana_signer::Signer,
     solana_transaction::Transaction,
     std::{collections::HashMap, path::Path},
@@ -20,7 +20,7 @@ impl Bencher {
     pub fn new(path: impl AsRef<Path>) -> Bencher {
         let mut svm = LiteSVM::new();
         let bytes = std::fs::read(path).unwrap();
-        let program_id = Pubkey::from_str_const("Bench111111111111111111111111111111111111111");
+        let program_id = Address::from_str_const("Bench111111111111111111111111111111111111111");
 
         svm.add_program(program_id, &bytes).unwrap();
 
