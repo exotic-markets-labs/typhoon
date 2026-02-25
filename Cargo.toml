@@ -66,3 +66,4 @@ typhoon-syn = { version = "0.2.1", path = "crates/syn" }
 typhoon-token = { version = "0.2.1", path = "crates/token" }
 typhoon-utility = { version = "0.2.1", path = "crates/utility" }
 typhoon-utility-traits = { version = "0.2.1", path = "crates/utility-traits" }
+wincode = "0.4.4"

@@ -1,19 +1,17 @@
 use {
-    crate::{
-        discriminator_matches, FromAccountInfo, FromRaw, ReadableAccount, RefFromBytes, System,
-    },
+    crate::{discriminator_matches, FromAccountInfo, FromRaw, ReadableAccount, System},
     core::marker::PhantomData,
     pinocchio::hint::unlikely,
     solana_account_view::{AccountView, Ref},
     solana_address::address_eq,
     solana_program_error::ProgramError,
     typhoon_errors::{Error, ErrorCode},
-    typhoon_traits::{Discriminator, Owner, ProgramId},
+    typhoon_traits::{Accessor, AccountStrategy, Discriminator, Owner, ProgramId},
 };
 
 pub struct Account<'a, T>
 where
-    T: Discriminator + RefFromBytes,
+    T: Discriminator,
 {
     pub(crate) info: &'a AccountView,
     pub(crate) _phantom: PhantomData<T>,
@@ -21,7 +19,7 @@ where
 
 impl<'a, T> FromAccountInfo<'a> for Account<'a, T>
 where
-    T: Owner + Discriminator + RefFromBytes,
+    T: Owner + Discriminator,
 {
     #[inline(always)]
     fn try_from_info(info: &'a AccountView) -> Result<Self, Error> {
@@ -59,7 +57,7 @@ where
 
 impl<'a, T> From<Account<'a, T>> for &'a AccountView
 where
-    T: Discriminator + RefFromBytes,
+    T: Discriminator,
 {
     #[inline(always)]
     fn from(value: Account<'a, T>) -> Self {
@@ -69,7 +67,7 @@ where
 
 impl<T> AsRef<AccountView> for Account<'_, T>
 where
-    T: Discriminator + RefFromBytes,
+    T: Discriminator,
 {
     #[inline(always)]
     fn as_ref(&self) -> &AccountView {
@@ -77,44 +75,54 @@ where
     }
 }
 
-impl<T> ReadableAccount for Account<'_, T>
+impl<T> Account<'_, T>
 where
-    T: RefFromBytes + Discriminator,
+    T: Discriminator + AccountStrategy,
 {
-    type DataUnchecked = T;
-    type Data<'a>
-        = Ref<'a, T>
-    where
-        Self: 'a;
-
     #[inline(always)]
-    fn data<'a>(&'a self) -> Result<Self::Data<'a>, Error> {
-        Ref::filter_map(self.info.try_borrow()?, T::read)
-            .map_err(|_| ProgramError::InvalidAccountData.into())
+    pub fn data(&self) -> Result<Ref<'_, T>, ProgramError>
+    where
+        <T as AccountStrategy>::Strategy: for<'a> Accessor<'a, T, Data = &'a T>,
+    {
+        Ref::try_map(self.info.try_borrow()?, |data| {
+            <<T as AccountStrategy>::Strategy as Accessor<'_, T>>::access(
+                &data[T::DISCRIMINATOR.len()..],
+            )
+        })
+        .map_err(|_| ProgramError::InvalidAccountData)
     }
 
-    #[inline]
-    fn data_unchecked(&self) -> Result<&Self::DataUnchecked, Error> {
-        let dis_len = T::DISCRIMINATOR.len();
-        let total_len = dis_len + core::mem::size_of::<T>();
+    #[inline(always)]
+    pub fn data_owned(&self) -> Result<T, ProgramError>
+    where
+        <T as AccountStrategy>::Strategy: for<'a> Accessor<'a, T, Data = T>,
+    {
+        self.info.check_borrow()?;
+        let data = unsafe { self.info.borrow_unchecked() };
+        <<T as AccountStrategy>::Strategy as Accessor<'_, T>>::access(
+            &data[T::DISCRIMINATOR.len()..],
+        )
+    }
 
-        if self.info.data_len() < total_len {
-            return Err(ErrorCode::InvalidDataLength.into());
-        }
-
-        let data_ptr = unsafe { self.info.data_ptr().add(dis_len) };
-
-        if data_ptr.align_offset(core::mem::align_of::<T>()) != 0 {
-            return Err(ErrorCode::InvalidDataAlignment.into());
-        }
-
-        Ok(unsafe { &*(data_ptr as *const T) })
+    #[inline(always)]
+    pub fn data_unchecked(
+        &self,
+    ) -> Result<<<T as AccountStrategy>::Strategy as Accessor<'_, T>>::Data, ProgramError>
+    where
+        <T as AccountStrategy>::Strategy: for<'a> Accessor<'a, T, Data = T>,
+    {
+        let data = unsafe { self.info.borrow_unchecked() };
+        <<T as AccountStrategy>::Strategy as Accessor<'_, T>>::access(
+            &data[T::DISCRIMINATOR.len()..],
+        )
     }
 }
 
+impl<T> ReadableAccount for Account<'_, T> where T: Discriminator {}
+
 impl<'a, T> FromRaw<'a> for Account<'a, T>
 where
-    T: RefFromBytes + Discriminator,
+    T: Discriminator,
 {
     fn from_raw(info: &'a AccountView) -> Self {
         Self {

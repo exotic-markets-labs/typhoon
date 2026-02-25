@@ -1756,7 +1756,11 @@ dependencies = [
 name = "typhoon-traits"
 version = "0.2.1"
 dependencies = [
+ "borsh",
+ "bytemuck",
  "solana-address 2.2.0",
+ "solana-program-error",
+ "wincode",
 ]
 
 [[package]]

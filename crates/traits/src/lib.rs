@@ -4,6 +4,9 @@
 
 #![no_std]
 
+mod account;
+
+pub use account::*;
 use solana_address::Address;
 
 /// Trait to define the program ID of a program.

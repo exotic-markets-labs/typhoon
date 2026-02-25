@@ -1,6 +1,4 @@
 mod account;
-#[cfg(feature = "borsh")]
-mod borsh;
 mod interface;
 mod interface_account;
 mod mutable;
@@ -9,8 +7,6 @@ mod signer;
 mod system;
 mod unchecked;
 
-#[cfg(feature = "borsh")]
-pub use borsh::*;
 pub use {
     account::*,
     interface::*,

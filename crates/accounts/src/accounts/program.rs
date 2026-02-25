@@ -2,7 +2,7 @@ use {
     crate::{FromAccountInfo, ReadableAccount},
     core::marker::PhantomData,
     pinocchio::hint::unlikely,
-    solana_account_view::{AccountView, Ref},
+    solana_account_view::AccountView,
     solana_address::address_eq,
     solana_program_error::ProgramError,
     typhoon_errors::Error,
@@ -54,20 +54,4 @@ impl<T> AsRef<AccountView> for Program<'_, T> {
     }
 }
 
-impl<T> ReadableAccount for Program<'_, T> {
-    type DataUnchecked = [u8];
-    type Data<'a>
-        = Ref<'a, [u8]>
-    where
-        Self: 'a;
-
-    #[inline(always)]
-    fn data<'a>(&'a self) -> Result<Self::Data<'a>, Error> {
-        self.info.try_borrow().map_err(Into::into)
-    }
-
-    #[inline]
-    fn data_unchecked(&self) -> Result<&Self::DataUnchecked, Error> {
-        Ok(unsafe { self.info.borrow_unchecked() })
-    }
-}
+impl<T> ReadableAccount for Program<'_, T> {}

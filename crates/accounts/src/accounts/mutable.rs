@@ -1,12 +1,13 @@
 use {
-    super::{Account, SystemAccount, UncheckedAccount},
+    super::Account,
     crate::{
-        Discriminator, FromAccountInfo, FromRaw, InterfaceAccount, ReadableAccount, RefFromBytes,
-        Signer, SignerAccount, SignerCheck, WritableAccount,
+        Discriminator, FromAccountInfo, FromRaw, InterfaceAccount, ReadableAccount, Signer,
+        SignerAccount, SignerCheck, WritableAccount,
     },
     solana_account_view::{AccountView, RefMut},
     solana_program_error::ProgramError,
     typhoon_errors::Error,
+    typhoon_traits::{AccountStrategy, MutAccessor},
 };
 
 pub struct Mut<T: ReadableAccount>(pub(crate) T);
@@ -41,119 +42,72 @@ where
     }
 }
 
-impl<T> ReadableAccount for Mut<T>
-where
-    T: ReadableAccount,
-{
-    type DataUnchecked = T::DataUnchecked;
-    type Data<'a>
-        = T::Data<'a>
-    where
-        Self: 'a;
+impl<T> ReadableAccount for Mut<T> where T: ReadableAccount {}
+impl<T> WritableAccount for Mut<T> where T: ReadableAccount {}
 
-    #[inline(always)]
-    fn data<'a>(&'a self) -> Result<Self::Data<'a>, Error> {
-        self.0.data()
-    }
-
-    #[inline]
-    fn data_unchecked(&self) -> Result<&Self::DataUnchecked, Error> {
-        self.0.data_unchecked()
-    }
-}
-
-macro_rules! impl_writable {
-    ($name: ident) => {
-        impl WritableAccount for Mut<$name<'_>> {
-            type DataMut<'a>
-                = RefMut<'a, [u8]>
-            where
-                Self: 'a;
-
-            #[inline(always)]
-            fn mut_data<'a>(&'a self) -> Result<Self::DataMut<'a>, Error> {
-                self.0.as_ref().try_borrow_mut().map_err(Into::into)
-            }
-        }
-    };
-}
-
-impl_writable!(SystemAccount);
-impl_writable!(UncheckedAccount);
-
-macro_rules! impl_writable_signer {
-    ($name: ident) => {
-        impl<C: SignerCheck> WritableAccount for Mut<Signer<'_, $name<'_>, C>> {
-            type DataMut<'a>
-                = RefMut<'a, [u8]>
-            where
-                Self: 'a;
-            #[inline(always)]
-            fn mut_data<'a>(&'a self) -> Result<Self::DataMut<'a>, Error> {
-                self.0.as_ref().try_borrow_mut().map_err(Into::into)
-            }
-        }
-    };
-}
-
-impl_writable_signer!(SystemAccount);
-impl_writable_signer!(UncheckedAccount);
-
-impl<T, C> WritableAccount for Mut<Signer<'_, Account<'_, T>, C>>
+impl<T, C> Mut<Signer<'_, Account<'_, T>, C>>
 where
     C: SignerCheck,
-    T: Discriminator + RefFromBytes,
+    T: Discriminator + AccountStrategy,
+    <T as AccountStrategy>::Strategy: for<'a> MutAccessor<'a, T, Data = &'a mut T>,
 {
-    type DataMut<'a>
-        = RefMut<'a, T>
-    where
-        Self: 'a;
     #[inline(always)]
-    fn mut_data<'a>(&'a self) -> Result<Self::DataMut<'a>, Error> {
-        RefMut::filter_map(self.0.as_ref().try_borrow_mut()?, T::read_mut)
-            .map_err(|_| ProgramError::InvalidAccountData.into())
+    pub fn mut_data(&self) -> Result<RefMut<'_, T>, Error> {
+        RefMut::try_map(self.0.info.try_borrow_mut()?, |data| {
+            <<T as AccountStrategy>::Strategy as MutAccessor<'_, T>>::access_mut(
+                &mut data[T::DISCRIMINATOR.len()..],
+            )
+        })
+        .map_err(|_| ProgramError::InvalidAccountData.into())
     }
 }
 
-impl<T, C> WritableAccount for Mut<Signer<'_, InterfaceAccount<'_, T>, C>>
+impl<T, C> Mut<Signer<'_, InterfaceAccount<'_, T>, C>>
 where
     C: SignerCheck,
-    T: Discriminator + RefFromBytes,
+    T: Discriminator + AccountStrategy,
+    <T as AccountStrategy>::Strategy: for<'a> MutAccessor<'a, T, Data = &'a mut T>,
 {
-    type DataMut<'a>
-        = RefMut<'a, T>
-    where
-        Self: 'a;
     #[inline(always)]
-    fn mut_data<'a>(&'a self) -> Result<Self::DataMut<'a>, Error> {
-        RefMut::filter_map(self.0.as_ref().try_borrow_mut()?, T::read_mut)
-            .map_err(|_| ProgramError::InvalidAccountData.into())
+    pub fn mut_data(&self) -> Result<RefMut<'_, T>, Error> {
+        RefMut::try_map(self.0.info.try_borrow_mut()?, |data| {
+            <<T as AccountStrategy>::Strategy as MutAccessor<'_, T>>::access_mut(
+                &mut data[T::DISCRIMINATOR.len()..],
+            )
+        })
+        .map_err(|_| ProgramError::InvalidAccountData.into())
     }
 }
 
-impl<T: Discriminator + RefFromBytes> WritableAccount for Mut<Account<'_, T>> {
-    type DataMut<'a>
-        = RefMut<'a, T>
-    where
-        Self: 'a;
-
+impl<T> Mut<Account<'_, T>>
+where
+    T: Discriminator + AccountStrategy,
+    <T as AccountStrategy>::Strategy: for<'a> MutAccessor<'a, T, Data = &'a mut T>,
+{
     #[inline(always)]
-    fn mut_data<'a>(&'a self) -> Result<Self::DataMut<'a>, Error> {
-        RefMut::filter_map(self.0.as_ref().try_borrow_mut()?, T::read_mut)
-            .map_err(|_| ProgramError::InvalidAccountData.into())
+    pub fn mut_data(&self) -> Result<RefMut<'_, T>, Error> {
+        RefMut::try_map(self.0.info.try_borrow_mut()?, |data| {
+            <<T as AccountStrategy>::Strategy as MutAccessor<'_, T>>::access_mut(
+                &mut data[T::DISCRIMINATOR.len()..],
+            )
+        })
+        .map_err(|_| ProgramError::InvalidAccountData.into())
     }
 }
 
-impl<T: Discriminator + RefFromBytes> WritableAccount for Mut<InterfaceAccount<'_, T>> {
-    type DataMut<'a>
-        = RefMut<'a, T>
-    where
-        Self: 'a;
-
+impl<T> Mut<InterfaceAccount<'_, T>>
+where
+    T: Discriminator + AccountStrategy,
+    <T as AccountStrategy>::Strategy: for<'a> MutAccessor<'a, T, Data = &'a mut T>,
+{
     #[inline(always)]
-    fn mut_data<'a>(&'a self) -> Result<Self::DataMut<'a>, Error> {
-        RefMut::filter_map(self.0.as_ref().try_borrow_mut()?, T::read_mut)
-            .map_err(|_| ProgramError::InvalidAccountData.into())
+    pub fn mut_data(&self) -> Result<RefMut<'_, T>, Error> {
+        RefMut::try_map(self.0.info.try_borrow_mut()?, |data| {
+            <<T as AccountStrategy>::Strategy as MutAccessor<'_, T>>::access_mut(
+                &mut data[T::DISCRIMINATOR.len()..],
+            )
+        })
+        .map_err(|_| ProgramError::InvalidAccountData.into())
     }
 }
 
