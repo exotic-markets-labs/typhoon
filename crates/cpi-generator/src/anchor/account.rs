@@ -29,6 +29,8 @@ pub fn gen_accounts(accounts: &[Account], types: &[TypeDef]) -> proc_macro2::Tok
             impl Discriminator for #ident {
                 const DISCRIMINATOR: &'static [u8] = &[#(#discriminator),*];
             }
+
+            //TODO add acountstrategy
         };
         if let Some(ty) = &account.ty {
             let type_def = TypeDef {

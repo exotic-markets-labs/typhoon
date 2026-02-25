@@ -41,6 +41,12 @@ impl ProgramIds for TokenProgram {
 }
 
 pub trait SplAccessor {
+    /// # Safety
+    ///
+    /// The caller must ensure that `bytes` contains a valid representation of Spl State, and
+    /// it is properly aligned to be interpreted as an instance of Spl State.
+    /// At the moment Spl State has an alignment of 1 byte.
+    /// This method does not perform a length validation.
     unsafe fn from_bytes_unchecked(bytes: &[u8]) -> &Self;
 }
 

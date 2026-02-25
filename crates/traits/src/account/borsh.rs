@@ -1,7 +1,4 @@
-use borsh::BorshDeserialize;
-use solana_program_error::ProgramError;
-
-use crate::Accessor;
+use {crate::Accessor, borsh::BorshDeserialize, solana_program_error::ProgramError};
 
 pub struct BorshStrategy;
 
