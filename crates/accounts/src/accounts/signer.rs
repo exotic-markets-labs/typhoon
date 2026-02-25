@@ -1,5 +1,7 @@
 use {
-    crate::{FromAccountInfo, FromRaw, ReadableAccount, SignerAccount, UncheckedAccount},
+    crate::{
+        AccountData, FromAccountInfo, FromRaw, ReadableAccount, SignerAccount, UncheckedAccount,
+    },
     core::{marker::PhantomData, ops::Deref},
     solana_account_view::AccountView,
     typhoon_errors::{Error, ErrorCode},
@@ -100,6 +102,14 @@ where
     C: SignerCheck,
     T: ReadableAccount,
 {
+}
+
+impl<T, C> AccountData for Signer<'_, T, C>
+where
+    C: SignerCheck,
+    T: AccountData + ReadableAccount,
+{
+    type Data = T::Data;
 }
 
 impl<'a, T, C> FromRaw<'a> for Signer<'a, T, C>

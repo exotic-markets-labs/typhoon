@@ -6,7 +6,7 @@ use {
     solana_address::Address,
     solana_program_error::ProgramError,
     typhoon_errors::Error,
-    typhoon_traits::Discriminator,
+    typhoon_traits::{Accessor, AccountStrategy, Discriminator, MutAccessor},
 };
 
 mod accounts;
@@ -64,6 +64,75 @@ pub trait WritableAccount: ReadableAccount {
 }
 
 pub trait SignerAccount: ReadableAccount {}
+
+pub trait AccountData: ReadableAccount {
+    type Data: Discriminator + AccountStrategy;
+}
+
+pub trait ReadableAccountData: AccountData {
+    #[inline(always)]
+    fn data(&self) -> Result<Ref<'_, Self::Data>, ProgramError>
+    where
+        <Self::Data as AccountStrategy>::Strategy:
+            for<'a> Accessor<'a, Self::Data, Data = &'a Self::Data>,
+    {
+        Ref::try_map(self.as_ref().try_borrow()?, |data| {
+            <<Self::Data as AccountStrategy>::Strategy as Accessor<'_, Self::Data>>::access(
+                &data[Self::Data::DISCRIMINATOR.len()..],
+            )
+        })
+        .map_err(|_| ProgramError::InvalidAccountData)
+    }
+
+    #[inline(always)]
+    fn data_owned(&self) -> Result<Self::Data, ProgramError>
+    where
+        <Self::Data as AccountStrategy>::Strategy:
+            for<'a> Accessor<'a, Self::Data, Data = Self::Data>,
+    {
+        self.as_ref().check_borrow()?;
+        let data = unsafe { self.as_ref().borrow_unchecked() };
+        <<Self::Data as AccountStrategy>::Strategy as Accessor<'_, Self::Data>>::access(
+            &data[Self::Data::DISCRIMINATOR.len()..],
+        )
+    }
+
+    #[inline(always)]
+    fn data_unchecked(
+        &self,
+    ) -> Result<
+        <<Self::Data as AccountStrategy>::Strategy as Accessor<'_, Self::Data>>::Data,
+        ProgramError,
+    >
+    where
+        <Self::Data as AccountStrategy>::Strategy: for<'a> Accessor<'a, Self::Data>,
+    {
+        let data = unsafe { self.as_ref().borrow_unchecked() };
+        <<Self::Data as AccountStrategy>::Strategy as Accessor<'_, Self::Data>>::access(
+            &data[Self::Data::DISCRIMINATOR.len()..],
+        )
+    }
+}
+
+impl<T> ReadableAccountData for T where T: AccountData {}
+
+pub trait WritableAccountData: AccountData + WritableAccount {
+    #[inline(always)]
+    fn mut_data(&self) -> Result<RefMut<'_, Self::Data>, Error>
+    where
+        <Self::Data as AccountStrategy>::Strategy:
+            for<'a> MutAccessor<'a, Self::Data, Data = &'a mut Self::Data>,
+    {
+        RefMut::try_map(self.as_ref().try_borrow_mut()?, |data| {
+            <<Self::Data as AccountStrategy>::Strategy as MutAccessor<'_, Self::Data>>::access_mut(
+                &mut data[Self::Data::DISCRIMINATOR.len()..],
+            )
+        })
+        .map_err(|_| ProgramError::InvalidAccountData.into())
+    }
+}
+
+impl<T> WritableAccountData for T where T: AccountData + WritableAccount {}
 
 pub trait FromRaw<'a> {
     fn from_raw(info: &'a AccountView) -> Self;

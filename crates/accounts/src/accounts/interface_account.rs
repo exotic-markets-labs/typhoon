@@ -1,6 +1,7 @@
 use {
     crate::{
-        discriminator_matches, Discriminator, FromAccountInfo, FromRaw, ReadableAccount, System,
+        discriminator_matches, AccountData, Discriminator, FromAccountInfo, FromRaw,
+        ReadableAccount, System,
     },
     core::marker::PhantomData,
     pinocchio::hint::unlikely,
@@ -75,6 +76,13 @@ where
 }
 
 impl<T> ReadableAccount for InterfaceAccount<'_, T> where T: Discriminator {}
+
+impl<T> AccountData for InterfaceAccount<'_, T>
+where
+    T: Discriminator + typhoon_traits::AccountStrategy,
+{
+    type Data = T;
+}
 
 impl<'a, T> FromRaw<'a> for InterfaceAccount<'a, T>
 where

@@ -1,12 +1,14 @@
 use {
-    crate::{discriminator_matches, FromAccountInfo, FromRaw, ReadableAccount, System},
+    crate::{
+        discriminator_matches, AccountData, FromAccountInfo, FromRaw, ReadableAccount, System,
+    },
     core::marker::PhantomData,
     pinocchio::hint::unlikely,
-    solana_account_view::{AccountView, Ref},
+    solana_account_view::AccountView,
     solana_address::address_eq,
     solana_program_error::ProgramError,
     typhoon_errors::{Error, ErrorCode},
-    typhoon_traits::{Accessor, AccountStrategy, Discriminator, Owner, ProgramId},
+    typhoon_traits::{AccountStrategy, Discriminator, Owner, ProgramId},
 };
 
 pub struct Account<'a, T>
@@ -75,50 +77,14 @@ where
     }
 }
 
-impl<T> Account<'_, T>
+impl<T> ReadableAccount for Account<'_, T> where T: Discriminator {}
+
+impl<T> AccountData for Account<'_, T>
 where
     T: Discriminator + AccountStrategy,
 {
-    #[inline(always)]
-    pub fn data(&self) -> Result<Ref<'_, T>, ProgramError>
-    where
-        <T as AccountStrategy>::Strategy: for<'a> Accessor<'a, T, Data = &'a T>,
-    {
-        Ref::try_map(self.info.try_borrow()?, |data| {
-            <<T as AccountStrategy>::Strategy as Accessor<'_, T>>::access(
-                &data[T::DISCRIMINATOR.len()..],
-            )
-        })
-        .map_err(|_| ProgramError::InvalidAccountData)
-    }
-
-    #[inline(always)]
-    pub fn data_owned(&self) -> Result<T, ProgramError>
-    where
-        <T as AccountStrategy>::Strategy: for<'a> Accessor<'a, T, Data = T>,
-    {
-        self.info.check_borrow()?;
-        let data = unsafe { self.info.borrow_unchecked() };
-        <<T as AccountStrategy>::Strategy as Accessor<'_, T>>::access(
-            &data[T::DISCRIMINATOR.len()..],
-        )
-    }
-
-    #[inline(always)]
-    pub fn data_unchecked(
-        &self,
-    ) -> Result<<<T as AccountStrategy>::Strategy as Accessor<'_, T>>::Data, ProgramError>
-    where
-        <T as AccountStrategy>::Strategy: for<'a> Accessor<'a, T, Data = T>,
-    {
-        let data = unsafe { self.info.borrow_unchecked() };
-        <<T as AccountStrategy>::Strategy as Accessor<'_, T>>::access(
-            &data[T::DISCRIMINATOR.len()..],
-        )
-    }
+    type Data = T;
 }
-
-impl<T> ReadableAccount for Account<'_, T> where T: Discriminator {}
 
 impl<'a, T> FromRaw<'a> for Account<'a, T>
 where

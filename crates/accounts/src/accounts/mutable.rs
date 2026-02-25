@@ -1,13 +1,10 @@
 use {
-    super::Account,
     crate::{
-        Discriminator, FromAccountInfo, FromRaw, InterfaceAccount, ReadableAccount, Signer,
-        SignerAccount, SignerCheck, WritableAccount,
+        AccountData, FromAccountInfo, FromRaw, ReadableAccount, Signer, SignerAccount, SignerCheck,
+        WritableAccount,
     },
-    solana_account_view::{AccountView, RefMut},
-    solana_program_error::ProgramError,
+    solana_account_view::AccountView,
     typhoon_errors::Error,
-    typhoon_traits::{AccountStrategy, MutAccessor},
 };
 
 pub struct Mut<T: ReadableAccount>(pub(crate) T);
@@ -45,70 +42,11 @@ where
 impl<T> ReadableAccount for Mut<T> where T: ReadableAccount {}
 impl<T> WritableAccount for Mut<T> where T: ReadableAccount {}
 
-impl<T, C> Mut<Signer<'_, Account<'_, T>, C>>
+impl<T> AccountData for Mut<T>
 where
-    C: SignerCheck,
-    T: Discriminator + AccountStrategy,
-    <T as AccountStrategy>::Strategy: for<'a> MutAccessor<'a, T, Data = &'a mut T>,
+    T: AccountData + ReadableAccount,
 {
-    #[inline(always)]
-    pub fn mut_data(&self) -> Result<RefMut<'_, T>, Error> {
-        RefMut::try_map(self.0.info.try_borrow_mut()?, |data| {
-            <<T as AccountStrategy>::Strategy as MutAccessor<'_, T>>::access_mut(
-                &mut data[T::DISCRIMINATOR.len()..],
-            )
-        })
-        .map_err(|_| ProgramError::InvalidAccountData.into())
-    }
-}
-
-impl<T, C> Mut<Signer<'_, InterfaceAccount<'_, T>, C>>
-where
-    C: SignerCheck,
-    T: Discriminator + AccountStrategy,
-    <T as AccountStrategy>::Strategy: for<'a> MutAccessor<'a, T, Data = &'a mut T>,
-{
-    #[inline(always)]
-    pub fn mut_data(&self) -> Result<RefMut<'_, T>, Error> {
-        RefMut::try_map(self.0.info.try_borrow_mut()?, |data| {
-            <<T as AccountStrategy>::Strategy as MutAccessor<'_, T>>::access_mut(
-                &mut data[T::DISCRIMINATOR.len()..],
-            )
-        })
-        .map_err(|_| ProgramError::InvalidAccountData.into())
-    }
-}
-
-impl<T> Mut<Account<'_, T>>
-where
-    T: Discriminator + AccountStrategy,
-    <T as AccountStrategy>::Strategy: for<'a> MutAccessor<'a, T, Data = &'a mut T>,
-{
-    #[inline(always)]
-    pub fn mut_data(&self) -> Result<RefMut<'_, T>, Error> {
-        RefMut::try_map(self.0.info.try_borrow_mut()?, |data| {
-            <<T as AccountStrategy>::Strategy as MutAccessor<'_, T>>::access_mut(
-                &mut data[T::DISCRIMINATOR.len()..],
-            )
-        })
-        .map_err(|_| ProgramError::InvalidAccountData.into())
-    }
-}
-
-impl<T> Mut<InterfaceAccount<'_, T>>
-where
-    T: Discriminator + AccountStrategy,
-    <T as AccountStrategy>::Strategy: for<'a> MutAccessor<'a, T, Data = &'a mut T>,
-{
-    #[inline(always)]
-    pub fn mut_data(&self) -> Result<RefMut<'_, T>, Error> {
-        RefMut::try_map(self.0.info.try_borrow_mut()?, |data| {
-            <<T as AccountStrategy>::Strategy as MutAccessor<'_, T>>::access_mut(
-                &mut data[T::DISCRIMINATOR.len()..],
-            )
-        })
-        .map_err(|_| ProgramError::InvalidAccountData.into())
-    }
+    type Data = T::Data;
 }
 
 impl<T, C> SignerAccount for Mut<Signer<'_, T, C>>
