@@ -10,6 +10,7 @@ rust-version.workspace = true
 
 [features]
 borsh = [
+    "solana-address/borsh",
     "typhoon-accounts/borsh",
     "typhoon-utility/borsh",
     "typhoon-context/borsh",
