@@ -2,64 +2,84 @@ use {
     crate::{
         anchor::{gen_docs, gen_type},
         idl::{
-            Account, DefinedFields, EnumVariant, Repr, ReprModifier, Serialization, Type, TypeDef,
-            TypeDefTy,
+            Account, DefinedFields, EnumVariant, Field, Repr, ReprModifier, Serialization, Type,
+            TypeDef, TypeDefTy,
         },
     },
     proc_macro2::{Span, TokenStream},
     quote::{format_ident, quote},
-    std::collections::HashMap,
+    std::collections::{hash_map::Entry, HashMap},
     syn::Ident,
 };
 
-pub fn gen_accounts(accounts: &[Account], types: &[TypeDef]) -> proc_macro2::TokenStream {
-    let mut types: HashMap<String, TokenStream> = types
+pub fn gen_accounts(accounts: &[Account], types: &[TypeDef]) -> TokenStream {
+    let serialization_map: HashMap<&str, &Serialization> = types
+        .iter()
+        .map(|ty| (ty.name.as_str(), &ty.serialization))
+        .collect();
+
+    let mut generated_types_map: HashMap<String, TokenStream> = types
         .iter()
         .map(|ty| (ty.name.to_string(), gen_defined_type(ty)))
         .collect();
 
     for account in accounts {
-        let ident = format_ident!("{}", account.name);
-        let discriminator = &account.discriminator;
-        let traits_impl = quote! {
-            impl Owner for #ident {
-                const OWNER: Address = PROGRAM_ID;
-            }
+        let traits_impl = gen_account_traits(account, serialization_map.get(account.name.as_str()));
 
-            impl Discriminator for #ident {
-                const DISCRIMINATOR: &'static [u8] = &[#(#discriminator),*];
-            }
-
-            //TODO add acountstrategy
-        };
-        if let Some(ty) = &account.ty {
-            let type_def = TypeDef {
-                name: account.name.to_owned(),
-                ty: ty.to_owned(),
-                ..Default::default()
-            };
-            let ty = gen_defined_type(&type_def);
-            types.insert(
-                account.name.clone(),
-                quote! {
-                    #ty
+        match (&account.ty, generated_types_map.entry(account.name.clone())) {
+            (Some(ty), entry) => {
+                let type_def = TypeDef {
+                    name: account.name.clone(),
+                    ty: ty.clone(),
+                    ..Default::default()
+                };
+                let generated_type = gen_defined_type(&type_def);
+                entry.insert_entry(quote! {
+                    #generated_type
                     #traits_impl
-                },
-            );
-        } else {
-            let ty = types.get_mut(&account.name).unwrap();
-            ty.extend(traits_impl);
+                });
+            }
+            (None, Entry::Occupied(mut entry)) => {
+                entry.get_mut().extend(traits_impl);
+            }
+            (None, Entry::Vacant(_)) => {
+                panic!(
+                    "Account '{}' has no type definition and no matching type in types array",
+                    account.name
+                );
+            }
         }
     }
 
-    let types = types.values();
+    let generated_types = generated_types_map.into_values();
+    quote!(#(#generated_types)*)
+}
+
+fn gen_account_traits(account: &Account, serialization: Option<&&Serialization>) -> TokenStream {
+    let ident = format_ident!("{}", account.name);
+    let discriminator = &account.discriminator;
+
+    let strategy = match serialization.unwrap_or(&&Serialization::Borsh) {
+        Serialization::Borsh | Serialization::Custom(_) => quote!(BorshStrategy),
+        Serialization::Bytemuck | Serialization::BytemuckUnsafe => quote!(BytemuckStrategy),
+    };
 
     quote! {
-        #(#types)*
+        impl Owner for #ident {
+            const OWNER: Address = PROGRAM_ID;
+        }
+
+        impl Discriminator for #ident {
+            const DISCRIMINATOR: &'static [u8] = &[#(#discriminator),*];
+        }
+
+        impl AccountStrategy for #ident {
+            type Strategy = #strategy;
+        }
     }
 }
 
-fn gen_defined_type(ty: &TypeDef) -> proc_macro2::TokenStream {
+fn gen_defined_type(ty: &TypeDef) -> TokenStream {
     let ident = format_ident!("{}", ty.name);
     let repr = ty.repr.as_ref().map(gen_repr);
     let docs = gen_docs(&ty.docs);
@@ -78,104 +98,62 @@ fn gen_defined_type(ty: &TypeDef) -> proc_macro2::TokenStream {
     }
 }
 
-fn gen_struct(ident: &Ident, fields: &Option<DefinedFields>) -> proc_macro2::TokenStream {
+fn gen_struct(ident: &Ident, fields: &Option<DefinedFields>) -> TokenStream {
     match fields {
-        Some(struct_fields) => match struct_fields {
-            DefinedFields::Named(f) => {
-                let fields = f.iter().map(|el| {
-                    let docs = gen_docs(&el.docs);
-                    let ident = Ident::new(&el.name, Span::call_site());
-                    let ty = gen_type(&el.ty);
-
-                    quote! {
-                        #docs
-                        pub #ident: #ty,
-                    }
-                });
-                quote! {
-                    pub struct #ident {
-                        #(#fields)*
-                    }
-                }
-            }
-            DefinedFields::Tuple(f) => {
-                let fields = f.iter().map(|el| {
-                    let ty = gen_type(el);
-                    quote!(#ty)
-                });
-                quote! {
-                    pub struct #ident(#(#fields),*)
-                }
-            }
-        },
+        Some(DefinedFields::Named(f)) => {
+            let fields = f.iter().map(|field| gen_field(field, true));
+            quote!(pub struct #ident { #(#fields)* })
+        }
+        Some(DefinedFields::Tuple(f)) => {
+            let fields = gen_tuple_fields(f);
+            quote!(pub struct #ident(#(#fields),*))
+        }
         None => quote!(pub struct #ident;),
     }
 }
 
-fn gen_enum(ident: &Ident, variants: &[EnumVariant]) -> proc_macro2::TokenStream {
-    let fields = variants.iter().map(|el| {
-        let variant_ident = Ident::new(&el.name, Span::call_site());
-        if let Some(ref f) = el.fields {
-            match f {
-                DefinedFields::Named(f) => {
-                    let fields = f.iter().map(|el| {
-                        let docs = gen_docs(&el.docs);
-                        let ident = Ident::new(&el.name, Span::call_site());
-                        let ty = gen_type(&el.ty);
+fn gen_enum(ident: &Ident, variants: &[EnumVariant]) -> TokenStream {
+    let variant_tokens = variants.iter().map(gen_enum_variant);
+    quote!(pub enum #ident { #(#variant_tokens),* })
+}
 
-                        quote! {
-                            #docs
-                            #ident: #ty,
-                        }
-                    });
-                    quote! {
-                        #variant_ident {
-                            #(#fields)*
-                        }
-                    }
-                }
-                DefinedFields::Tuple(f) => {
-                    let fields = f.iter().map(|el| {
-                        let ty = gen_type(el);
-                        quote!(#ty)
-                    });
-                    quote! {
-                        #variant_ident(#(#fields),*)
-                    }
-                }
-            }
-        } else {
-            quote!(#variant_ident)
-        }
-    });
+fn gen_enum_variant(variant: &EnumVariant) -> TokenStream {
+    let variant_ident = Ident::new(&variant.name, Span::call_site());
 
-    quote! {
-        pub enum #ident {
-            #(#fields),*
+    match &variant.fields {
+        Some(DefinedFields::Named(f)) => {
+            let fields = f.iter().map(|field| gen_field(field, false));
+            quote!(#variant_ident { #(#fields)* })
         }
+        Some(DefinedFields::Tuple(f)) => {
+            let fields = gen_tuple_fields(f);
+            quote!(#variant_ident(#(#fields),*))
+        }
+        None => quote!(#variant_ident),
     }
 }
 
-fn gen_type_alias(ident: &Ident, alias: &Type) -> proc_macro2::TokenStream {
+fn gen_type_alias(ident: &Ident, alias: &Type) -> TokenStream {
     let ty = gen_type(alias);
     quote!(pub type #ident = #ty;)
 }
 
-fn gen_repr(r: &Repr) -> proc_macro2::TokenStream {
-    let gen_repr_with_modifiers = |repr_type: &str, modifier: &ReprModifier| {
-        let ident = Ident::new(repr_type, Span::call_site());
-        let mut attrs = vec![quote!(#ident)];
+fn gen_field(field: &Field, public: bool) -> TokenStream {
+    let docs = gen_docs(&field.docs);
+    let ident = Ident::new(&field.name, Span::call_site());
+    let ty = gen_type(&field.ty);
+    if public {
+        quote!(#docs pub #ident: #ty,)
+    } else {
+        quote!(#docs #ident: #ty,)
+    }
+}
 
-        if modifier.packed {
-            attrs.push(quote!(packed));
-        }
-        if let Some(size) = modifier.align {
-            attrs.push(quote!(align(#size)));
-        }
+fn gen_tuple_fields(types: &[Type]) -> impl Iterator<Item = syn::Type> + '_ {
+    types.iter().map(gen_type)
+}
 
-        quote!(#[repr(#(#attrs),*)])
-    };
-
+fn gen_repr(r: &Repr) -> TokenStream {
     match r {
         Repr::Rust(modifier) => gen_repr_with_modifiers("Rust", modifier),
         Repr::C(modifier) => gen_repr_with_modifiers("C", modifier),
@@ -183,15 +161,22 @@ fn gen_repr(r: &Repr) -> proc_macro2::TokenStream {
     }
 }
 
-fn gen_serialization(serialization: &Serialization) -> proc_macro2::TokenStream {
+fn gen_repr_with_modifiers(repr_type: &str, modifier: &ReprModifier) -> TokenStream {
+    let ident = Ident::new(repr_type, Span::call_site());
+    let packed = modifier.packed.then(|| quote!(packed));
+    let align = modifier.align.map(|size| quote!(align(#size)));
+    let attrs = [Some(quote!(#ident)), packed, align].into_iter().flatten();
+    quote!(#[repr(#(#attrs),*)])
+}
+
+fn gen_serialization(serialization: &Serialization) -> TokenStream {
     match serialization {
-        Serialization::Borsh => {
+        Serialization::Borsh | Serialization::Custom(_) => {
             quote!(#[derive(borsh::BorshSerialize, borsh::BorshDeserialize)])
         }
-        Serialization::BytemuckUnsafe | Serialization::Bytemuck => {
+        Serialization::Bytemuck | Serialization::BytemuckUnsafe => {
             quote!(#[derive(bytemuck::Pod, bytemuck::Zeroable, Clone, Copy)])
         }
-        _ => unimplemented!(),
     }
 }
 
