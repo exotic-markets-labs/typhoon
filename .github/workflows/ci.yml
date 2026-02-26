@@ -119,8 +119,5 @@ jobs:
         run: |
           sh -c "$(curl -sSfL https://release.anza.xyz/${SOLANA_CLI_VERSION}/install)"
           echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
-      - name: Warm up SBF tools
-        run: |
-          cargo build-sbf --force-tools-install || true
       - name: Test CLI
         run: cargo test -p typhoon-cli
