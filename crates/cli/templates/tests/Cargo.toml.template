@@ -4,8 +4,6 @@ version = "0.1.0"
 edition = "2021"
 publish = false
 
-[lib]
-
 [package.metadata.typhoon.builder-dependencies]
 {{program_name_snake}} = { path = "../programs/{{program_name_snake}}" }
 
