@@ -12,9 +12,9 @@ rust-version.workspace = true
 default = ["bytemuck"]
 bytemuck = ["solana-address/bytemuck", "typhoon-traits/bytemuck"]
 borsh = [
-    "typhoon-accounts/borsh",
     "typhoon-utility/borsh",
     "typhoon-context/borsh",
+    "typhoon-traits/borsh",
 ]
 alloc = ["pinocchio/alloc"]
 logging = ["typhoon-errors/logging"]

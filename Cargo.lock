@@ -1575,7 +1575,6 @@ dependencies = [
 name = "typhoon-accounts"
 version = "0.2.1"
 dependencies = [
- "borsh",
  "bytemuck",
  "pinocchio",
  "solana-account-view",
