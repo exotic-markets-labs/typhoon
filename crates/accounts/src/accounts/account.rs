@@ -5,10 +5,9 @@ use {
     core::marker::PhantomData,
     pinocchio::hint::unlikely,
     solana_account_view::{AccountView, Ref},
-    solana_address::address_eq,
     solana_program_error::ProgramError,
     typhoon_errors::{Error, ErrorCode},
-    typhoon_traits::{CheckOwner, Discriminator, ProgramId},
+    typhoon_traits::{CheckOwner, CheckProgramId, Discriminator},
 };
 
 pub struct Account<'a, T>
@@ -43,7 +42,7 @@ where
         }
 
         // Handle special case: zero-lamport system accounts (least common case)
-        if unlikely(address_eq(owner, &System::ID)) {
+        if unlikely(System::address_eq(owner)) {
             // Only perform additional lamports check for system accounts
             if info.lamports() == 0 {
                 return Err(ProgramError::UninitializedAccount.into());

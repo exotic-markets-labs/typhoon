@@ -58,7 +58,7 @@ pub struct MintFromEscrow {
         associated_token::authority = owner
     )]
     pub token_account: Mut<Account<TokenAccount>>,
-    pub token_program: Interface<TokenProgram>,
+    pub token_program: Program<TokenProgram>,
     pub ata_program: Program<AtaTokenProgram>,
     pub system_program: Program<System>,
 }

@@ -6,16 +6,10 @@
 
 use solana_address::Address;
 
-/// Trait to define the program ID of a program.
-pub trait ProgramId {
-    /// The program ID.
-    const ID: Address;
-}
-
-/// Trait to define multiple program IDs associated with a program.
-pub trait ProgramIds {
-    /// The program IDs.
-    const IDS: &'static [Address];
+/// Trait to check whether a program ID matches an expected program.
+pub trait CheckProgramId {
+    /// Returns `true` if the given program ID matches this program.
+    fn address_eq(program_id: &Address) -> bool;
 }
 
 /// Trait to check whether a program ID is a valid owner.

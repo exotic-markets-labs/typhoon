@@ -9,7 +9,7 @@ use {
     },
     solana_address::{address_eq, Address},
     typhoon_accounts::RefFromBytes,
-    typhoon_traits::{CheckOwner, Discriminator, ProgramId, ProgramIds},
+    typhoon_traits::{CheckOwner, CheckProgramId, Discriminator},
 };
 
 mod traits;
@@ -24,18 +24,20 @@ const TOKEN_2022_PROGRAM_ID: Address =
 
 pub struct AtaTokenProgram;
 
-impl ProgramId for AtaTokenProgram {
-    const ID: Address = ATA_PROGRAM_ID;
+impl CheckProgramId for AtaTokenProgram {
+    #[inline(always)]
+    fn address_eq(program_id: &Address) -> bool {
+        address_eq(program_id, &ATA_PROGRAM_ID)
+    }
 }
 
 pub struct TokenProgram;
 
-impl ProgramId for TokenProgram {
-    const ID: Address = TOKEN_PROGRAM_ID;
-}
-
-impl ProgramIds for TokenProgram {
-    const IDS: &'static [Address] = &[TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID];
+impl CheckProgramId for TokenProgram {
+    #[inline(always)]
+    fn address_eq(program_id: &Address) -> bool {
+        address_eq(program_id, &TOKEN_PROGRAM_ID) || address_eq(program_id, &TOKEN_2022_PROGRAM_ID)
+    }
 }
 
 #[repr(transparent)]
