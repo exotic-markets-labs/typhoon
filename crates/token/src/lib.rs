@@ -19,6 +19,7 @@ pub use {
     pinocchio_token::instructions as spl_instructions, traits::*,
 };
 
+#[cfg(feature = "token2022")]
 const TOKEN_2022_PROGRAM_ID: Address =
     Address::from_str_const("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb");
 
@@ -36,7 +37,15 @@ pub struct TokenProgram;
 impl CheckProgramId for TokenProgram {
     #[inline(always)]
     fn address_eq(program_id: &Address) -> bool {
-        address_eq(program_id, &TOKEN_PROGRAM_ID) || address_eq(program_id, &TOKEN_2022_PROGRAM_ID)
+        #[cfg(feature = "token2022")]
+        {
+            address_eq(program_id, &TOKEN_PROGRAM_ID)
+                || address_eq(program_id, &TOKEN_2022_PROGRAM_ID)
+        }
+        #[cfg(not(feature = "token2022"))]
+        {
+            address_eq(program_id, &TOKEN_PROGRAM_ID)
+        }
     }
 }
 
@@ -64,7 +73,15 @@ impl Discriminator for Mint {
 impl CheckOwner for Mint {
     #[inline(always)]
     fn owned_by(program_id: &Address) -> bool {
-        address_eq(program_id, &TOKEN_PROGRAM_ID) || address_eq(program_id, &TOKEN_PROGRAM_ID)
+        #[cfg(feature = "token2022")]
+        {
+            address_eq(program_id, &TOKEN_PROGRAM_ID)
+                || address_eq(program_id, &TOKEN_2022_PROGRAM_ID)
+        }
+        #[cfg(not(feature = "token2022"))]
+        {
+            address_eq(program_id, &TOKEN_PROGRAM_ID)
+        }
     }
 }
 
@@ -104,7 +121,15 @@ impl Discriminator for TokenAccount {
 impl CheckOwner for TokenAccount {
     #[inline(always)]
     fn owned_by(program_id: &Address) -> bool {
-        address_eq(program_id, &TOKEN_PROGRAM_ID) || address_eq(program_id, &TOKEN_PROGRAM_ID)
+        #[cfg(feature = "token2022")]
+        {
+            address_eq(program_id, &TOKEN_PROGRAM_ID)
+                || address_eq(program_id, &TOKEN_2022_PROGRAM_ID)
+        }
+        #[cfg(not(feature = "token2022"))]
+        {
+            address_eq(program_id, &TOKEN_PROGRAM_ID)
+        }
     }
 }
 
