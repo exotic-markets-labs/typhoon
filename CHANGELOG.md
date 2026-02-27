@@ -14,6 +14,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [0.2.2] - 2026-02-27
+
+### Changed
+
+- Enhanced constraints documentation ([#347](https://github.com/exotic-markets-labs/typhoon/pull/347)).
+- Cleanup of `AccountGenerator` internals ([#346](https://github.com/exotic-markets-labs/typhoon/pull/346)).
+- Removed unused template file ([#350](https://github.com/exotic-markets-labs/typhoon/pull/350)).
+
+### Fixed
+
+- Activated `borsh` feature in `solana-address` ([#351](https://github.com/exotic-markets-labs/typhoon/pull/351)).
+
 ## [0.2.1] - 2026-02-17
 
 ### Fixed
@@ -64,7 +76,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release.
 
-[Unreleased]: https://github.com/exotic-markets-labs/typhoon/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/exotic-markets-labs/typhoon/compare/v0.2.2...HEAD
+[0.2.2]: https://github.com/exotic-markets-labs/typhoon/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/exotic-markets-labs/typhoon/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/exotic-markets-labs/typhoon/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/exotic-markets-labs/typhoon/releases/tag/v0.1.0
