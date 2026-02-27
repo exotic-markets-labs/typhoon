@@ -34,8 +34,11 @@ mod tests {
 
             pub struct TestProgram;
 
-            impl ProgramId for TestProgram {
-                const ID: Address = PROGRAM_ID;
+            impl CheckProgramId for TestProgram {
+                #[inline(always)]
+                fn address_eq(program_id: &Address) -> bool {
+                    address_eq(program_id, &PROGRAM_ID)
+                }
             }
         }
         .to_string();
