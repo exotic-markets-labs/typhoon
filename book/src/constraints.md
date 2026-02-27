@@ -476,7 +476,7 @@ pub struct CreateMint {
     )]
     pub mint: Mut<SignerNoCheck<Account<Mint>>>,
     pub escrow: Account<Escrow>,
-    pub token_program: Interface<TokenProgram>,
+    pub token_program: Program<TokenProgram>,
     pub system_program: Program<System>,
 }
 ```
