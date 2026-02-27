@@ -15,16 +15,16 @@ pub struct Make {
         bump
     )]
     pub escrow: Mut<Account<Escrow>>,
-    pub mint_a: InterfaceAccount<Mint>,
-    pub mint_b: InterfaceAccount<Mint>,
-    pub maker_ata_a: Mut<InterfaceAccount<TokenAccount>>,
+    pub mint_a: Account<Mint>,
+    pub mint_b: Account<Mint>,
+    pub maker_ata_a: Mut<Account<TokenAccount>>,
     #[constraint(
         init_if_needed,
         payer = maker,
         associated_token::mint = mint_a,
         associated_token::authority = escrow
     )]
-    pub vault: Mut<InterfaceAccount<TokenAccount>>,
+    pub vault: Mut<Account<TokenAccount>>,
     pub ata_program: Program<AtaTokenProgram>,
     pub token_program: Program<TokenProgram>,
     pub system_program: Program<System>,

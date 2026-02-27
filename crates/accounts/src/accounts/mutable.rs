@@ -1,8 +1,8 @@
 use {
     super::{Account, SystemAccount, UncheckedAccount},
     crate::{
-        Discriminator, FromAccountInfo, FromRaw, InterfaceAccount, ReadableAccount, RefFromBytes,
-        Signer, SignerAccount, SignerCheck, WritableAccount,
+        Discriminator, FromAccountInfo, FromRaw, ReadableAccount, RefFromBytes, Signer,
+        SignerAccount, SignerCheck, WritableAccount,
     },
     solana_account_view::{AccountView, RefMut},
     solana_program_error::ProgramError,
@@ -115,36 +115,7 @@ where
     }
 }
 
-impl<T, C> WritableAccount for Mut<Signer<'_, InterfaceAccount<'_, T>, C>>
-where
-    C: SignerCheck,
-    T: Discriminator + RefFromBytes,
-{
-    type DataMut<'a>
-        = RefMut<'a, T>
-    where
-        Self: 'a;
-    #[inline(always)]
-    fn mut_data<'a>(&'a self) -> Result<Self::DataMut<'a>, Error> {
-        RefMut::filter_map(self.0.as_ref().try_borrow_mut()?, T::read_mut)
-            .map_err(|_| ProgramError::InvalidAccountData.into())
-    }
-}
-
 impl<T: Discriminator + RefFromBytes> WritableAccount for Mut<Account<'_, T>> {
-    type DataMut<'a>
-        = RefMut<'a, T>
-    where
-        Self: 'a;
-
-    #[inline(always)]
-    fn mut_data<'a>(&'a self) -> Result<Self::DataMut<'a>, Error> {
-        RefMut::filter_map(self.0.as_ref().try_borrow_mut()?, T::read_mut)
-            .map_err(|_| ProgramError::InvalidAccountData.into())
-    }
-}
-
-impl<T: Discriminator + RefFromBytes> WritableAccount for Mut<InterfaceAccount<'_, T>> {
     type DataMut<'a>
         = RefMut<'a, T>
     where

@@ -43,8 +43,11 @@ pub fn derive_account(item: proc_macro::TokenStream) -> proc_macro::TokenStream 
     let discriminator = DiscriminatorBuilder::new(&name.to_string()).build();
 
     quote! {
-        impl Owner for #name #ty_generics #where_clause {
-            const OWNER: Address = crate::ID;
+        impl CheckOwner for #name #ty_generics #where_clause {
+            #[inline(always)]
+            fn owned_by(owner: &Address) -> bool {
+                address_eq(owner, &crate::ID)
+            }
         }
 
         impl Discriminator for #name #ty_generics #where_clause {

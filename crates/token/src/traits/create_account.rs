@@ -4,8 +4,8 @@ use {
     pinocchio_associated_token_account::instructions::{Create, CreateIdempotent},
     pinocchio_token::instructions::InitializeAccount3,
     typhoon_accounts::{
-        Account, FromAccountInfo, FromRaw, InterfaceAccount, Mut, ReadableAccount, Signer,
-        SignerCheck, SystemAccount, UncheckedAccount, WritableAccount,
+        Account, FromAccountInfo, FromRaw, Mut, ReadableAccount, Signer, SignerCheck,
+        SystemAccount, UncheckedAccount, WritableAccount,
     },
     typhoon_errors::Error,
     typhoon_traits::ProgramId,
@@ -95,13 +95,6 @@ macro_rules! impl_trait {
         impl<'a> SplCreateToken<'a, Account<'a, TokenAccount>> for $origin {}
         impl<'a, C> SplCreateToken<'a, Signer<'a, Account<'a, TokenAccount>, C>> for $origin where
             C: SignerCheck
-        {
-        }
-        impl<'a> SplCreateToken<'a, InterfaceAccount<'a, TokenAccount>> for $origin {}
-        impl<'a, C> SplCreateToken<'a, Signer<'a, InterfaceAccount<'a, TokenAccount>, C>>
-            for $origin
-        where
-            C: SignerCheck,
         {
         }
     };

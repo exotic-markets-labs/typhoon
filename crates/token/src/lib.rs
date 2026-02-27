@@ -7,9 +7,9 @@ use {
         state::{Mint as SplMint, TokenAccount as SplTokenAccount},
         ID as TOKEN_PROGRAM_ID,
     },
-    solana_address::Address,
+    solana_address::{address_eq, Address},
     typhoon_accounts::RefFromBytes,
-    typhoon_traits::{Discriminator, Owner, Owners, ProgramId, ProgramIds},
+    typhoon_traits::{CheckOwner, Discriminator, ProgramId, ProgramIds},
 };
 
 mod traits;
@@ -59,12 +59,11 @@ impl Discriminator for Mint {
     const DISCRIMINATOR: &'static [u8] = &[];
 }
 
-impl Owner for Mint {
-    const OWNER: Address = TOKEN_PROGRAM_ID;
-}
-
-impl Owners for Mint {
-    const OWNERS: &'static [Address] = &[TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID];
+impl CheckOwner for Mint {
+    #[inline(always)]
+    fn owned_by(program_id: &Address) -> bool {
+        address_eq(program_id, &TOKEN_PROGRAM_ID) || address_eq(program_id, &TOKEN_PROGRAM_ID)
+    }
 }
 
 impl Deref for Mint {
@@ -100,12 +99,11 @@ impl Discriminator for TokenAccount {
     const DISCRIMINATOR: &'static [u8] = &[];
 }
 
-impl Owner for TokenAccount {
-    const OWNER: Address = TOKEN_PROGRAM_ID;
-}
-
-impl Owners for TokenAccount {
-    const OWNERS: &'static [Address] = &[TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID];
+impl CheckOwner for TokenAccount {
+    #[inline(always)]
+    fn owned_by(program_id: &Address) -> bool {
+        address_eq(program_id, &TOKEN_PROGRAM_ID) || address_eq(program_id, &TOKEN_PROGRAM_ID)
+    }
 }
 
 impl Deref for TokenAccount {

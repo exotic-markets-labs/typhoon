@@ -18,16 +18,10 @@ pub trait ProgramIds {
     const IDS: &'static [Address];
 }
 
-/// Trait to define the owner of an account.
-pub trait Owner {
-    /// The owner address.
-    const OWNER: Address;
-}
-
-/// Trait to define multiple possible owners for an account.
-pub trait Owners {
-    /// The owner addresses.
-    const OWNERS: &'static [Address];
+/// Trait to check whether a program ID is a valid owner.
+pub trait CheckOwner {
+    /// Returns `true` if the given program ID is an allowed owner.
+    fn owned_by(program_id: &Address) -> bool;
 }
 
 /// Trait to define the unique discriminator for an account.

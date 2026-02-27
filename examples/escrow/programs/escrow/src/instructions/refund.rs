@@ -16,8 +16,8 @@ pub struct Refund {
         associated_token::mint = mint_a,
         associated_token::authority = escrow
     )]
-    pub vault: Mut<InterfaceAccount<TokenAccount>>,
-    pub maker_ata_a: Mut<InterfaceAccount<TokenAccount>>,
+    pub vault: Mut<Account<TokenAccount>>,
+    pub maker_ata_a: Mut<Account<TokenAccount>>,
     pub token_program: Program<TokenProgram>,
     pub system_program: Program<System>,
 }
