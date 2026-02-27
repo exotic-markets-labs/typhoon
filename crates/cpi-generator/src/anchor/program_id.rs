@@ -12,8 +12,11 @@ pub fn gen_program_id(name: &str, address: &str) -> proc_macro2::TokenStream {
 
         pub struct #ident;
 
-        impl ProgramId for #ident {
-            const ID: Address = PROGRAM_ID;
+        impl CheckProgramId for #ident {
+            #[inline(always)]
+            fn address_eq(program_id: &Address) -> bool {
+                address_eq(program_id, &PROGRAM_ID)
+            }
         }
     }
 }
