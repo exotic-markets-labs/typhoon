@@ -1,7 +1,7 @@
 use {
     bytemuck::{AnyBitPattern, NoUninit},
     pinocchio::{
-        address::{self, declare_id, Address},
+        address::{self, address_eq, declare_id, Address},
         cpi::{Seed, Signer as CpiSigner},
         error::ProgramError,
         hint,
@@ -60,7 +60,7 @@ pub struct InitContext {
         token::mint = mint,
         token::owner = payer
     )]
-    pub token_acc: Mut<InterfaceAccount<TokenAccount>>,
+    pub token_acc: Mut<Account<TokenAccount>>,
     pub program: Program<System>,
 }
 

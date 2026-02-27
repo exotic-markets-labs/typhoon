@@ -12,28 +12,28 @@ pub struct Take {
     pub taker: Mut<Signer>,
     pub maker: Mut<SystemAccount>,
     pub escrow: Mut<Account<Escrow>>,
-    pub mint_a: InterfaceAccount<Mint>,
-    pub mint_b: InterfaceAccount<Mint>,
+    pub mint_a: Account<Mint>,
+    pub mint_b: Account<Mint>,
     #[constraint(
         associated_token::mint = mint_a,
         associated_token::authority = escrow
     )]
-    pub vault: Mut<InterfaceAccount<TokenAccount>>,
+    pub vault: Mut<Account<TokenAccount>>,
     #[constraint(
         init_if_needed
         payer = taker,
         associated_token::mint = mint_a,
         associated_token::authority = taker
     )]
-    pub taker_ata_a: Mut<InterfaceAccount<TokenAccount>>,
-    pub taker_ata_b: Mut<InterfaceAccount<TokenAccount>>,
+    pub taker_ata_a: Mut<Account<TokenAccount>>,
+    pub taker_ata_b: Mut<Account<TokenAccount>>,
     #[constraint(
         init_if_needed
         payer = taker,
         associated_token::mint = mint_b,
         associated_token::authority = maker
     )]
-    pub maker_ata_b: Mut<InterfaceAccount<TokenAccount>>,
+    pub maker_ata_b: Mut<Account<TokenAccount>>,
     pub ata_program: Program<AtaTokenProgram>,
     pub token_program: Program<TokenProgram>,
     pub system_program: Program<System>,

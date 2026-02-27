@@ -102,7 +102,7 @@ mod tests {
         assert!(!account.meta.is_optional);
         assert!(account.meta.is_signer);
 
-        let field: syn::Field = parse_quote!(pub random2: InterfaceAccount<TokenAccount>);
+        let field: syn::Field = parse_quote!(pub random2: Account<TokenAccount>);
         let account = InstructionAccount::try_from(&field).unwrap();
         assert_eq!(account.inner_ty, "TokenAccount");
         assert!(!account.meta.is_mutable);

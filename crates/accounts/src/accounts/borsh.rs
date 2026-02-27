@@ -10,7 +10,7 @@ use {
     solana_address::address_eq,
     solana_program_error::ProgramError,
     typhoon_errors::{Error, ErrorCode},
-    typhoon_traits::{Owner, ProgramId},
+    typhoon_traits::{CheckOwner, ProgramId},
 };
 
 pub struct BorshAccount<'a, T>
@@ -23,7 +23,7 @@ where
 
 impl<'a, T> FromAccountInfo<'a> for BorshAccount<'a, T>
 where
-    T: Owner + Discriminator + borsh::BorshSerialize + borsh::BorshDeserialize,
+    T: CheckOwner + Discriminator + borsh::BorshSerialize + borsh::BorshDeserialize,
 {
     #[inline(always)]
     fn try_from_info(info: &'a AccountView) -> Result<Self, Error> {
@@ -39,7 +39,7 @@ where
 
         let owner = unsafe { info.owner() };
         // Verify account ownership - checked after discriminator for better branch prediction
-        if unlikely(!address_eq(owner, &T::OWNER)) {
+        if unlikely(!T::owned_by(owner)) {
             return Err(ProgramError::InvalidAccountOwner.into());
         }
 
@@ -65,7 +65,7 @@ where
 
 impl<'a, T> From<BorshAccount<'a, T>> for &'a AccountView
 where
-    T: Owner + Discriminator,
+    T: Discriminator,
 {
     #[inline(always)]
     fn from(value: BorshAccount<'a, T>) -> Self {

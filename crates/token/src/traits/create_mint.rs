@@ -3,8 +3,8 @@ use {
     pinocchio::{cpi::Signer as CpiSigner, sysvars::rent::Rent, AccountView, Address},
     pinocchio_token::instructions::InitializeMint2,
     typhoon_accounts::{
-        Account, FromAccountInfo, InterfaceAccount, Mut, ReadableAccount, Signer, SignerCheck,
-        SystemAccount, UncheckedAccount, WritableAccount,
+        Account, FromAccountInfo, Mut, ReadableAccount, Signer, SignerCheck, SystemAccount,
+        UncheckedAccount, WritableAccount,
     },
     typhoon_errors::Error,
     typhoon_traits::ProgramId,
@@ -52,11 +52,6 @@ macro_rules! impl_trait {
     ($origin: ty) => {
         impl<'a> SplCreateMint<'a, Account<'a, Mint>> for $origin {}
         impl<'a, C> SplCreateMint<'a, Signer<'a, Account<'a, Mint>, C>> for $origin where
-            C: SignerCheck
-        {
-        }
-        impl<'a> SplCreateMint<'a, InterfaceAccount<'a, Mint>> for $origin {}
-        impl<'a, C> SplCreateMint<'a, Signer<'a, InterfaceAccount<'a, Mint>, C>> for $origin where
             C: SignerCheck
         {
         }

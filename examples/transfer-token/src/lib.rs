@@ -42,7 +42,7 @@ pub struct MintFromEscrow {
         mint::authority = escrow.address(),
         mint::freeze_authority = owner.address()
     )]
-    pub mint: Mut<SignerNoCheck<InterfaceAccount<Mint>>>,
+    pub mint: Mut<SignerNoCheck<Account<Mint>>>,
     #[constraint(
         init,
         payer = payer,
@@ -57,7 +57,7 @@ pub struct MintFromEscrow {
         associated_token::mint = mint,
         associated_token::authority = owner
     )]
-    pub token_account: Mut<InterfaceAccount<TokenAccount>>,
+    pub token_account: Mut<Account<TokenAccount>>,
     pub token_program: Interface<TokenProgram>,
     pub ata_program: Program<AtaTokenProgram>,
     pub system_program: Program<System>,

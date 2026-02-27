@@ -22,8 +22,11 @@ pub fn gen_accounts(accounts: &[Account], types: &[TypeDef]) -> proc_macro2::Tok
         let ident = format_ident!("{}", account.name);
         let discriminator = &account.discriminator;
         let traits_impl = quote! {
-            impl Owner for #ident {
-                const OWNER: Address = PROGRAM_ID;
+            impl CheckOwner for #ident {
+                #[inline(always)]
+                fn owned_by(owner: &Address) -> bool {
+                    address_eq(owner, &PROGRAM_ID)
+                }
             }
 
             impl Discriminator for #ident {

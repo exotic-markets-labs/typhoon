@@ -8,7 +8,7 @@ use {
     solana_address::address_eq,
     solana_program_error::ProgramError,
     typhoon_errors::{Error, ErrorCode},
-    typhoon_traits::{Discriminator, Owner, ProgramId},
+    typhoon_traits::{CheckOwner, Discriminator, ProgramId},
 };
 
 pub struct Account<'a, T>
@@ -21,7 +21,7 @@ where
 
 impl<'a, T> FromAccountInfo<'a> for Account<'a, T>
 where
-    T: Owner + Discriminator + RefFromBytes,
+    T: CheckOwner + Discriminator + RefFromBytes,
 {
     #[inline(always)]
     fn try_from_info(info: &'a AccountView) -> Result<Self, Error> {
@@ -38,7 +38,7 @@ where
         let owner = unsafe { info.owner() };
 
         // Verify account ownership - checked after discriminator for better branch prediction
-        if unlikely(!address_eq(owner, &T::OWNER)) {
+        if unlikely(!T::owned_by(owner)) {
             return Err(ProgramError::InvalidAccountOwner.into());
         }
 

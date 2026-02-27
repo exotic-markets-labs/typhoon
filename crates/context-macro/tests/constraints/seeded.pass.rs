@@ -1,7 +1,7 @@
 use {
     bytemuck::{AnyBitPattern, NoUninit},
     pinocchio::{
-        address::{self, declare_id, Address},
+        address::{self, address_eq, declare_id, Address},
         cpi::Seed,
         error::ProgramError,
         hint,
