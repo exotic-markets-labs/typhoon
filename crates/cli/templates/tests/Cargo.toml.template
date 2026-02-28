@@ -22,7 +22,3 @@ solana-system-interface = { workspace = true }
 solana-transaction = { workspace = true }
 typhoon-instruction-builder = { workspace = true }
 {{program_name_kebab}} = { workspace = true }
-
-[profile.release]
-lto = true
-codegen-units = 1

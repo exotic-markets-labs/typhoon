@@ -8,10 +8,8 @@ use {
         state::{Mint as SplMint, TokenAccount as SplTokenAccount},
         ID as TOKEN_PROGRAM_ID,
     },
-    solana_address::Address,
-    typhoon_traits::{
-        Accessor, AccountStrategy, Discriminator, Owner, Owners, ProgramId, ProgramIds,
-    },
+    solana_address::{address_eq, Address},
+    typhoon_traits::{Accessor, AccountStrategy, CheckOwner, CheckProgramId, Discriminator},
 };
 
 mod traits;
@@ -21,23 +19,34 @@ pub use {
     pinocchio_token::instructions as spl_instructions, traits::*,
 };
 
+#[cfg(feature = "token2022")]
 const TOKEN_2022_PROGRAM_ID: Address =
     Address::from_str_const("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb");
 
 pub struct AtaTokenProgram;
 
-impl ProgramId for AtaTokenProgram {
-    const ID: Address = ATA_PROGRAM_ID;
+impl CheckProgramId for AtaTokenProgram {
+    #[inline(always)]
+    fn address_eq(program_id: &Address) -> bool {
+        address_eq(program_id, &ATA_PROGRAM_ID)
+    }
 }
 
 pub struct TokenProgram;
 
-impl ProgramId for TokenProgram {
-    const ID: Address = TOKEN_PROGRAM_ID;
-}
-
-impl ProgramIds for TokenProgram {
-    const IDS: &'static [Address] = &[TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID];
+impl CheckProgramId for TokenProgram {
+    #[inline(always)]
+    fn address_eq(program_id: &Address) -> bool {
+        #[cfg(feature = "token2022")]
+        {
+            address_eq(program_id, &TOKEN_PROGRAM_ID)
+                || address_eq(program_id, &TOKEN_2022_PROGRAM_ID)
+        }
+        #[cfg(not(feature = "token2022"))]
+        {
+            address_eq(program_id, &TOKEN_PROGRAM_ID)
+        }
+    }
 }
 
 pub trait SplAccessor {
@@ -94,12 +103,19 @@ impl Discriminator for Mint {
     const DISCRIMINATOR: &'static [u8] = &[];
 }
 
-impl Owner for Mint {
-    const OWNER: Address = TOKEN_PROGRAM_ID;
-}
-
-impl Owners for Mint {
-    const OWNERS: &'static [Address] = &[TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID];
+impl CheckOwner for Mint {
+    #[inline(always)]
+    fn owned_by(program_id: &Address) -> bool {
+        #[cfg(feature = "token2022")]
+        {
+            address_eq(program_id, &TOKEN_PROGRAM_ID)
+                || address_eq(program_id, &TOKEN_2022_PROGRAM_ID)
+        }
+        #[cfg(not(feature = "token2022"))]
+        {
+            address_eq(program_id, &TOKEN_PROGRAM_ID)
+        }
+    }
 }
 
 impl Deref for Mint {
@@ -125,12 +141,19 @@ impl Discriminator for TokenAccount {
     const DISCRIMINATOR: &'static [u8] = &[];
 }
 
-impl Owner for TokenAccount {
-    const OWNER: Address = TOKEN_PROGRAM_ID;
-}
-
-impl Owners for TokenAccount {
-    const OWNERS: &'static [Address] = &[TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID];
+impl CheckOwner for TokenAccount {
+    #[inline(always)]
+    fn owned_by(program_id: &Address) -> bool {
+        #[cfg(feature = "token2022")]
+        {
+            address_eq(program_id, &TOKEN_PROGRAM_ID)
+                || address_eq(program_id, &TOKEN_2022_PROGRAM_ID)
+        }
+        #[cfg(not(feature = "token2022"))]
+        {
+            address_eq(program_id, &TOKEN_PROGRAM_ID)
+        }
+    }
 }
 
 impl Deref for TokenAccount {

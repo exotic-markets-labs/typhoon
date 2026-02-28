@@ -82,8 +82,8 @@ pub struct MaybeCreate {
         associated_token::mint = mint,
         associated_token::authority = owner
     )]
-    pub token_account: Mut<InterfaceAccount<TokenAccount>>,
-    pub mint: InterfaceAccount<Mint>,
+    pub token_account: Mut<Account<TokenAccount>>,
+    pub mint: Account<Mint>,
     pub owner: UncheckedAccount,
     pub ata_program: Program<AtaTokenProgram>,
     pub token_program: Program<TokenProgram>,
@@ -426,12 +426,12 @@ use typhoon_token::{TokenAccount, TokenProgram};
 #[context]
 pub struct ValidateToken {
     pub authority: Signer,
-    pub mint: InterfaceAccount<Mint>,
+    pub mint: Account<Mint>,
     #[constraint(
         token::mint = mint,
         token::owner = authority.address(),
     )]
-    pub token_account: InterfaceAccount<TokenAccount>,
+    pub token_account: Account<TokenAccount>,
 }
 ```
 
@@ -474,9 +474,9 @@ pub struct CreateMint {
         mint::authority = escrow.address(),
         mint::freeze_authority = owner.address()
     )]
-    pub mint: Mut<SignerNoCheck<InterfaceAccount<Mint>>>,
+    pub mint: Mut<SignerNoCheck<Account<Mint>>>,
     pub escrow: Account<Escrow>,
-    pub token_program: Interface<TokenProgram>,
+    pub token_program: Program<TokenProgram>,
     pub system_program: Program<System>,
 }
 ```
@@ -509,7 +509,7 @@ use typhoon_token::{
 #[context]
 pub struct CreateVault {
     pub payer: Mut<Signer>,
-    pub mint: InterfaceAccount<Mint>,
+    pub mint: Account<Mint>,
     pub owner: Signer,
     #[constraint(
         init_if_needed,
@@ -517,7 +517,7 @@ pub struct CreateVault {
         associated_token::mint = mint,
         associated_token::authority = owner
     )]
-    pub vault: Mut<InterfaceAccount<TokenAccount>>,
+    pub vault: Mut<Account<TokenAccount>>,
     pub ata_program: Program<AtaTokenProgram>,
     pub token_program: Program<TokenProgram>,
     pub system_program: Program<System>,
@@ -536,7 +536,7 @@ pub struct Refund {
         associated_token::mint = mint_a,
         associated_token::authority = escrow
     )]
-    pub vault: Mut<InterfaceAccount<TokenAccount>>,
+    pub vault: Mut<Account<TokenAccount>>,
     pub token_program: Program<TokenProgram>,
 }
 ```
@@ -625,16 +625,16 @@ pub struct Make {
         bump
     )]
     pub escrow: Mut<Account<Escrow>>,
-    pub mint_a: InterfaceAccount<Mint>,
-    pub mint_b: InterfaceAccount<Mint>,
-    pub maker_ata_a: Mut<InterfaceAccount<TokenAccount>>,
+    pub mint_a: Account<Mint>,
+    pub mint_b: Account<Mint>,
+    pub maker_ata_a: Mut<Account<TokenAccount>>,
     #[constraint(
         init_if_needed,
         payer = maker,
         associated_token::mint = mint_a,
         associated_token::authority = escrow
     )]
-    pub vault: Mut<InterfaceAccount<TokenAccount>>,
+    pub vault: Mut<Account<TokenAccount>>,
     pub ata_program: Program<AtaTokenProgram>,
     pub token_program: Program<TokenProgram>,
     pub system_program: Program<System>,

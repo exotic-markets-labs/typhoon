@@ -9,28 +9,16 @@ mod account;
 pub use account::*;
 use solana_address::Address;
 
-/// Trait to define the program ID of a program.
-pub trait ProgramId {
-    /// The program ID.
-    const ID: Address;
+/// Trait to check whether a program ID matches an expected program.
+pub trait CheckProgramId {
+    /// Returns `true` if the given program ID matches this program.
+    fn address_eq(program_id: &Address) -> bool;
 }
 
-/// Trait to define multiple program IDs associated with a program.
-pub trait ProgramIds {
-    /// The program IDs.
-    const IDS: &'static [Address];
-}
-
-/// Trait to define the owner of an account.
-pub trait Owner {
-    /// The owner address.
-    const OWNER: Address;
-}
-
-/// Trait to define multiple possible owners for an account.
-pub trait Owners {
-    /// The owner addresses.
-    const OWNERS: &'static [Address];
+/// Trait to check whether a program ID is a valid owner.
+pub trait CheckOwner {
+    /// Returns `true` if the given program ID is an allowed owner.
+    fn owned_by(program_id: &Address) -> bool;
 }
 
 /// Trait to define the unique discriminator for an account.

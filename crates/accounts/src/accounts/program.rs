@@ -3,10 +3,9 @@ use {
     core::marker::PhantomData,
     pinocchio::hint::unlikely,
     solana_account_view::AccountView,
-    solana_address::address_eq,
     solana_program_error::ProgramError,
     typhoon_errors::Error,
-    typhoon_traits::ProgramId,
+    typhoon_traits::CheckProgramId,
 };
 
 ///
@@ -20,12 +19,12 @@ pub struct Program<'a, T> {
 
 impl<'a, T> FromAccountInfo<'a> for Program<'a, T>
 where
-    T: ProgramId,
+    T: CheckProgramId,
 {
     #[inline]
     fn try_from_info(info: &'a AccountView) -> Result<Self, Error> {
         // Optimized program ID check using fast memory comparison
-        if unlikely(!address_eq(info.address(), &T::ID)) {
+        if unlikely(!T::address_eq(info.address())) {
             return Err(ProgramError::IncorrectProgramId.into());
         }
 

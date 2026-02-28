@@ -1,5 +1,5 @@
 use pinocchio::{
-    address::{self, declare_id, Address},
+    address::{self, address_eq, declare_id, Address},
     cpi::Signer as CpiSigner,
     error::ProgramError,
     hint,

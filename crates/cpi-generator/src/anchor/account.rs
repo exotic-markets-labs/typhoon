@@ -65,8 +65,11 @@ fn gen_account_traits(account: &Account, serialization: Option<&&Serialization>)
     };
 
     quote! {
-        impl Owner for #ident {
-            const OWNER: Address = PROGRAM_ID;
+        impl CheckOwner for #ident {
+            #[inline(always)]
+            fn owned_by(owner: &Address) -> bool {
+                address_eq(owner, &PROGRAM_ID)
+            }
         }
 
         impl Discriminator for #ident {

@@ -1,9 +1,9 @@
 use {
     bytemuck::{AnyBitPattern, NoUninit},
-    solana_address::Address,
+    solana_address::{address_eq, Address},
     solana_instruction_view::{cpi::Seed, seeds},
     typhoon_account_macro::*,
-    typhoon_traits::{AccountStrategy, BytemuckStrategy, Discriminator, Owner},
+    typhoon_traits::{AccountStrategy, BytemuckStrategy, CheckOwner, Discriminator},
 };
 
 pub const ID: Address = Address::new_from_array([

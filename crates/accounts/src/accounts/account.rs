@@ -5,10 +5,9 @@ use {
     core::marker::PhantomData,
     pinocchio::hint::unlikely,
     solana_account_view::AccountView,
-    solana_address::address_eq,
     solana_program_error::ProgramError,
     typhoon_errors::{Error, ErrorCode},
-    typhoon_traits::{AccountStrategy, Discriminator, Owner, ProgramId},
+    typhoon_traits::{AccountStrategy, CheckOwner, CheckProgramId, Discriminator},
 };
 
 pub struct Account<'a, T>
@@ -21,7 +20,7 @@ where
 
 impl<'a, T> FromAccountInfo<'a> for Account<'a, T>
 where
-    T: Owner + Discriminator,
+    T: CheckOwner + Discriminator,
 {
     #[inline(always)]
     fn try_from_info(info: &'a AccountView) -> Result<Self, Error> {
@@ -38,12 +37,12 @@ where
         let owner = unsafe { info.owner() };
 
         // Verify account ownership - checked after discriminator for better branch prediction
-        if unlikely(!address_eq(owner, &T::OWNER)) {
+        if unlikely(!T::owned_by(owner)) {
             return Err(ProgramError::InvalidAccountOwner.into());
         }
 
         // Handle special case: zero-lamport system accounts (least common case)
-        if unlikely(address_eq(owner, &System::ID)) {
+        if unlikely(System::address_eq(owner)) {
             // Only perform additional lamports check for system accounts
             if info.lamports() == 0 {
                 return Err(ProgramError::UninitializedAccount.into());

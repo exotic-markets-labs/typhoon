@@ -1,7 +1,13 @@
-use {solana_address::Address, typhoon_traits::ProgramId};
+use {
+    solana_address::{address_eq, Address},
+    typhoon_traits::CheckProgramId,
+};
 
 pub struct System;
 
-impl ProgramId for System {
-    const ID: Address = Address::new_from_array([0; 32]);
+impl CheckProgramId for System {
+    #[inline(always)]
+    fn address_eq(program_id: &Address) -> bool {
+        address_eq(program_id, &Address::new_from_array([0; 32]))
+    }
 }
