@@ -24,7 +24,7 @@ pub fn pull_lever(ctx: PullLever, Arg(name): Arg<[u8; 16]>) -> ProgramResult {
 
 #[context]
 pub struct PullLever {
-    pub power: Mut<BorshAccount<crate::lever_cpi::PowerStatus>>,
+    pub power: Mut<Account<crate::lever_cpi::PowerStatus>>,
     pub lever_program: Program<crate::lever_cpi::LeverProgram>,
 }
 

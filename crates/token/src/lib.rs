@@ -1,15 +1,15 @@
 #![no_std]
 
 use {
-    core::{mem::transmute, ops::Deref},
+    core::{marker::PhantomData, mem::transmute, ops::Deref},
+    pinocchio::error::ProgramError,
     pinocchio_associated_token_account::ID as ATA_PROGRAM_ID,
     pinocchio_token::{
         state::{Mint as SplMint, TokenAccount as SplTokenAccount},
         ID as TOKEN_PROGRAM_ID,
     },
     solana_address::{address_eq, Address},
-    typhoon_accounts::RefFromBytes,
-    typhoon_traits::{CheckOwner, CheckProgramId, Discriminator},
+    typhoon_traits::{Accessor, AccountStrategy, CheckOwner, CheckProgramId, Discriminator},
 };
 
 mod traits;
@@ -49,6 +49,45 @@ impl CheckProgramId for TokenProgram {
     }
 }
 
+pub trait SplAccessor {
+    /// # Safety
+    ///
+    /// The caller must ensure that `bytes` contains a valid representation of Spl State, and
+    /// it is properly aligned to be interpreted as an instance of Spl State.
+    /// At the moment Spl State has an alignment of 1 byte.
+    /// This method does not perform a length validation.
+    unsafe fn from_bytes_unchecked(bytes: &[u8]) -> &Self;
+}
+
+impl SplAccessor for SplMint {
+    #[inline(always)]
+    unsafe fn from_bytes_unchecked(bytes: &[u8]) -> &Self {
+        Self::from_bytes_unchecked(bytes)
+    }
+}
+
+impl SplAccessor for SplTokenAccount {
+    #[inline(always)]
+    unsafe fn from_bytes_unchecked(bytes: &[u8]) -> &Self {
+        Self::from_bytes_unchecked(bytes)
+    }
+}
+
+pub struct SplStrategy<O: SplAccessor>(PhantomData<O>);
+
+impl<'a, T, O> Accessor<'a, T> for SplStrategy<O>
+where
+    O: SplAccessor,
+    T: 'a,
+{
+    type Data = &'a T;
+
+    #[inline(always)]
+    fn access(data: &'a [u8]) -> Result<Self::Data, ProgramError> {
+        Ok(unsafe { transmute::<&O, &T>(O::from_bytes_unchecked(data)) })
+    }
+}
+
 #[repr(transparent)]
 pub struct Mint(SplMint);
 
@@ -56,14 +95,8 @@ impl Mint {
     pub const LEN: usize = SplMint::LEN;
 }
 
-impl RefFromBytes for Mint {
-    fn read(data: &[u8]) -> Option<&Self> {
-        Some(unsafe { transmute::<&SplMint, &Mint>(SplMint::from_bytes_unchecked(data)) })
-    }
-
-    fn read_mut(_data: &mut [u8]) -> Option<&mut Self> {
-        unimplemented!()
-    }
+impl AccountStrategy for Mint {
+    type Strategy = SplStrategy<SplMint>;
 }
 
 impl Discriminator for Mint {
@@ -100,18 +133,8 @@ impl TokenAccount {
     pub const LEN: usize = SplTokenAccount::LEN;
 }
 
-impl RefFromBytes for TokenAccount {
-    fn read(data: &[u8]) -> Option<&Self> {
-        Some(unsafe {
-            transmute::<&SplTokenAccount, &TokenAccount>(SplTokenAccount::from_bytes_unchecked(
-                data,
-            ))
-        })
-    }
-
-    fn read_mut(_data: &mut [u8]) -> Option<&mut Self> {
-        unimplemented!()
-    }
+impl AccountStrategy for TokenAccount {
+    type Strategy = SplStrategy<SplTokenAccount>;
 }
 
 impl Discriminator for TokenAccount {

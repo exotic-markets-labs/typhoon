@@ -3,7 +3,7 @@ use {
     solana_address::{address_eq, Address},
     solana_instruction_view::{cpi::Seed, seeds},
     typhoon_account_macro::*,
-    typhoon_traits::{CheckOwner, Discriminator},
+    typhoon_traits::{AccountStrategy, BytemuckStrategy, CheckOwner, Discriminator},
 };
 
 pub const ID: Address = Address::new_from_array([

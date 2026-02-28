@@ -1,8 +1,7 @@
 use {
     counter::Counter, litesvm::LiteSVM, solana_address::Address, solana_keypair::Keypair,
     solana_native_token::LAMPORTS_PER_SOL, solana_signer::Signer, solana_transaction::Transaction,
-    std::path::PathBuf, typhoon::lib::RefFromBytes,
-    typhoon_instruction_builder::generate_instructions_client,
+    std::path::PathBuf, typhoon_instruction_builder::generate_instructions_client,
 };
 
 const ID: Address = Address::from_str_const("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
@@ -45,7 +44,7 @@ fn integration_test() {
     svm.send_transaction(tx).unwrap();
 
     let raw_account = svm.get_account(&counter_pk).unwrap();
-    let counter_account: &Counter = Counter::read(raw_account.data.as_slice()).unwrap();
+    let counter_account: &Counter = bytemuck::try_from_bytes(&raw_account.data[8..]).unwrap();
     assert!(counter_account.count == 0);
 
     // Increment the counter
@@ -60,7 +59,7 @@ fn integration_test() {
     svm.send_transaction(tx).unwrap();
 
     let raw_account = svm.get_account(&counter_pk).unwrap();
-    let counter_account: &Counter = Counter::read(raw_account.data.as_slice()).unwrap();
+    let counter_account: &Counter = bytemuck::try_from_bytes(&raw_account.data[8..]).unwrap();
     assert!(counter_account.count == 1);
 
     let ix = CloseInstruction {

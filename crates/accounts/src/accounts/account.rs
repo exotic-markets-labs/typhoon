@@ -1,18 +1,18 @@
 use {
     crate::{
-        discriminator_matches, FromAccountInfo, FromRaw, ReadableAccount, RefFromBytes, System,
+        discriminator_matches, AccountData, FromAccountInfo, FromRaw, ReadableAccount, System,
     },
     core::marker::PhantomData,
     pinocchio::hint::unlikely,
-    solana_account_view::{AccountView, Ref},
+    solana_account_view::AccountView,
     solana_program_error::ProgramError,
     typhoon_errors::{Error, ErrorCode},
-    typhoon_traits::{CheckOwner, CheckProgramId, Discriminator},
+    typhoon_traits::{AccountStrategy, CheckOwner, CheckProgramId, Discriminator},
 };
 
 pub struct Account<'a, T>
 where
-    T: Discriminator + RefFromBytes,
+    T: Discriminator,
 {
     pub(crate) info: &'a AccountView,
     pub(crate) _phantom: PhantomData<T>,
@@ -20,7 +20,7 @@ where
 
 impl<'a, T> FromAccountInfo<'a> for Account<'a, T>
 where
-    T: CheckOwner + Discriminator + RefFromBytes,
+    T: CheckOwner + Discriminator,
 {
     #[inline(always)]
     fn try_from_info(info: &'a AccountView) -> Result<Self, Error> {
@@ -58,7 +58,7 @@ where
 
 impl<'a, T> From<Account<'a, T>> for &'a AccountView
 where
-    T: Discriminator + RefFromBytes,
+    T: Discriminator,
 {
     #[inline(always)]
     fn from(value: Account<'a, T>) -> Self {
@@ -68,7 +68,7 @@ where
 
 impl<T> AsRef<AccountView> for Account<'_, T>
 where
-    T: Discriminator + RefFromBytes,
+    T: Discriminator,
 {
     #[inline(always)]
     fn as_ref(&self) -> &AccountView {
@@ -76,44 +76,18 @@ where
     }
 }
 
-impl<T> ReadableAccount for Account<'_, T>
+impl<T> ReadableAccount for Account<'_, T> where T: Discriminator {}
+
+impl<T> AccountData for Account<'_, T>
 where
-    T: RefFromBytes + Discriminator,
+    T: Discriminator + AccountStrategy,
 {
-    type DataUnchecked = T;
-    type Data<'a>
-        = Ref<'a, T>
-    where
-        Self: 'a;
-
-    #[inline(always)]
-    fn data<'a>(&'a self) -> Result<Self::Data<'a>, Error> {
-        Ref::filter_map(self.info.try_borrow()?, T::read)
-            .map_err(|_| ProgramError::InvalidAccountData.into())
-    }
-
-    #[inline]
-    fn data_unchecked(&self) -> Result<&Self::DataUnchecked, Error> {
-        let dis_len = T::DISCRIMINATOR.len();
-        let total_len = dis_len + core::mem::size_of::<T>();
-
-        if self.info.data_len() < total_len {
-            return Err(ErrorCode::InvalidDataLength.into());
-        }
-
-        let data_ptr = unsafe { self.info.data_ptr().add(dis_len) };
-
-        if data_ptr.align_offset(core::mem::align_of::<T>()) != 0 {
-            return Err(ErrorCode::InvalidDataAlignment.into());
-        }
-
-        Ok(unsafe { &*(data_ptr as *const T) })
-    }
+    type Data = T;
 }
 
 impl<'a, T> FromRaw<'a> for Account<'a, T>
 where
-    T: RefFromBytes + Discriminator,
+    T: Discriminator,
 {
     fn from_raw(info: &'a AccountView) -> Self {
         Self {
