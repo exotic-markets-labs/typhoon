@@ -46,7 +46,7 @@ pub struct InitContext {
         payer = payer,
         space = Counter::SPACE,
     )]
-    pub counter: Mut<SignerNoCheck<Account<Counter>>>,
+    pub counter: Mut<UncheckedSigner<Account<Counter>>>,
     #[constraint(
         init_if_needed,
         payer = payer,
