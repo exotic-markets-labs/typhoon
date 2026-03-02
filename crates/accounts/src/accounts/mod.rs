@@ -9,7 +9,7 @@ pub use {
     account::*,
     mutable::*,
     program::*,
-    signer::{Signer, SignerCheck, SignerNoCheck},
+    signer::{Signer, SignerCheck, UncheckedSigner},
     system::*,
     unchecked::*,
 };

@@ -52,7 +52,7 @@ pub struct Init {
         payer = payer,
         space = Buffer::SPACE
     )]
-    pub buffer: Mut<SignerNoCheck<Account<Buffer>>>,
+    pub buffer: Mut<UncheckedSigner<Account<Buffer>>>,
     pub system: Program<System>,
 }
 

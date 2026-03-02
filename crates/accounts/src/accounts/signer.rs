@@ -7,7 +7,7 @@ use {
     typhoon_errors::{Error, ErrorCode},
 };
 
-pub type SignerNoCheck<'a, T> = Signer<'a, T, NoCheck>;
+pub type UncheckedSigner<'a, T> = Signer<'a, T, NoCheck>;
 
 pub trait SignerCheck {
     fn check(_info: &AccountView) -> Result<(), Error> {
