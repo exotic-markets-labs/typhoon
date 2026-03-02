@@ -29,7 +29,7 @@ impl VisitMut for LifetimeInjector {
                 PathArguments::Parenthesized(_) => {}
             }
 
-            if ident.starts_with("Signer") {
+            if ident.ends_with("Signer") {
                 self.visit_path_arguments_mut(&mut seg.arguments);
             }
         }
