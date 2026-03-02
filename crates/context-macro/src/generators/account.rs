@@ -162,10 +162,7 @@ impl AccountGenerator<'_> {
 
         if use_create {
             let Some(bump) = ctx.bump.as_ref() else {
-                error!(
-                    &self.account.name,
-                    "No bump specified for the current PDA."
-                );
+                error!(&self.account.name, "No bump specified for the current PDA.");
             };
             let pda_bump = &idents.bump;
             let pda_key = &idents.key;
