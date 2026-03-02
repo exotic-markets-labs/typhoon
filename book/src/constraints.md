@@ -29,7 +29,7 @@ At compile time, the macro expands constraints into efficient validation code, e
 
 ### `init`
 
-Marks an account to be created and initialized. The account must be wrapped in `Mut<>` and must be a signer (either a keypair signer via `SignerNoCheck<>` or a PDA via `seeds`).
+Marks an account to be created and initialized. The account must be wrapped in `Mut<>` and must be a signer (either a keypair signer via `UncheckedSigner<>` or a PDA via `seeds`).
 
 Requires [`payer`](#payer). Optionally takes [`space`](#space) (defaults to `AccountType::SPACE`).
 
@@ -43,7 +43,7 @@ pub struct InitCounter {
         init,
         payer = payer,
     )]
-    pub counter: Mut<SignerNoCheck<Account<Counter>>>,
+    pub counter: Mut<UncheckedSigner<Account<Counter>>>,
     pub system: Program<System>,
 }
 ```
@@ -116,7 +116,7 @@ Sets the number of bytes to allocate for the new account. If omitted, defaults t
     payer = payer,
     space = 8 + core::mem::size_of::<MyData>()
 )]
-pub data: Mut<SignerNoCheck<Account<MyData>>>,
+pub data: Mut<UncheckedSigner<Account<MyData>>>,
 ```
 
 You can also reference a constant:
@@ -474,7 +474,7 @@ pub struct CreateMint {
         mint::authority = escrow.address(),
         mint::freeze_authority = owner.address()
     )]
-    pub mint: Mut<SignerNoCheck<Account<Mint>>>,
+    pub mint: Mut<UncheckedSigner<Account<Mint>>>,
     pub escrow: Account<Escrow>,
     pub token_program: Program<TokenProgram>,
     pub system_program: Program<System>,

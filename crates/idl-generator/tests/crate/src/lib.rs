@@ -22,7 +22,7 @@ pub struct Init {
         init,
         payer = payer,
     )]
-    pub counter: Mut<SignerNoCheck<Account<Counter>>>,
+    pub counter: Mut<UncheckedSigner<Account<Counter>>>,
     pub system: Program<System>,
 }
 

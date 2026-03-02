@@ -42,7 +42,7 @@ pub struct MintFromEscrow {
         mint::authority = escrow.address(),
         mint::freeze_authority = owner.address()
     )]
-    pub mint: Mut<SignerNoCheck<Account<Mint>>>,
+    pub mint: Mut<UncheckedSigner<Account<Mint>>>,
     #[constraint(
         init,
         payer = payer,
