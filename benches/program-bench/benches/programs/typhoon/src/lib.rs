@@ -56,7 +56,7 @@ pub struct CreateAccountContext {
         init,
         payer = admin
     )]
-    pub account: Mut<UncheckedCheck<Account<Data>>>,
+    pub account: Mut<UncheckedSigner<Account<Data>>>,
     pub system_program: Program<System>,
 }
 
