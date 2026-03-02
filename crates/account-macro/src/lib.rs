@@ -86,7 +86,7 @@ pub fn derive_account(item: proc_macro::TokenStream) -> proc_macro::TokenStream 
             const DISCRIMINATOR: &'static [u8] = &[#(#discriminator),*];
         }
 
-        impl AccountStrategy for #name #ty_generics #where_clause {
+        impl DataStrategy for #name #ty_generics #where_clause {
             type Strategy = #account_strategy;
         }
 

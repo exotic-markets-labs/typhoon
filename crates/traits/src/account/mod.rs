@@ -25,6 +25,6 @@ pub trait MutAccessor<'a, T> {
     fn access_mut(data: &'a mut [u8]) -> Result<Self::Data, ProgramError>;
 }
 
-pub trait AccountStrategy {
+pub trait DataStrategy {
     type Strategy;
 }

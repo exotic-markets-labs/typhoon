@@ -9,7 +9,7 @@ use {
         ID as TOKEN_PROGRAM_ID,
     },
     solana_address::{address_eq, Address},
-    typhoon_traits::{Accessor, AccountStrategy, CheckOwner, CheckProgramId, Discriminator},
+    typhoon_traits::{Accessor, CheckOwner, CheckProgramId, DataStrategy, Discriminator},
 };
 
 mod traits;
@@ -95,7 +95,7 @@ impl Mint {
     pub const LEN: usize = SplMint::LEN;
 }
 
-impl AccountStrategy for Mint {
+impl DataStrategy for Mint {
     type Strategy = SplStrategy<SplMint>;
 }
 
@@ -133,7 +133,7 @@ impl TokenAccount {
     pub const LEN: usize = SplTokenAccount::LEN;
 }
 
-impl AccountStrategy for TokenAccount {
+impl DataStrategy for TokenAccount {
     type Strategy = SplStrategy<SplTokenAccount>;
 }
 

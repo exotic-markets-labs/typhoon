@@ -7,7 +7,7 @@ use {
     solana_account_view::AccountView,
     solana_program_error::ProgramError,
     typhoon_errors::{Error, ErrorCode},
-    typhoon_traits::{AccountStrategy, CheckOwner, CheckProgramId, Discriminator},
+    typhoon_traits::{CheckOwner, CheckProgramId, DataStrategy, Discriminator},
 };
 
 pub struct Account<'a, T>
@@ -80,7 +80,7 @@ impl<T> ReadableAccount for Account<'_, T> where T: Discriminator {}
 
 impl<T> AccountData for Account<'_, T>
 where
-    T: Discriminator + AccountStrategy,
+    T: Discriminator + DataStrategy,
 {
     type Data = T;
 }

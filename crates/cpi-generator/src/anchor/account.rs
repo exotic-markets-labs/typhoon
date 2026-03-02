@@ -76,7 +76,7 @@ fn gen_account_traits(account: &Account, serialization: Option<&&Serialization>)
             const DISCRIMINATOR: &'static [u8] = &[#(#discriminator),*];
         }
 
-        impl AccountStrategy for #ident {
+        impl DataStrategy for #ident {
             type Strategy = #strategy;
         }
     }

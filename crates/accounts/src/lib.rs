@@ -6,7 +6,7 @@ use {
     solana_address::Address,
     solana_program_error::ProgramError,
     typhoon_errors::Error,
-    typhoon_traits::{Accessor, AccountStrategy, Discriminator, MutAccessor},
+    typhoon_traits::{Accessor, DataStrategy, Discriminator, MutAccessor},
 };
 
 mod accounts;
@@ -66,18 +66,18 @@ pub trait WritableAccount: ReadableAccount {
 pub trait SignerAccount: ReadableAccount {}
 
 pub trait AccountData: ReadableAccount {
-    type Data: Discriminator + AccountStrategy;
+    type Data: Discriminator + DataStrategy;
 }
 
 pub trait ReadableAccountData: AccountData {
     #[inline(always)]
     fn data(&self) -> Result<Ref<'_, Self::Data>, ProgramError>
     where
-        <Self::Data as AccountStrategy>::Strategy:
+        <Self::Data as DataStrategy>::Strategy:
             for<'a> Accessor<'a, Self::Data, Data = &'a Self::Data>,
     {
         Ref::try_map(self.as_ref().try_borrow()?, |data| {
-            <<Self::Data as AccountStrategy>::Strategy as Accessor<'_, Self::Data>>::access(
+            <<Self::Data as DataStrategy>::Strategy as Accessor<'_, Self::Data>>::access(
                 &data[Self::Data::DISCRIMINATOR.len()..],
             )
         })
@@ -87,12 +87,11 @@ pub trait ReadableAccountData: AccountData {
     #[inline(always)]
     fn data_owned(&self) -> Result<Self::Data, ProgramError>
     where
-        <Self::Data as AccountStrategy>::Strategy:
-            for<'a> Accessor<'a, Self::Data, Data = Self::Data>,
+        <Self::Data as DataStrategy>::Strategy: for<'a> Accessor<'a, Self::Data, Data = Self::Data>,
     {
         self.as_ref().check_borrow()?;
         let data = unsafe { self.as_ref().borrow_unchecked() };
-        <<Self::Data as AccountStrategy>::Strategy as Accessor<'_, Self::Data>>::access(
+        <<Self::Data as DataStrategy>::Strategy as Accessor<'_, Self::Data>>::access(
             &data[Self::Data::DISCRIMINATOR.len()..],
         )
     }
@@ -101,14 +100,14 @@ pub trait ReadableAccountData: AccountData {
     fn data_unchecked(
         &self,
     ) -> Result<
-        <<Self::Data as AccountStrategy>::Strategy as Accessor<'_, Self::Data>>::Data,
+        <<Self::Data as DataStrategy>::Strategy as Accessor<'_, Self::Data>>::Data,
         ProgramError,
     >
     where
-        <Self::Data as AccountStrategy>::Strategy: for<'a> Accessor<'a, Self::Data>,
+        <Self::Data as DataStrategy>::Strategy: for<'a> Accessor<'a, Self::Data>,
     {
         let data = unsafe { self.as_ref().borrow_unchecked() };
-        <<Self::Data as AccountStrategy>::Strategy as Accessor<'_, Self::Data>>::access(
+        <<Self::Data as DataStrategy>::Strategy as Accessor<'_, Self::Data>>::access(
             &data[Self::Data::DISCRIMINATOR.len()..],
         )
     }
@@ -120,11 +119,11 @@ pub trait WritableAccountData: AccountData + WritableAccount {
     #[inline(always)]
     fn mut_data(&self) -> Result<RefMut<'_, Self::Data>, Error>
     where
-        <Self::Data as AccountStrategy>::Strategy:
+        <Self::Data as DataStrategy>::Strategy:
             for<'a> MutAccessor<'a, Self::Data, Data = &'a mut Self::Data>,
     {
         RefMut::try_map(self.as_ref().try_borrow_mut()?, |data| {
-            <<Self::Data as AccountStrategy>::Strategy as MutAccessor<'_, Self::Data>>::access_mut(
+            <<Self::Data as DataStrategy>::Strategy as MutAccessor<'_, Self::Data>>::access_mut(
                 &mut data[Self::Data::DISCRIMINATOR.len()..],
             )
         })
