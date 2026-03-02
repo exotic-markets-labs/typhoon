@@ -147,31 +147,44 @@ impl Generator for CpiGenerator {
             let mut data_len = Vec::new();
             let mut accumulated_len = 0;
             let mut  has_optional = false;
-            let (fields, assigns): (Vec<_>, Vec<_>) = ix.args.iter().map(|(arg_name,v)| {
+            let mut fields = Vec::with_capacity(ix.args.len());
+            let mut assigns = Vec::with_capacity(ix.args.len());
+            for (arg_name, v) in &ix.args {
                 match v {
                     InstructionArg::Type { ty, .. } => {
                         let (field, bytes) = generate_arg((arg_name, ty));
-
                         data_len.push(quote!(core::mem::size_of::<#ty>()));
-
-                        (field, quote!(writer.write_bytes(#bytes)?;))
-                    },
+                        fields.push(field);
+                        assigns.push(quote!(writer.write_bytes(#bytes)?;));
+                    }
                     InstructionArg::Context(ctx_name) => {
-                        let ctx = context.get(&ctx_name.to_string()).unwrap();
-                        let ctx_has_optional = ctx.accounts.iter().any(|acc| acc.meta.is_optional);
-                        if ctx_has_optional {
-                            has_optional = true;
+                        if let Some(ctx) = context.get(&ctx_name.to_string()) {
+                            let ctx_has_optional = ctx.accounts.iter().any(|acc| acc.meta.is_optional);
+                            if ctx_has_optional {
+                                has_optional = true;
+                            }
+
+                            let program_arg = ctx_has_optional.then(|| quote!(self.program,));
+                            let ctx_struct = format_ident!("{ctx_name}Context");
+                            let acc_len = ctx.accounts.len();
+                            let new_len = accumulated_len + acc_len;
+                            assigns.push(quote!(self.#arg_name.append(#program_arg &mut writer, &mut metas[#accumulated_len..#new_len], &mut infos[#accumulated_len..#new_len])?;));
+                            accumulated_len = new_len;
+                            fields.push(quote!(pub #arg_name: #ctx_struct<'a>,));
+                        } else {
+                            let compile_error = syn::Error::new_spanned(
+                                ctx_name,
+                                format!(
+                                    "Context '{}' not found. Ensure it's defined with #[context]",
+                                    ctx_name
+                                ),
+                            )
+                            .to_compile_error();
+                            assigns.push(compile_error);
                         }
-                        let program_arg = ctx_has_optional.then(|| quote!(self.program,));
-                        let ctx_struct = format_ident!("{ctx_name}Context");
-                        let acc_len = ctx.accounts.len();
-                        let new_len = accumulated_len + acc_len;
-                        let token = quote!(self.#arg_name.append(#program_arg &mut writer, &mut metas[#accumulated_len..#new_len], &mut infos[#accumulated_len..#new_len])?;);
-                        accumulated_len = new_len;
-                        (quote!(pub #arg_name: #ctx_struct<'a>,), token)
-                    },
+                    }
                 }
-            }).unzip();
+            }
             let (program_id_field, program_id_getter) = if has_optional {
                 (quote!(&'a AccountView), Some(quote!(.address())))
             } else {
