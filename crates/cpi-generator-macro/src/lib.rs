@@ -1,5 +1,5 @@
 use {
-    proc_macro::TokenStream,
+    proc_macro::{Span, TokenStream},
     std::{fs::read_to_string, path::PathBuf},
     syn::{parse::Parse, parse_macro_input, LitStr},
     typhoon_cpi_generator::{anchor::gen_cpi, idl::Idl},
@@ -8,7 +8,17 @@ use {
 #[proc_macro]
 pub fn anchor_cpi(input: TokenStream) -> TokenStream {
     let idl_file = parse_macro_input!(input as IdlFile);
-    let idl: Idl = serde_json::from_str(&idl_file.content).unwrap();
+    let idl: Idl = match serde_json::from_str(&idl_file.content) {
+        Ok(idl) => idl,
+        Err(err) => {
+            return syn::Error::new(
+                Span::call_site().into(),
+                format!("Failed to parse IDL: {err}"),
+            )
+            .to_compile_error()
+            .into();
+        }
+    };
 
     gen_cpi(&idl).into()
 }

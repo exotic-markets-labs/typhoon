@@ -112,21 +112,32 @@ impl Generator for ClientGenerator {
                     }
                     InstructionArg::Context(ident) => {
                         let arg_ty = format_ident!("{ident}Context");
-                        let context = context.get(&ident.to_string()).unwrap();
-                        accounts_len += context.accounts.len();
+                        if let Some(context) = context.get(&ident.to_string()) {
+                            accounts_len += context.accounts.len();
 
-                        if let Some(args) = &context.arguments {
-                            let name = match args {
-                                Arguments::Values(_) => format_ident!("{ident}Args"),
-                                Arguments::Struct(struct_name) => struct_name.clone(),
-                            };
-                            data_len.push(quote!(core::mem::size_of::<#name>()));
+                            if let Some(args) = &context.arguments {
+                                let name = match args {
+                                    Arguments::Values(_) => format_ident!("{ident}Args"),
+                                    Arguments::Struct(struct_name) => struct_name.clone(),
+                                };
+                                data_len.push(quote!(core::mem::size_of::<#name>()));
+                            }
+
+                            (
+                                quote!(pub #arg_name: #arg_ty,),
+                                quote!(self.#arg_name.append(&mut data, &mut accounts);),
+                            )
+                        } else {
+                            let compile_error = syn::Error::new_spanned(
+                                ident,
+                                format!(
+                                    "Context '{}' not found. Ensure it's defined with #[context]",
+                                    ident
+                                ),
+                            )
+                            .to_compile_error();
+                            (quote!(), compile_error)
                         }
-
-                        (
-                            quote!(pub #arg_name: #arg_ty,),
-                            quote!(self.#arg_name.append(&mut data, &mut accounts);),
-                        )
                     }
                 })
                 .unzip();
