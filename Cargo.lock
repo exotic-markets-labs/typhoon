@@ -1654,7 +1654,6 @@ dependencies = [
 name = "typhoon-accounts"
 version = "0.2.2"
 dependencies = [
- "borsh",
  "bytemuck",
  "pinocchio",
  "solana-account-view",
@@ -1835,7 +1834,11 @@ dependencies = [
 name = "typhoon-traits"
 version = "0.2.2"
 dependencies = [
+ "borsh",
+ "bytemuck",
  "solana-address 2.2.0",
+ "solana-program-error",
+ "wincode",
 ]
 
 [[package]]

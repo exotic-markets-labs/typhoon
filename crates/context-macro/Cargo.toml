@@ -29,7 +29,7 @@ typhoon-context.workspace = true
 typhoon-errors.workspace = true
 typhoon-program-id-macro.workspace = true
 typhoon-token.workspace = true
-typhoon-traits.workspace = true
+typhoon-traits = { workspace = true, features = ["bytemuck"] }
 typhoon-utility-traits.workspace = true
 
 [target.'cfg(not(any(target_os = "solana", target_arch = "bpf")))'.dev-dependencies]

@@ -1,5 +1,7 @@
 use {
-    crate::{FromAccountInfo, FromRaw, ReadableAccount, SignerAccount, UncheckedAccount},
+    crate::{
+        AccountData, FromAccountInfo, FromRaw, ReadableAccount, SignerAccount, UncheckedAccount,
+    },
     core::{marker::PhantomData, ops::Deref},
     solana_account_view::AccountView,
     typhoon_errors::{Error, ErrorCode},
@@ -100,21 +102,14 @@ where
     C: SignerCheck,
     T: ReadableAccount,
 {
-    type DataUnchecked = T::DataUnchecked;
-    type Data<'a>
-        = T::Data<'a>
-    where
-        Self: 'a;
+}
 
-    #[inline(always)]
-    fn data<'a>(&'a self) -> Result<Self::Data<'a>, Error> {
-        self.acc.data()
-    }
-
-    #[inline]
-    fn data_unchecked(&self) -> Result<&Self::DataUnchecked, Error> {
-        self.acc.data_unchecked()
-    }
+impl<T, C> AccountData for Signer<'_, T, C>
+where
+    C: SignerCheck,
+    T: AccountData + ReadableAccount,
+{
+    type Data = T::Data;
 }
 
 impl<'a, T, C> FromRaw<'a> for Signer<'a, T, C>
