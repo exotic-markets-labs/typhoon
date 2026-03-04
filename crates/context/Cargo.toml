@@ -9,8 +9,7 @@ repository.workspace = true
 rust-version.workspace = true
 
 [features]
-default = ["borsh"]
-borsh = ["dep:borsh"]
+borsh = ["dep:borsh", "typhoon-traits/borsh"]
 
 [dependencies]
 borsh = { workspace = true, optional = true }
@@ -22,3 +21,4 @@ solana-instruction-view = { workspace = true, features = ["cpi"] }
 solana-program-error.workspace = true
 typhoon-accounts.workspace = true
 typhoon-errors.workspace = true
+typhoon-traits = { workspace = true, features = ["bytemuck"] }
