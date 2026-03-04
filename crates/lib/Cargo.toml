@@ -10,7 +10,11 @@ rust-version.workspace = true
 
 [features]
 default = ["bytemuck"]
-bytemuck = ["solana-address/bytemuck", "typhoon-traits/bytemuck"]
+bytemuck = [
+    "solana-address/bytemuck",
+    "solana-address/copy",
+    "typhoon-traits/bytemuck",
+]
 borsh = [
     "solana-address/borsh",
     "typhoon-utility/borsh",
@@ -22,10 +26,7 @@ logging = ["typhoon-errors/logging"]
 
 [dependencies]
 pinocchio.workspace = true
-solana-address = { workspace = true, features = [
-    "decode",
-    "copy",
-] } # Fix later to put behind feature flag
+solana-address = { workspace = true, features = ["decode"] }
 solana-instruction-view = { workspace = true, features = ["slice-cpi"] }
 typhoon-accounts.workspace = true
 typhoon-account-macro.workspace = true
