@@ -22,15 +22,10 @@ where
         _accounts: &mut &[AccountView],
         instruction_data: &mut &'c [u8],
     ) -> Result<Self, Error> {
-        let len = core::mem::size_of::<T>();
-
-        if len > instruction_data.len() {
-            return Err(ErrorCode::InvalidDataLength.into());
-        }
-
-        let (arg_data, remaining) = instruction_data.split_at(len);
-        let arg = S::access(arg_data)?;
-
+        let (arg, used) = S::access_and_consume(instruction_data)?;
+        let remaining = instruction_data
+            .get(used..)
+            .ok_or(ErrorCode::InvalidDataLength)?;
         *instruction_data = remaining;
 
         Ok(Self(arg))

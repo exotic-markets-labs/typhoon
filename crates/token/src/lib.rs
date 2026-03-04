@@ -61,6 +61,11 @@ impl<'a> Accessor<'a, Mint> for SplStrategy {
         // must also guarantee `data` encodes a valid token account state.
         Ok(unsafe { transmute::<&SplMint, &Mint>(SplMint::from_bytes_unchecked(data)) })
     }
+
+    #[inline(always)]
+    fn access_and_consume(data: &'a [u8]) -> Result<(Self::Data, usize), ProgramError> {
+        Ok((<Self as Accessor<Mint>>::access(data)?, Mint::LEN))
+    }
 }
 
 impl<'a> Accessor<'a, TokenAccount> for SplStrategy {
@@ -76,6 +81,14 @@ impl<'a> Accessor<'a, TokenAccount> for SplStrategy {
                 data,
             ))
         })
+    }
+
+    #[inline(always)]
+    fn access_and_consume(data: &'a [u8]) -> Result<(Self::Data, usize), ProgramError> {
+        Ok((
+            <Self as Accessor<TokenAccount>>::access(data)?,
+            TokenAccount::LEN,
+        ))
     }
 }
 

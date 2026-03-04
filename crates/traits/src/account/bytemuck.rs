@@ -16,6 +16,14 @@ where
     fn access(data: &'a [u8]) -> Result<Self::Data, ProgramError> {
         try_from_bytes(data).map_err(|_| ProgramError::BorshIoError)
     }
+
+    #[inline(always)]
+    fn access_and_consume(data: &'a [u8]) -> Result<(Self::Data, usize), ProgramError> {
+        let len = core::mem::size_of::<T>();
+        let bytes = data.get(..len).ok_or(ProgramError::BorshIoError)?;
+        let value = try_from_bytes(bytes).map_err(|_| ProgramError::BorshIoError)?;
+        Ok((value, len))
+    }
 }
 impl<'a, T> MutAccessor<'a, T> for BytemuckStrategy
 where
