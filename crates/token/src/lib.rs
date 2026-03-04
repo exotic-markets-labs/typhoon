@@ -1,7 +1,7 @@
 #![no_std]
 
 use {
-    core::{marker::PhantomData, mem::transmute, ops::Deref},
+    core::{mem::transmute, ops::Deref},
     pinocchio::error::ProgramError,
     pinocchio_associated_token_account::ID as ATA_PROGRAM_ID,
     pinocchio_token::{
@@ -49,42 +49,33 @@ impl CheckProgramId for TokenProgram {
     }
 }
 
-pub trait SplAccessor {
-    /// # Safety
-    ///
-    /// The caller must ensure that `bytes` contains a valid representation of Spl State, and
-    /// it is properly aligned to be interpreted as an instance of Spl State.
-    /// At the moment Spl State has an alignment of 1 byte.
-    /// This method does not perform a length validation.
-    unsafe fn from_bytes_unchecked(bytes: &[u8]) -> &Self;
-}
+pub struct SplStrategy;
 
-impl SplAccessor for SplMint {
-    #[inline(always)]
-    unsafe fn from_bytes_unchecked(bytes: &[u8]) -> &Self {
-        Self::from_bytes_unchecked(bytes)
-    }
-}
-
-impl SplAccessor for SplTokenAccount {
-    #[inline(always)]
-    unsafe fn from_bytes_unchecked(bytes: &[u8]) -> &Self {
-        Self::from_bytes_unchecked(bytes)
-    }
-}
-
-pub struct SplStrategy<O: SplAccessor>(PhantomData<O>);
-
-impl<'a, T, O> Accessor<'a, T> for SplStrategy<O>
-where
-    O: SplAccessor,
-    T: 'a,
-{
-    type Data = &'a T;
+impl<'a> Accessor<'a, Mint> for SplStrategy {
+    type Data = &'a Mint;
 
     #[inline(always)]
     fn access(data: &'a [u8]) -> Result<Self::Data, ProgramError> {
-        Ok(unsafe { transmute::<&O, &T>(O::from_bytes_unchecked(data)) })
+        // SAFETY: `Mint` is `#[repr(transparent)]` over `SplMint`,
+        // so the reference cast preserves layout/alignment/lifetime. The caller
+        // must also guarantee `data` encodes a valid token account state.
+        Ok(unsafe { transmute::<&SplMint, &Mint>(SplMint::from_bytes_unchecked(data)) })
+    }
+}
+
+impl<'a> Accessor<'a, TokenAccount> for SplStrategy {
+    type Data = &'a TokenAccount;
+
+    #[inline(always)]
+    fn access(data: &'a [u8]) -> Result<Self::Data, ProgramError> {
+        // SAFETY: `TokenAccount` is `#[repr(transparent)]` over `SplTokenAccount`,
+        // so the reference cast preserves layout/alignment/lifetime. The caller
+        // must also guarantee `data` encodes a valid token account state.
+        Ok(unsafe {
+            transmute::<&SplTokenAccount, &TokenAccount>(SplTokenAccount::from_bytes_unchecked(
+                data,
+            ))
+        })
     }
 }
 
@@ -96,7 +87,7 @@ impl Mint {
 }
 
 impl DataStrategy for Mint {
-    type Strategy = SplStrategy<SplMint>;
+    type Strategy = SplStrategy;
 }
 
 impl Discriminator for Mint {
@@ -134,7 +125,7 @@ impl TokenAccount {
 }
 
 impl DataStrategy for TokenAccount {
-    type Strategy = SplStrategy<SplTokenAccount>;
+    type Strategy = SplStrategy;
 }
 
 impl Discriminator for TokenAccount {
