@@ -61,6 +61,15 @@ impl<'a> Accessor<'a, Mint> for SplStrategy {
         // must also guarantee `data` encodes a valid token account state.
         Ok(unsafe { transmute::<&SplMint, &Mint>(SplMint::from_bytes_unchecked(data)) })
     }
+
+    #[inline(always)]
+    fn read(data: &mut &'a [u8]) -> Result<Self::Data, ProgramError> {
+        let Some((to_read, rem)) = data.split_at_checked(Mint::LEN) else {
+            return Err(ProgramError::InvalidInstructionData);
+        };
+        *data = rem;
+        Ok(<Self as Accessor<Mint>>::access(to_read)?)
+    }
 }
 
 impl<'a> Accessor<'a, TokenAccount> for SplStrategy {
@@ -76,6 +85,15 @@ impl<'a> Accessor<'a, TokenAccount> for SplStrategy {
                 data,
             ))
         })
+    }
+
+    #[inline(always)]
+    fn read(data: &mut &'a [u8]) -> Result<Self::Data, ProgramError> {
+        let Some((to_read, rem)) = data.split_at_checked(TokenAccount::LEN) else {
+            return Err(ProgramError::InvalidInstructionData);
+        };
+        *data = rem;
+        Ok(<Self as Accessor<TokenAccount>>::access(to_read)?)
     }
 }
 

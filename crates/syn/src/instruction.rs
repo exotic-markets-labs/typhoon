@@ -6,7 +6,7 @@ use {
         parse::{Parse, Parser},
         punctuated::Punctuated,
         visit::Visit,
-        Expr, FnArg, Ident, LitInt, Pat, Token, Type,
+        Expr, FnArg, GenericArgument, Ident, LitInt, Pat, Token, Type, TypePath,
     },
 };
 
@@ -57,24 +57,14 @@ impl TryFrom<&syn::ItemFn> for Instruction {
             let arg_name = extract_name(&pat_ty.pat)
                 .unwrap_or(format_ident!("{}", name.to_string().to_snake_case()));
 
-            if name == "Arg" || name == "BorshArg" {
+            if name == "Arg" {
                 args.push((
                     arg_name,
                     InstructionArg::Type {
                         ty: Box::new(
                             ty.ok_or(syn::Error::new_spanned(fn_arg, "Invalid argument type."))?,
                         ),
-                        encoding: Encoding::Bytemuck,
-                    },
-                ));
-            } else if name == "BorshArg" {
-                args.push((
-                    arg_name,
-                    InstructionArg::Type {
-                        ty: Box::new(
-                            ty.ok_or(syn::Error::new_spanned(fn_arg, "Invalid argument type."))?,
-                        ),
-                        encoding: Encoding::Borsh,
+                        encoding: infer_arg_encoding(ty_path),
                     },
                 ));
             } else if name == "Array" {
@@ -103,6 +93,31 @@ impl TryFrom<&syn::ItemFn> for Instruction {
                 encoding: Encoding::Bytemuck,
             },
         })
+    }
+}
+
+fn infer_arg_encoding(ty_path: &TypePath) -> Encoding {
+    let Some(seg) = ty_path.path.segments.last() else {
+        return Encoding::Bytemuck;
+    };
+    let syn::PathArguments::AngleBracketed(args) = &seg.arguments else {
+        return Encoding::Bytemuck;
+    };
+
+    let strategy = args
+        .args
+        .iter()
+        .filter_map(|arg| match arg {
+            GenericArgument::Type(ty) => Some(ty),
+            _ => None,
+        })
+        .nth(1);
+
+    match strategy {
+        None => Encoding::Bytemuck,
+        Some(Type::Path(path)) if path.path.is_ident("BytemuckStrategy") => Encoding::Bytemuck,
+        Some(Type::Path(path)) if path.path.is_ident("BorshStrategy") => Encoding::Borsh,
+        Some(_) => Encoding::Custom,
     }
 }
 
@@ -203,14 +218,14 @@ mod tests {
     #[test]
     fn test_instruction_construction() {
         let fn_raw: ItemFn = parse_quote! {
-            pub fn instruction_1(ctx: Context1, array: Array<Context2, 2>, arg: Arg<u64>) -> ProgramResult {
+            pub fn instruction_1(ctx: Context1, array: Array<Context2, 2>, arg: Arg<u64>, arg2: Arg<u64, BorshStrategy>) -> ProgramResult {
                 Ok(())
             }
         };
         let ix = Instruction::try_from(&fn_raw).unwrap();
 
         assert_eq!(ix.name, "instruction_1");
-        assert_eq!(ix.args.len(), 4);
+        assert_eq!(ix.args.len(), 5);
         assert_eq!(ix.args[0].0, "ctx");
         assert!(matches!(&ix.args[0].1, InstructionArg::Context(x) if x == "Context1"));
         assert_eq!(ix.args[1].0, "array_0");
@@ -218,6 +233,19 @@ mod tests {
         assert_eq!(ix.args[2].0, "array_1");
         assert!(matches!(&ix.args[2].1, InstructionArg::Context(x) if x == "Context2"));
         assert_eq!(ix.args[3].0, "arg");
+        assert!(matches!(
+            &ix.args[3].1,
+            InstructionArg::Type { ty, encoding }
+                if matches!(**ty, Type::Path(ref path) if path.path.is_ident("u64"))
+                    && matches!(encoding, Encoding::Bytemuck)
+        ));
+        assert_eq!(ix.args[4].0, "arg2");
+        assert!(matches!(
+            &ix.args[4].1,
+            InstructionArg::Type { ty, encoding }
+                if matches!(**ty, Type::Path(ref path) if path.path.is_ident("u64"))
+                    && matches!(encoding, Encoding::Borsh)
+        ));
         assert!(ix.return_data.ty.is_none());
         assert!(matches!(ix.return_data.encoding, Encoding::Bytemuck));
     }

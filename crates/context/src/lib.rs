@@ -1,12 +1,12 @@
 #![no_std]
 
-mod args;
+mod arg;
 mod array;
 mod iterator;
 mod program_id;
 mod remaining_accounts;
 
-pub use {args::*, array::*, iterator::*, program_id::*, remaining_accounts::*};
+pub use {arg::*, array::*, iterator::*, program_id::*, remaining_accounts::*};
 use {
     bytemuck::NoUninit, pastey::paste, solana_account_view::AccountView, solana_address::Address,
     solana_instruction_view::cpi::set_return_data, solana_program_error::ProgramError,
