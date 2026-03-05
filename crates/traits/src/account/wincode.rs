@@ -4,7 +4,6 @@ use {
     solana_program_error::ProgramError,
     wincode::{
         config::{ConfigCore, DefaultConfig},
-        io::Reader,
         SchemaRead,
     },
 };
@@ -24,10 +23,8 @@ where
     }
 
     #[inline(always)]
-    fn access_and_consume(data: &'a [u8]) -> Result<(Self::Data, usize), ProgramError> {
-        let len = core::mem::size_of::<T>();
-        let value = <&T as SchemaRead<'a, C>>::get(data).map_err(|_| ProgramError::BorshIoError)?;
-        Ok((value, len))
+    fn read(data: &mut &'a [u8]) -> Result<Self::Data, ProgramError> {
+        <&T as SchemaRead<'a, C>>::get(data).map_err(|_| ProgramError::BorshIoError)
     }
 }
 
@@ -44,11 +41,8 @@ where
     }
 
     #[inline(always)]
-    fn access_and_consume(data: &'a [u8]) -> Result<(Self::Data, usize), ProgramError> {
-        let mut cursor = wincode::io::Cursor::new(data);
-        let value = <T as SchemaRead<'a, C>>::get(cursor.by_ref())
-            .map_err(|_| ProgramError::BorshIoError)?;
-        Ok((value, cursor.position()))
+    fn read(data: &mut &'a [u8]) -> Result<Self::Data, ProgramError> {
+        <T as SchemaRead<'a, C>>::get(data).map_err(|_| ProgramError::BorshIoError)
     }
 }
 

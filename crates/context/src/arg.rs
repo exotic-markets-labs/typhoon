@@ -2,7 +2,7 @@ use {
     crate::HandlerContext,
     solana_account_view::AccountView,
     solana_address::Address,
-    typhoon_errors::{Error, ErrorCode},
+    typhoon_errors::Error,
     typhoon_traits::{Accessor, BytemuckStrategy},
 };
 
@@ -22,12 +22,6 @@ where
         _accounts: &mut &[AccountView],
         instruction_data: &mut &'c [u8],
     ) -> Result<Self, Error> {
-        let (arg, used) = S::access_and_consume(instruction_data)?;
-        let remaining = instruction_data
-            .get(used..)
-            .ok_or(ErrorCode::InvalidDataLength)?;
-        *instruction_data = remaining;
-
-        Ok(Self(arg))
+        Ok(Self(S::read(instruction_data)?))
     }
 }

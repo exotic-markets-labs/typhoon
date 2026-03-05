@@ -18,7 +18,7 @@ pub trait Accessor<'a, T> {
 
     fn access(data: &'a [u8]) -> Result<Self::Data, ProgramError>;
 
-    fn access_and_consume(data: &'a [u8]) -> Result<(Self::Data, usize), ProgramError>;
+    fn read(data: &mut &'a [u8]) -> Result<Self::Data, ProgramError>;
 }
 
 pub trait MutAccessor<'a, T> {

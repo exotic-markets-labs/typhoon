@@ -63,8 +63,12 @@ impl<'a> Accessor<'a, Mint> for SplStrategy {
     }
 
     #[inline(always)]
-    fn access_and_consume(data: &'a [u8]) -> Result<(Self::Data, usize), ProgramError> {
-        Ok((<Self as Accessor<Mint>>::access(data)?, Mint::LEN))
+    fn read(data: &mut &'a [u8]) -> Result<Self::Data, ProgramError> {
+        let Some((to_read, rem)) = data.split_at_checked(Mint::LEN) else {
+            return Err(ProgramError::InvalidInstructionData);
+        };
+        *data = rem;
+        Ok(<Self as Accessor<Mint>>::access(to_read)?)
     }
 }
 
@@ -84,11 +88,12 @@ impl<'a> Accessor<'a, TokenAccount> for SplStrategy {
     }
 
     #[inline(always)]
-    fn access_and_consume(data: &'a [u8]) -> Result<(Self::Data, usize), ProgramError> {
-        Ok((
-            <Self as Accessor<TokenAccount>>::access(data)?,
-            TokenAccount::LEN,
-        ))
+    fn read(data: &mut &'a [u8]) -> Result<Self::Data, ProgramError> {
+        let Some((to_read, rem)) = data.split_at_checked(TokenAccount::LEN) else {
+            return Err(ProgramError::InvalidInstructionData);
+        };
+        *data = rem;
+        Ok(<Self as Accessor<TokenAccount>>::access(to_read)?)
     }
 }
 
