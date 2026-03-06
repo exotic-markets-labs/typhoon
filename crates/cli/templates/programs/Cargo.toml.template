@@ -8,7 +8,6 @@ publish = { workspace = true }
 logging = []
 
 [lib]
-lib = "{{program_name_snake}}"
 crate-type = ["cdylib", "lib"]
 
 [lints.rust]
@@ -22,7 +21,3 @@ typhoon = { workspace = true }
 
 [build-dependencies]
 typhoon-idl-generator = { workspace = true }
-
-[profile.release]
-lto = true
-codegen-units = 1

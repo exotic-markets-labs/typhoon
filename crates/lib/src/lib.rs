@@ -25,13 +25,15 @@ pub mod instruction {
 pub type ProgramResult<T = ()> = Result<T, typhoon_errors::Error>;
 
 pub mod prelude {
+    #[cfg(feature = "alloc")]
+    pub use pinocchio::default_allocator;
     #[cfg(feature = "logging")]
     pub use typhoon_errors::{log_error, LogError};
     pub use {
         super::{bytes, instruction, lib::*, macros::*, ProgramResult},
         pinocchio::{
             self,
-            address::{self, declare_id, MAX_SEEDS},
+            address::{self, address_eq, declare_id, MAX_SEEDS},
             cpi::{self, Seed, Signer as CpiSigner},
             default_panic_handler,
             error::{ProgramError, ToStr},

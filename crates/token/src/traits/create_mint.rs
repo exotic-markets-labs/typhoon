@@ -1,13 +1,12 @@
 use {
-    crate::{Mint, TokenProgram},
+    crate::Mint,
     pinocchio::{cpi::Signer as CpiSigner, sysvars::rent::Rent, AccountView, Address},
-    pinocchio_token::instructions::InitializeMint2,
+    pinocchio_token::{instructions::InitializeMint2, ID as TOKEN_PROGRAM_ID},
     typhoon_accounts::{
-        Account, FromAccountInfo, InterfaceAccount, Mut, ReadableAccount, Signer, SignerCheck,
-        SystemAccount, UncheckedAccount, WritableAccount,
+        Account, FromAccountInfo, Mut, ReadableAccount, Signer, SignerCheck, SystemAccount,
+        UncheckedAccount, WritableAccount,
     },
     typhoon_errors::Error,
-    typhoon_traits::ProgramId,
     typhoon_utility::create_account_with_minimum_balance_signed,
 };
 
@@ -30,7 +29,7 @@ where
         create_account_with_minimum_balance_signed(
             info,
             Mint::LEN,
-            &TokenProgram::ID,
+            &TOKEN_PROGRAM_ID,
             payer.as_ref(),
             rent,
             seeds.unwrap_or_default(),
@@ -52,11 +51,6 @@ macro_rules! impl_trait {
     ($origin: ty) => {
         impl<'a> SplCreateMint<'a, Account<'a, Mint>> for $origin {}
         impl<'a, C> SplCreateMint<'a, Signer<'a, Account<'a, Mint>, C>> for $origin where
-            C: SignerCheck
-        {
-        }
-        impl<'a> SplCreateMint<'a, InterfaceAccount<'a, Mint>> for $origin {}
-        impl<'a, C> SplCreateMint<'a, Signer<'a, InterfaceAccount<'a, Mint>, C>> for $origin where
             C: SignerCheck
         {
         }

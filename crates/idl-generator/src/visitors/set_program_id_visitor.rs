@@ -51,6 +51,17 @@ impl KorokVisitor for SetProgramIdVisitor {
         Ok(())
     }
 
+    fn visit_const(&mut self, korok: &mut codama_koroks::ConstKorok) -> CodamaResult<()> {
+        let program = match &mut korok.node {
+            Some(Node::Root(root)) => &mut root.program,
+            Some(Node::Program(program)) => program,
+            _ => return Ok(()),
+        };
+
+        self.update_program_node(program);
+        Ok(())
+    }
+
     fn visit_unsupported_item(&mut self, korok: &mut UnsupportedItemKorok) -> CodamaResult<()> {
         if let syn::Item::Macro(syn::ItemMacro { mac, .. }) = korok.ast {
             self.handle_macro(mac);

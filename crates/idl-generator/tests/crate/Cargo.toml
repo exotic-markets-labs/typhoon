@@ -1,0 +1,20 @@
+[package]
+name = "test"
+version = "1.0.0"
+edition = "2021"
+publish = false
+
+[features]
+logging = ["typhoon/logging"]
+
+[dependencies]
+typhoon = { path = "../../../lib" }
+bytemuck = { version = "1.25", features = ["derive"] }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = [
+    'cfg(target_os, values("solana"))',
+] }
+
+
+[workspace]

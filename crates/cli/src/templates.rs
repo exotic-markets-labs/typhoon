@@ -356,11 +356,6 @@ impl Template {
                         .to_string(),
                 },
                 TemplateFile {
-                    path_template: "tests/src/lib.rs".to_string(),
-                    content_template: include_str!("../templates/tests/src/lib.rs.template")
-                        .to_string(),
-                },
-                TemplateFile {
                     path_template: format!("tests/tests/{}.rs", program_name.to_snake_case())
                         .to_string(),
                     content_template: include_str!(

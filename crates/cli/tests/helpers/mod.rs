@@ -2,7 +2,7 @@ use {
     clap::Parser,
     heck::ToKebabCase,
     std::{path::PathBuf, process::Command},
-    tempdir::TempDir,
+    temp_dir::TempDir,
     typhoon_cli::{Cli, Commands},
 };
 

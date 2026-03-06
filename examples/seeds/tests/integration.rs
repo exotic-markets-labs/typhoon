@@ -1,4 +1,5 @@
 use {
+    bytemuck::try_from_bytes,
     litesvm::{types::FailedTransactionMetadata, LiteSVM},
     seeds::Counter,
     solana_address::Address,
@@ -7,7 +8,7 @@ use {
     solana_signer::Signer,
     solana_transaction::Transaction,
     std::path::PathBuf,
-    typhoon::lib::RefFromBytes,
+    typhoon::lib::Discriminator,
     typhoon_instruction_builder::generate_instructions_client,
 };
 
@@ -65,7 +66,8 @@ fn integration_test() {
     svm.send_transaction(tx).unwrap();
 
     let raw_account = svm.get_account(&counter_pk).unwrap();
-    let counter_account: &Counter = Counter::read(raw_account.data.as_slice()).unwrap();
+    let counter_account: &Counter =
+        try_from_bytes(&raw_account.data[Counter::DISCRIMINATOR.len()..]).unwrap();
     assert_eq!(counter_account.count, 1);
 
     let ix = IncrementInstruction {

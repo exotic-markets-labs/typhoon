@@ -66,7 +66,7 @@ impl Visit<'_> for InstructionAccount {
                 self.ty = Some(i.clone());
             }
             visit_path_segment(self, i);
-        } else if ty.starts_with("Signer") {
+        } else if ty.ends_with("Signer") {
             self.meta.is_signer = true;
             if self.ty.is_none() {
                 self.ty = Some(i.clone());
@@ -95,14 +95,21 @@ mod tests {
         assert!(account.meta.is_optional);
         assert!(!account.meta.is_signer);
 
-        let field: syn::Field = parse_quote!(pub random2: SignerNoCheck<'info, Account<Random2>>);
+        let field: syn::Field = parse_quote!(pub random2: UncheckedSigner<'info, Account<Random2>>);
         let account = InstructionAccount::try_from(&field).unwrap();
         assert_eq!(account.inner_ty, "Random2");
         assert!(!account.meta.is_mutable);
         assert!(!account.meta.is_optional);
         assert!(account.meta.is_signer);
 
-        let field: syn::Field = parse_quote!(pub random2: InterfaceAccount<TokenAccount>);
+        let field: syn::Field = parse_quote!(pub random2: Signer<'info, Account<Random2>>);
+        let account = InstructionAccount::try_from(&field).unwrap();
+        assert_eq!(account.inner_ty, "Random2");
+        assert!(!account.meta.is_mutable);
+        assert!(!account.meta.is_optional);
+        assert!(account.meta.is_signer);
+
+        let field: syn::Field = parse_quote!(pub random2: Account<TokenAccount>);
         let account = InstructionAccount::try_from(&field).unwrap();
         assert_eq!(account.inner_ty, "TokenAccount");
         assert!(!account.meta.is_mutable);

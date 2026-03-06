@@ -28,7 +28,7 @@ pub mod lever {
     pub fn transfer(ctx: Context<Transfer>, amount: u64) -> Result<()> {
         anchor_lang::system_program::transfer(
             CpiContext::new(
-                ctx.accounts.system_program.to_account_info(),
+                ctx.accounts.system_program.key(),
                 anchor_lang::system_program::Transfer {
                     from: ctx.accounts.payer.to_account_info(),
                     to: ctx.accounts.account.to_account_info(),

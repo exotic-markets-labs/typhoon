@@ -8,5 +8,14 @@ authors.workspace = true
 repository.workspace = true
 rust-version.workspace = true
 
+[features]
+borsh = ["dep:borsh"]
+bytemuck = ["dep:bytemuck"]
+wincode = ["dep:wincode"]
+
 [dependencies]
+borsh = { workspace = true, optional = true }
+bytemuck = { workspace = true, optional = true }
 solana-address.workspace = true
+solana-program-error.workspace = true
+wincode = { workspace = true, optional = true }

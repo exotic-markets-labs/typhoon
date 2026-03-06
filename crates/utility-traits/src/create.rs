@@ -1,7 +1,7 @@
 use {
     pinocchio::{cpi, sysvars::rent::Rent, AccountView, Address},
     typhoon_accounts::{
-        Account, FromRaw, Mut, ReadableAccount, RefFromBytes, Signer, SignerCheck, SystemAccount,
+        Account, FromRaw, Mut, ReadableAccount, Signer, SignerCheck, SystemAccount,
         UncheckedAccount, WritableAccount,
     },
     typhoon_errors::Error,
@@ -54,14 +54,14 @@ macro_rules! impl_trait {
     ($origin: ty) => {
         impl<'a, T, C> CreateAccountCpi<'a, Signer<'a, Account<'a, T>, C>> for $origin
         where
-            T: Discriminator + RefFromBytes,
+            T: Discriminator,
             C: SignerCheck,
         {
             type D = T;
         }
         impl<'a, T> CreateAccountCpi<'a, Account<'a, T>> for $origin
         where
-            T: Discriminator + RefFromBytes,
+            T: Discriminator,
         {
             type D = T;
         }

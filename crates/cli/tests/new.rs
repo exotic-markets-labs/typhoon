@@ -3,13 +3,13 @@ mod helpers;
 use {
     crate::helpers::{new_workspace, test_workspace},
     heck::ToSnakeCase,
-    tempdir::TempDir,
+    temp_dir::TempDir,
 };
 
 #[test]
 fn new() {
     let project_name = "test-project";
-    let tmp_dir = TempDir::new("typhoon-test").unwrap();
+    let tmp_dir = TempDir::new().unwrap();
     let project_dir = new_workspace(&tmp_dir, project_name, None, false).unwrap();
     test_workspace(&project_dir).unwrap();
 
@@ -26,7 +26,7 @@ fn new() {
 fn new_with_program_name() {
     let project_name = "test-project";
     let program_name = "counter";
-    let tmp_dir = TempDir::new("typhoon-test").unwrap();
+    let tmp_dir = TempDir::new().unwrap();
     let project_dir = new_workspace(
         &tmp_dir,
         project_name,
@@ -47,7 +47,7 @@ fn new_with_program_name() {
 
 #[test]
 fn new_force() {
-    let tmp_dir = TempDir::new("typhoon-test").unwrap();
+    let tmp_dir = TempDir::new().unwrap();
     new_workspace(&tmp_dir, "test-project", Some("counter".to_string()), false).unwrap();
 
     assert!(
@@ -61,7 +61,7 @@ fn new_force() {
 
 #[test]
 fn new_invalid_name() {
-    let tmp_dir = TempDir::new("typhoon-test").unwrap();
+    let tmp_dir = TempDir::new().unwrap();
     let test_names = vec![
         "", "_", "1", "123_123", "mod", "fn", "pub", "use", "struct", "enum", "impl", "self",
         "super", "crate",

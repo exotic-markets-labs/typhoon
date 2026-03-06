@@ -15,5 +15,4 @@ borsh = ["dep:borsh"]
 borsh = { workspace = true, optional = true }
 pinocchio.workspace = true
 pinocchio-system.workspace = true
-typhoon-accounts.workspace = true
 typhoon-errors.workspace = true

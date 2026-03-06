@@ -42,8 +42,11 @@ impl ToTokens for ProgramId {
 
             pub struct #name;
 
-            impl ProgramId for #name {
-                const ID: Address = crate::ID;
+            impl CheckProgramId for #name {
+                #[inline(always)]
+                fn address_eq(program_id: &Address) -> bool {
+                    address_eq(program_id, &crate::ID)
+                }
             }
         }
         .to_tokens(tokens);

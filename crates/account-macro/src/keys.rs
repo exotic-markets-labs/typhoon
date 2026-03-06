@@ -1,6 +1,6 @@
 use {
     proc_macro2::TokenStream,
-    quote::quote,
+    quote::{format_ident, quote},
     syn::{spanned::Spanned, Fields, Ident, Meta, Type},
 };
 
@@ -10,25 +10,58 @@ pub struct PrimaryKey {
 }
 
 impl PrimaryKey {
-    pub fn to_bytes_tokens(&self) -> TokenStream {
-        let name = &self.name;
-
+    fn type_ident(&self) -> Option<&Ident> {
         match &self.ty {
-            Type::Path(path) => {
-                if let Some(ident) = path.path.get_ident() {
-                    match ident.to_string().as_str() {
-                        "Address" => quote! { #name.as_ref() },
-                        "u64" | "u32" | "u16" | "u8" => quote! { #name.to_le_bytes().as_ref() },
-                        _ => syn::Error::new(self.name.span(), "This type cannot be used as a key")
-                            .to_compile_error(),
-                    }
-                } else {
-                    syn::Error::new(self.name.span(), "This type cannot be used as a key")
-                        .to_compile_error()
-                }
-            }
-            _ => syn::Error::new(self.name.span(), "This type cannot be used as a key")
-                .to_compile_error(),
+            Type::Path(path) => path.path.get_ident(),
+            _ => None,
+        }
+    }
+
+    /// Type for the field in the seeds holder struct.
+    fn seeds_field_ty(&self) -> Result<TokenStream, TokenStream> {
+        let Some(ident) = self.type_ident() else {
+            return Err(
+                syn::Error::new(self.name.span(), "This type cannot be used as a key")
+                    .to_compile_error(),
+            );
+        };
+        match ident.to_string().as_str() {
+            "Address" => Ok(quote! { &'a [u8] }),
+            "u64" => Ok(quote! { [u8; 8] }),
+            "u32" => Ok(quote! { [u8; 4] }),
+            "u16" => Ok(quote! { [u8; 2] }),
+            "u8" => Ok(quote! { [u8; 1] }),
+            _ => Err(
+                syn::Error::new(self.name.span(), "This type cannot be used as a key")
+                    .to_compile_error(),
+            ),
+        }
+    }
+
+    /// Expression to construct the seeds field from `self.field`.
+    fn self_init_expr(&self) -> TokenStream {
+        let name = &self.name;
+        match self.type_ident().map(|i| i.to_string()) {
+            Some(ref s) if s == "Address" => quote! { self.#name.as_ref() },
+            _ => quote! { self.#name.to_le_bytes() },
+        }
+    }
+
+    /// Expression to construct the seeds field from a derive parameter.
+    fn derive_init_expr(&self) -> TokenStream {
+        let name = &self.name;
+        match self.type_ident().map(|i| i.to_string()) {
+            Some(ref s) if s == "Address" => quote! { #name.as_ref() },
+            _ => quote! { #name.to_le_bytes() },
+        }
+    }
+
+    /// Expression to get `&[u8]` from the seeds holder struct field.
+    fn seed_ref_expr(&self) -> TokenStream {
+        let name = &self.name;
+        match self.type_ident().map(|i| i.to_string()) {
+            Some(ref s) if s == "Address" => quote! { self.#name },
+            _ => quote! { self.#name.as_ref() },
         }
     }
 }
@@ -45,6 +78,31 @@ impl PrimaryKeys {
             return quote!();
         }
 
+        let seeds_struct_name = format_ident!("{}Seeds", account_name);
+
+        let struct_fields = self.0.iter().map(|k| {
+            let name = &k.name;
+            let ty = match k.seeds_field_ty() {
+                Ok(ty) => ty,
+                Err(err) => return err,
+            };
+            quote! { #name: #ty }
+        });
+
+        let self_init_fields = self.0.iter().map(|k| {
+            let name = &k.name;
+            let expr = k.self_init_expr();
+            quote! { #name: #expr }
+        });
+
+        let derive_init_fields = self.0.iter().map(|k| {
+            let name = &k.name;
+            let expr = k.derive_init_expr();
+            quote! { #name: #expr }
+        });
+
+        let seed_refs: Vec<_> = self.0.iter().map(|k| k.seed_ref_expr()).collect();
+
         let parameters_with_lifetime = self.0.iter().map(|k| {
             let name = &k.name;
             let ty = &k.ty;
@@ -52,39 +110,40 @@ impl PrimaryKeys {
         });
         let parameters_list_with_lifetime = quote! { #(#parameters_with_lifetime),* };
 
-        let params_to_seed: Vec<_> = self.0.iter().map(|k| k.to_bytes_tokens()).collect();
-        let self_seeds = quote! { #(self.#params_to_seed),* };
-        let seeds = quote! { #(#params_to_seed),* };
-
         let lowercase_name = account_name.to_string().to_lowercase();
 
         quote! {
+            pub struct #seeds_struct_name<'a> {
+                #(#struct_fields),*
+            }
+
+            impl<'a> #seeds_struct_name<'a> {
+                pub fn as_seeds(&'a self) -> [&'a [u8]; #n_seeds] {
+                    [#account_name::BASE_SEED, #(#seed_refs),*]
+                }
+
+                pub fn seeds_with_bump(&'a self, bump: &'a [u8]) -> [&'a [u8]; #n_seeds_with_bump] {
+                    [#account_name::BASE_SEED, #(#seed_refs),*, bump]
+                }
+
+                pub fn signer_seeds_with_bump(&'a self, bump: &'a [u8]) -> [Seed<'a>; #n_seeds_with_bump] {
+                    seeds!(#account_name::BASE_SEED, #(#seed_refs),*, bump)
+                }
+            }
+
             impl #account_name {
                 const BASE_SEED: &'static [u8] = #lowercase_name.as_bytes();
 
-                pub fn seeds<'a>(&'a self) -> [&'a [u8]; #n_seeds] {
-                    [Self::BASE_SEED, #self_seeds]
+                pub fn seeds(&self) -> #seeds_struct_name<'_> {
+                    #seeds_struct_name {
+                        #(#self_init_fields),*
+                    }
                 }
 
-                pub fn derive<'a>(#parameters_list_with_lifetime) -> [&'a [u8]; #n_seeds] {
-                    [Self::BASE_SEED, #seeds]
-                }
-
-                // TODO: use the bump stored in the account
-                pub fn seeds_with_bump<'a>(&'a self, bump: &'a [u8]) -> [&'a [u8]; #n_seeds_with_bump] {
-                    [Self::BASE_SEED, #self_seeds, bump]
-                }
-
-                pub fn derive_with_bump<'a>(#parameters_list_with_lifetime, bump: &'a [u8]) -> [&'a [u8]; #n_seeds_with_bump] {
-                    [Self::BASE_SEED, #seeds, bump]
-                }
-
-                pub fn signer_seeds_with_bump<'a>(&'a self, bump: &'a [u8]) -> [Seed<'a>; #n_seeds_with_bump] {
-                    seeds!(Self::BASE_SEED, #self_seeds, bump)
-                }
-
-                pub fn derive_signer_seeds_with_bump<'a>(#parameters_list_with_lifetime, bump: &'a [u8]) -> [Seed<'a>; #n_seeds_with_bump] {
-                    seeds!(Self::BASE_SEED, #seeds, bump)
+                pub fn derive<'a>(#parameters_list_with_lifetime) -> #seeds_struct_name<'a> {
+                    #seeds_struct_name {
+                        #(#derive_init_fields),*
+                    }
                 }
             }
         }

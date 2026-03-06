@@ -2,14 +2,14 @@
 
 use {
     core::{mem::transmute, ops::Deref},
+    pinocchio::error::ProgramError,
     pinocchio_associated_token_account::ID as ATA_PROGRAM_ID,
     pinocchio_token::{
         state::{Mint as SplMint, TokenAccount as SplTokenAccount},
         ID as TOKEN_PROGRAM_ID,
     },
-    solana_address::Address,
-    typhoon_accounts::RefFromBytes,
-    typhoon_traits::{Discriminator, Owner, Owners, ProgramId, ProgramIds},
+    solana_address::{address_eq, Address},
+    typhoon_traits::{Accessor, CheckOwner, CheckProgramId, DataStrategy, Discriminator},
 };
 
 mod traits;
@@ -19,23 +19,82 @@ pub use {
     pinocchio_token::instructions as spl_instructions, traits::*,
 };
 
+#[cfg(feature = "token2022")]
 const TOKEN_2022_PROGRAM_ID: Address =
     Address::from_str_const("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb");
 
 pub struct AtaTokenProgram;
 
-impl ProgramId for AtaTokenProgram {
-    const ID: Address = ATA_PROGRAM_ID;
+impl CheckProgramId for AtaTokenProgram {
+    #[inline(always)]
+    fn address_eq(program_id: &Address) -> bool {
+        address_eq(program_id, &ATA_PROGRAM_ID)
+    }
 }
 
 pub struct TokenProgram;
 
-impl ProgramId for TokenProgram {
-    const ID: Address = TOKEN_PROGRAM_ID;
+impl CheckProgramId for TokenProgram {
+    #[inline(always)]
+    fn address_eq(program_id: &Address) -> bool {
+        #[cfg(feature = "token2022")]
+        {
+            address_eq(program_id, &TOKEN_PROGRAM_ID)
+                || address_eq(program_id, &TOKEN_2022_PROGRAM_ID)
+        }
+        #[cfg(not(feature = "token2022"))]
+        {
+            address_eq(program_id, &TOKEN_PROGRAM_ID)
+        }
+    }
 }
 
-impl ProgramIds for TokenProgram {
-    const IDS: &'static [Address] = &[TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID];
+pub struct SplStrategy;
+
+impl<'a> Accessor<'a, Mint> for SplStrategy {
+    type Data = &'a Mint;
+
+    #[inline(always)]
+    fn access(data: &'a [u8]) -> Result<Self::Data, ProgramError> {
+        // SAFETY: `Mint` is `#[repr(transparent)]` over `SplMint`,
+        // so the reference cast preserves layout/alignment/lifetime. The caller
+        // must also guarantee `data` encodes a valid token account state.
+        Ok(unsafe { transmute::<&SplMint, &Mint>(SplMint::from_bytes_unchecked(data)) })
+    }
+
+    #[inline(always)]
+    fn read(data: &mut &'a [u8]) -> Result<Self::Data, ProgramError> {
+        let Some((to_read, rem)) = data.split_at_checked(Mint::LEN) else {
+            return Err(ProgramError::InvalidInstructionData);
+        };
+        *data = rem;
+        Ok(<Self as Accessor<Mint>>::access(to_read)?)
+    }
+}
+
+impl<'a> Accessor<'a, TokenAccount> for SplStrategy {
+    type Data = &'a TokenAccount;
+
+    #[inline(always)]
+    fn access(data: &'a [u8]) -> Result<Self::Data, ProgramError> {
+        // SAFETY: `TokenAccount` is `#[repr(transparent)]` over `SplTokenAccount`,
+        // so the reference cast preserves layout/alignment/lifetime. The caller
+        // must also guarantee `data` encodes a valid token account state.
+        Ok(unsafe {
+            transmute::<&SplTokenAccount, &TokenAccount>(SplTokenAccount::from_bytes_unchecked(
+                data,
+            ))
+        })
+    }
+
+    #[inline(always)]
+    fn read(data: &mut &'a [u8]) -> Result<Self::Data, ProgramError> {
+        let Some((to_read, rem)) = data.split_at_checked(TokenAccount::LEN) else {
+            return Err(ProgramError::InvalidInstructionData);
+        };
+        *data = rem;
+        Ok(<Self as Accessor<TokenAccount>>::access(to_read)?)
+    }
 }
 
 #[repr(transparent)]
@@ -45,26 +104,27 @@ impl Mint {
     pub const LEN: usize = SplMint::LEN;
 }
 
-impl RefFromBytes for Mint {
-    fn read(data: &[u8]) -> Option<&Self> {
-        Some(unsafe { transmute::<&SplMint, &Mint>(SplMint::from_bytes_unchecked(data)) })
-    }
-
-    fn read_mut(_data: &mut [u8]) -> Option<&mut Self> {
-        unimplemented!()
-    }
+impl DataStrategy for Mint {
+    type Strategy = SplStrategy;
 }
 
 impl Discriminator for Mint {
     const DISCRIMINATOR: &'static [u8] = &[];
 }
 
-impl Owner for Mint {
-    const OWNER: Address = TOKEN_PROGRAM_ID;
-}
-
-impl Owners for Mint {
-    const OWNERS: &'static [Address] = &[TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID];
+impl CheckOwner for Mint {
+    #[inline(always)]
+    fn owned_by(program_id: &Address) -> bool {
+        #[cfg(feature = "token2022")]
+        {
+            address_eq(program_id, &TOKEN_PROGRAM_ID)
+                || address_eq(program_id, &TOKEN_2022_PROGRAM_ID)
+        }
+        #[cfg(not(feature = "token2022"))]
+        {
+            address_eq(program_id, &TOKEN_PROGRAM_ID)
+        }
+    }
 }
 
 impl Deref for Mint {
@@ -82,30 +142,27 @@ impl TokenAccount {
     pub const LEN: usize = SplTokenAccount::LEN;
 }
 
-impl RefFromBytes for TokenAccount {
-    fn read(data: &[u8]) -> Option<&Self> {
-        Some(unsafe {
-            transmute::<&SplTokenAccount, &TokenAccount>(SplTokenAccount::from_bytes_unchecked(
-                data,
-            ))
-        })
-    }
-
-    fn read_mut(_data: &mut [u8]) -> Option<&mut Self> {
-        unimplemented!()
-    }
+impl DataStrategy for TokenAccount {
+    type Strategy = SplStrategy;
 }
 
 impl Discriminator for TokenAccount {
     const DISCRIMINATOR: &'static [u8] = &[];
 }
 
-impl Owner for TokenAccount {
-    const OWNER: Address = TOKEN_PROGRAM_ID;
-}
-
-impl Owners for TokenAccount {
-    const OWNERS: &'static [Address] = &[TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID];
+impl CheckOwner for TokenAccount {
+    #[inline(always)]
+    fn owned_by(program_id: &Address) -> bool {
+        #[cfg(feature = "token2022")]
+        {
+            address_eq(program_id, &TOKEN_PROGRAM_ID)
+                || address_eq(program_id, &TOKEN_2022_PROGRAM_ID)
+        }
+        #[cfg(not(feature = "token2022"))]
+        {
+            address_eq(program_id, &TOKEN_PROGRAM_ID)
+        }
+    }
 }
 
 impl Deref for TokenAccount {

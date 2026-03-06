@@ -1,7 +1,7 @@
 use {
-    litesvm::LiteSVM, seeded::Counter, solana_address::Address, solana_keypair::Keypair,
-    solana_native_token::LAMPORTS_PER_SOL, solana_signer::Signer, solana_transaction::Transaction,
-    std::path::PathBuf, typhoon::lib::RefFromBytes,
+    bytemuck::try_from_bytes, litesvm::LiteSVM, seeded::Counter, solana_address::Address,
+    solana_keypair::Keypair, solana_native_token::LAMPORTS_PER_SOL, solana_signer::Signer,
+    solana_transaction::Transaction, std::path::PathBuf, typhoon::lib::Discriminator,
     typhoon_instruction_builder::generate_instructions_client,
 };
 
@@ -32,8 +32,10 @@ fn integration_test() {
     svm.add_program(ID, &program_bytes).unwrap();
 
     // Create the counter
-    let (counter_pk, counter_bump) =
-        Address::find_program_address(&Counter::derive(&admin_pk.to_bytes().into()), &ID);
+    let (counter_pk, counter_bump) = Address::find_program_address(
+        &Counter::derive(&admin_pk.to_bytes().into()).as_seeds(),
+        &ID,
+    );
 
     let arg = InitArgs {
         admin: admin_pk.to_bytes().into(),
@@ -64,7 +66,8 @@ fn integration_test() {
     svm.send_transaction(tx).unwrap();
 
     let raw_account = svm.get_account(&counter_pk).unwrap();
-    let counter_account: &Counter = Counter::read(raw_account.data.as_slice()).unwrap();
+    let counter_account: &Counter =
+        try_from_bytes(&raw_account.data[Counter::DISCRIMINATOR.len()..]).unwrap();
     assert!(counter_account.count == 1);
 
     let ix = IncrementInstruction {

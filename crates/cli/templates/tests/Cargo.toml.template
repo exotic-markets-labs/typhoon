@@ -4,8 +4,6 @@ version = "0.1.0"
 edition = "2021"
 publish = false
 
-[lib]
-
 [package.metadata.typhoon.builder-dependencies]
 {{program_name_snake}} = { path = "../programs/{{program_name_snake}}" }
 
@@ -24,7 +22,3 @@ solana-system-interface = { workspace = true }
 solana-transaction = { workspace = true }
 typhoon-instruction-builder = { workspace = true }
 {{program_name_kebab}} = { workspace = true }
-
-[profile.release]
-lto = true
-codegen-units = 1

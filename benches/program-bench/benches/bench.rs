@@ -1,8 +1,8 @@
 use {
     program_bench::{BenchResult, Bencher},
+    solana_address::Address,
     solana_instruction::{AccountMeta, Instruction},
     solana_keypair::Keypair,
-    solana_pubkey::Pubkey,
     solana_signer::Signer,
     solana_transaction::Transaction,
     std::path::PathBuf,
@@ -26,7 +26,7 @@ pub fn runner(name: &str) -> BenchResult {
 
     let mut bencher = Bencher::new(so_path);
 
-    let program_id = Pubkey::from_str_const("Bench111111111111111111111111111111111111111");
+    let program_id = Address::from_str_const("Bench111111111111111111111111111111111111111");
 
     let data = vec![0];
     let tx = Transaction::new_signed_with_payer(
@@ -97,16 +97,16 @@ pub fn runner(name: &str) -> BenchResult {
         &[Instruction {
             program_id,
             accounts: vec![
-                AccountMeta::new_readonly(Pubkey::new_unique(), false),
-                AccountMeta::new_readonly(Pubkey::new_unique(), false),
-                AccountMeta::new_readonly(Pubkey::new_unique(), false),
-                AccountMeta::new_readonly(Pubkey::new_unique(), false),
-                AccountMeta::new_readonly(Pubkey::new_unique(), false),
-                AccountMeta::new_readonly(Pubkey::new_unique(), false),
-                AccountMeta::new_readonly(Pubkey::new_unique(), false),
-                AccountMeta::new_readonly(Pubkey::new_unique(), false),
-                AccountMeta::new_readonly(Pubkey::new_unique(), false),
-                AccountMeta::new_readonly(Pubkey::new_unique(), false),
+                AccountMeta::new_readonly(Address::new_unique(), false),
+                AccountMeta::new_readonly(Address::new_unique(), false),
+                AccountMeta::new_readonly(Address::new_unique(), false),
+                AccountMeta::new_readonly(Address::new_unique(), false),
+                AccountMeta::new_readonly(Address::new_unique(), false),
+                AccountMeta::new_readonly(Address::new_unique(), false),
+                AccountMeta::new_readonly(Address::new_unique(), false),
+                AccountMeta::new_readonly(Address::new_unique(), false),
+                AccountMeta::new_readonly(Address::new_unique(), false),
+                AccountMeta::new_readonly(Address::new_unique(), false),
             ],
             data,
         }],

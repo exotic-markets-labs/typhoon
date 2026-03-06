@@ -5,13 +5,13 @@ use {
     clap::Parser,
     heck::ToSnakeCase,
     std::{fs, path::Path},
-    tempdir::TempDir,
+    temp_dir::TempDir,
     typhoon_cli::{AddSubcommand, Cli, Commands},
 };
 
 #[test]
 fn add_program() {
-    let tmp_dir = TempDir::new("typhoon-test").unwrap();
+    let tmp_dir = TempDir::new().unwrap();
     let program_name = "counter";
     let new_program_name = "new-counter";
     let project_dir: std::path::PathBuf = new_workspace(
@@ -51,7 +51,7 @@ fn add_program() {
 
 #[test]
 fn add_program_invalid_name() {
-    let tmp_dir = TempDir::new("typhoon-test").unwrap();
+    let tmp_dir = TempDir::new().unwrap();
     let test_names = vec![
         "", "_", "1", "123_123", "mod", "fn", "pub", "use", "struct", "enum", "impl", "self",
         "super", "crate",
@@ -69,7 +69,7 @@ fn add_program_invalid_name() {
 
 #[test]
 fn add_handler() {
-    let tmp_dir = TempDir::new("typhoon-test").unwrap();
+    let tmp_dir = TempDir::new().unwrap();
     let program_name = "counter";
     let handler_name = "new-handler";
     let project_dir: std::path::PathBuf = new_workspace(
@@ -156,7 +156,7 @@ fn run_program(project_dir: &Path, program_name: &str) -> anyhow::Result<()> {
 
 #[test]
 fn add_handler_invalid_name() {
-    let tmp_dir = TempDir::new("typhoon-test").unwrap();
+    let tmp_dir = TempDir::new().unwrap();
     let test_names = vec![
         "", "_", "1", "123_123", "mod", "fn", "pub", "use", "struct", "enum", "impl", "self",
         "super", "crate",

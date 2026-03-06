@@ -8,24 +8,23 @@ use {
 #[args(MakeArgs)]
 pub struct Make {
     pub maker: Mut<Signer>,
-    // TODO fix seeded and seeds
     #[constraint(
         init,
         payer = maker,
-        seeds = [b"escrow", maker.address().as_ref(), &[0]],
+        seeds = [b"escrow", maker.address().as_ref(), &args.seed.to_le_bytes()],
         bump
     )]
     pub escrow: Mut<Account<Escrow>>,
-    pub mint_a: InterfaceAccount<Mint>,
-    pub mint_b: InterfaceAccount<Mint>,
-    pub maker_ata_a: Mut<InterfaceAccount<TokenAccount>>,
+    pub mint_a: Account<Mint>,
+    pub mint_b: Account<Mint>,
+    pub maker_ata_a: Mut<Account<TokenAccount>>,
     #[constraint(
         init_if_needed,
         payer = maker,
         associated_token::mint = mint_a,
         associated_token::authority = escrow
     )]
-    pub vault: Mut<InterfaceAccount<TokenAccount>>,
+    pub vault: Mut<Account<TokenAccount>>,
     pub ata_program: Program<AtaTokenProgram>,
     pub token_program: Program<TokenProgram>,
     pub system_program: Program<System>,
@@ -38,7 +37,7 @@ pub fn make(ctx: Make) -> ProgramResult {
         maker: *ctx.maker.address(),
         mint_a: *ctx.mint_a.address(),
         mint_b: *ctx.mint_b.address(),
-        seed: 0,
+        seed: ctx.args.seed,
         receive: ctx.args.receive,
         bump: ctx.bumps.escrow,
     };
