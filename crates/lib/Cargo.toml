@@ -25,6 +25,7 @@ alloc = ["pinocchio/alloc"]
 logging = ["typhoon-errors/logging"]
 
 [dependencies]
+const-crypto.workspace = true
 pinocchio.workspace = true
 solana-address = { workspace = true, features = ["decode"] }
 solana-instruction-view = { workspace = true, features = ["slice-cpi"] }

@@ -1,7 +1,4 @@
-use const_crypto::ed25519;
 use solana_address::Address;
+use typhoon::prelude::*;
 
-pub const RANDOM_PDA: (Address, u8) = {
-    let (key, bump) = ed25519::derive_program_address(&[b"random"], crate::ID.as_array());
-    (Address::new_from_array(key), bump)
-};
+pub const RANDOM_PDA: (Address, u8) = find_program_address_const(&[b"random"], &crate::ID);
