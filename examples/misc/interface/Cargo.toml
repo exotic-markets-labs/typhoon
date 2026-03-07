@@ -12,7 +12,6 @@ client = ["dep:solana-instruction", "dep:typhoon-instruction-builder"]
 
 [dependencies]
 bytemuck = { workspace = true, features = ["derive"] }
-const-crypto.workspace = true
 solana-address.workspace = true
 solana-instruction = { workspace = true, optional = true }
 typhoon-instruction-builder = { workspace = true, optional = true }

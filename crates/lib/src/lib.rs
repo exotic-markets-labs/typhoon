@@ -24,13 +24,22 @@ pub mod instruction {
 
 pub type ProgramResult<T = ()> = Result<T, typhoon_errors::Error>;
 
+/// Derives a program address and bump seed from `seeds` for `program_id` in const context.
+pub const fn find_program_address_const(
+    seeds: &[&[u8]],
+    program_id: &solana_address::Address,
+) -> (solana_address::Address, u8) {
+    let (bytes, bump) = const_crypto::ed25519::derive_program_address(seeds, program_id.as_array());
+    (solana_address::Address::new_from_array(bytes), bump)
+}
+
 pub mod prelude {
     #[cfg(feature = "alloc")]
     pub use pinocchio::default_allocator;
     #[cfg(feature = "logging")]
     pub use typhoon_errors::{log_error, LogError};
     pub use {
-        super::{bytes, instruction, lib::*, macros::*, ProgramResult},
+        super::{bytes, find_program_address_const, instruction, lib::*, macros::*, ProgramResult},
         pinocchio::{
             self,
             address::{self, address_eq, declare_id, MAX_SEEDS},
