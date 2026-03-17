@@ -60,7 +60,14 @@ fn gen_account_traits(account: &Account, serialization: Option<&&Serialization>)
     let discriminator = &account.discriminator;
 
     let strategy = match serialization.unwrap_or(&&Serialization::Borsh) {
-        Serialization::Borsh | Serialization::Custom(_) => quote!(BorshStrategy),
+        Serialization::Borsh | Serialization::Custom(_) => quote!(BorshStrategy<
+            {
+                matches!(
+            <Self as wincode::SchemaRead<'static, wincode::config::DefaultConfig>>::TYPE_META,
+            wincode::TypeMeta::Static { zero_copy: true, .. }
+        )
+            },
+        >),
         Serialization::Bytemuck | Serialization::BytemuckUnsafe => quote!(BytemuckStrategy),
     };
 
@@ -175,7 +182,7 @@ fn gen_repr_with_modifiers(repr_type: &str, modifier: &ReprModifier) -> TokenStr
 fn gen_serialization(serialization: &Serialization) -> TokenStream {
     match serialization {
         Serialization::Borsh | Serialization::Custom(_) => {
-            quote!(#[derive(borsh::BorshSerialize, borsh::BorshDeserialize)])
+            quote!(#[derive(wincode::SchemaRead, wincode::SchemaWrite)])
         }
         Serialization::Bytemuck | Serialization::BytemuckUnsafe => {
             quote!(#[derive(bytemuck::Pod, bytemuck::Zeroable, Clone, Copy)])
@@ -232,7 +239,7 @@ mod tests {
         let result = gen_serialization(&Serialization::Borsh).to_string();
         assert_eq!(
             result,
-            quote!(#[derive(borsh::BorshSerialize, borsh::BorshDeserialize)]).to_string()
+            quote!(#[derive(wincode::SchemaRead, wincode::SchemaWrite)]).to_string()
         );
     }
 

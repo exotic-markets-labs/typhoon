@@ -8,11 +8,7 @@ authors.workspace = true
 repository.workspace = true
 rust-version.workspace = true
 
-[features]
-borsh = ["dep:borsh", "typhoon-traits/borsh"]
-
 [dependencies]
-borsh = { workspace = true, optional = true }
 bytemuck.workspace = true
 pastey.workspace = true
 solana-account-view.workspace = true

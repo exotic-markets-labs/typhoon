@@ -14,7 +14,6 @@ rust-version = "1.87"
 [workspace.dependencies]
 anyhow = "1.0"
 base64 = "0.22"
-borsh = { version = "1.5", default-features = false }
 bytemuck = "1.24"
 cargo-manifest = "0.20"
 clap = { version = "4.5", features = ["derive"] }
@@ -66,4 +65,4 @@ typhoon-syn = { version = "0.2.2", path = "crates/syn" }
 typhoon-token = { version = "0.2.2", path = "crates/token" }
 typhoon-utility = { version = "0.2.2", path = "crates/utility" }
 typhoon-utility-traits = { version = "0.2.2", path = "crates/utility-traits" }
-wincode = { version = "0.4.4", default-features = false }
+wincode = { version = "0.4.5", default-features = false }

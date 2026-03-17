@@ -8,11 +8,7 @@ authors.workspace = true
 repository.workspace = true
 rust-version.workspace = true
 
-[features]
-borsh = ["dep:borsh"]
-
 [dependencies]
-borsh = { workspace = true, optional = true }
 pinocchio.workspace = true
 pinocchio-system.workspace = true
 typhoon-errors.workspace = true

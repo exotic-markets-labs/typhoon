@@ -367,12 +367,9 @@ Validates that the account's public key matches the given address expression.
 Useful for checking against known constant addresses (e.g., compile-time derived PDAs):
 
 ```rust
-use const_crypto::ed25519;
+use typhoon::prelude::*;
 
-pub const RANDOM_PDA: (Address, u8) = {
-    let (key, bump) = ed25519::derive_program_address(&[b"random"], crate::ID.as_array());
-    (Address::new_from_array(key), bump)
-};
+pub const RANDOM_PDA: (Address, u8) = find_program_address_const(&[b"random"], &crate::ID);
 
 #[context]
 pub struct Verify {
