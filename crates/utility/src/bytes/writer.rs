@@ -1,13 +1,16 @@
-use typhoon_errors::ErrorCode;
+use {
+    core::{mem::MaybeUninit, ptr},
+    typhoon_errors::ErrorCode,
+};
 
 pub struct MaybeUninitWriter<'a> {
-    buffer: &'a mut [core::mem::MaybeUninit<u8>],
+    buffer: &'a mut [MaybeUninit<u8>],
     position: usize,
 }
 
 impl<'a> MaybeUninitWriter<'a> {
     #[inline(always)]
-    pub fn new(buffer: &'a mut [core::mem::MaybeUninit<u8>], position: usize) -> Self {
+    pub fn new(buffer: &'a mut [MaybeUninit<u8>], position: usize) -> Self {
         Self { buffer, position }
     }
 
@@ -18,17 +21,24 @@ impl<'a> MaybeUninitWriter<'a> {
 
     #[inline(always)]
     pub fn write_bytes(&mut self, data: &[u8]) -> Result<usize, ErrorCode> {
-        let available = self.buffer.len().saturating_sub(self.position);
-        let to_write = data.len().min(available);
+        if data.is_empty() {
+            return Ok(0);
+        }
+
+        if self.position >= self.buffer.len() {
+            return Err(buffer_full());
+        }
+
+        let to_write = data.len().min(self.buffer.len() - self.position);
 
         if to_write == 0 {
-            return Err(ErrorCode::BufferFull);
+            return Err(buffer_full());
         }
 
         // SAFETY: We're writing to `MaybeUninit` and ensuring the data is valid.
         unsafe {
             let dst_ptr = self.buffer.as_mut_ptr().add(self.position);
-            core::ptr::copy_nonoverlapping(data.as_ptr(), dst_ptr as _, to_write);
+            ptr::copy_nonoverlapping(data.as_ptr(), dst_ptr as *mut u8, to_write);
         }
 
         self.position += to_write;
@@ -37,14 +47,8 @@ impl<'a> MaybeUninitWriter<'a> {
     }
 }
 
-#[cfg(feature = "borsh")]
-impl borsh::io::Write for MaybeUninitWriter<'_> {
-    fn write(&mut self, data: &[u8]) -> borsh::io::Result<usize> {
-        self.write_bytes(data)
-            .map_err(|_| borsh::io::Error::new(borsh::io::ErrorKind::WriteZero, "Buffer full"))
-    }
-
-    fn flush(&mut self) -> borsh::io::Result<()> {
-        Ok(())
-    }
+#[cold]
+#[inline(never)]
+fn buffer_full() -> ErrorCode {
+    ErrorCode::BufferFull
 }

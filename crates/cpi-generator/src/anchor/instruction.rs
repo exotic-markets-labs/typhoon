@@ -90,32 +90,25 @@ pub fn gen_instructions(ixs: &[Instruction]) -> TokenStream {
 fn gen_instruction_data(args: &[Field], discriminator: &[u8]) -> (Vec<TokenStream>, TokenStream) {
     let discriminator_len = discriminator.len();
     let discriminator_expr: Expr = syn::parse_quote!([#(#discriminator),*]);
-    let (arg_fields, arg_ser): (Vec<TokenStream>, Vec<TokenStream>) = args
-        .iter()
-        .map(|arg| {
-            let ident = Ident::new(&arg.name, Span::call_site());
-            let ty_ref = gen_type_ref(&arg.ty);
-
-            (
-                quote!(pub #ident: #ty_ref,),
-                quote!(borsh::ser::BorshSerialize::serialize(&self.#ident, &mut writer).map_err(|_| ProgramError::BorshIoError)?;),
-            )
-        })
-        .unzip();
+    let mut arg_fields = Vec::with_capacity(args.len());
+    let mut arg_sizes = Vec::with_capacity(args.len());
+    let mut arg_ser = Vec::with_capacity(args.len());
+    for arg in args {
+        let ident = Ident::new(&arg.name, Span::call_site());
+        let ty_ref = gen_type_ref(&arg.ty);
+        arg_fields.push(quote!(pub #ident: #ty_ref,));
+        arg_sizes.push(quote!(BorshStrategy::<false>::size(&self.#ident)?));
+        arg_ser.push(quote!(BorshStrategy::<false>::write_into(&mut writer, &self.#ident)?;));
+    }
 
     let instruction_data = if arg_ser.is_empty() {
         quote! {
-            let mut instruction_data = core::mem::MaybeUninit::<[u8; #discriminator_len]>::uninit();
-
-            unsafe {
-                let ptr = instruction_data.as_mut_ptr() as *mut u8;
-                core::ptr::copy_nonoverlapping(#discriminator_expr.as_ptr(), ptr, #discriminator_len);
-            }
+            let instruction_data = #discriminator_expr;
 
             let instruction = instruction::InstructionView {
                 program_id: &PROGRAM_ID,
                 accounts: &account_metas,
-                data: unsafe { instruction_data.assume_init_ref() },
+                data: &instruction_data,
             };
         }
     } else {
@@ -126,13 +119,14 @@ fn gen_instruction_data(args: &[Field], discriminator: &[u8]) -> (Vec<TokenStrea
                 core::ptr::copy_nonoverlapping(#discriminator_expr.as_ptr(), ptr, #discriminator_len);
             }
 
-            let mut writer = bytes::MaybeUninitWriter::new(&mut instruction_data, #discriminator_len);
+            let data_len = #discriminator_len #(+ #arg_sizes)*;
+            let mut writer = &mut instruction_data[#discriminator_len..];
             #(#arg_ser)*
 
             let instruction = instruction::InstructionView {
                 program_id: &PROGRAM_ID,
                 accounts: &account_metas,
-                data: writer.initialized(),
+                data: unsafe { core::slice::from_raw_parts(instruction_data.as_ptr() as *const u8, data_len) },
             };
         }
     };
@@ -190,17 +184,12 @@ mod tests {
 
         let (fields, data) = gen_instruction_data(&args, &discriminator);
         let expected_data = quote! {
-            let mut instruction_data = core::mem::MaybeUninit::<[u8; 4usize]>::uninit();
-
-            unsafe {
-                let ptr = instruction_data.as_mut_ptr() as *mut u8;
-                core::ptr::copy_nonoverlapping([1u8, 2u8, 3u8, 4u8].as_ptr(), ptr, 4usize);
-            }
+            let instruction_data = [1u8, 2u8, 3u8, 4u8];
 
             let instruction = instruction::InstructionView {
                 program_id: &PROGRAM_ID,
                 accounts: &account_metas,
-                data: unsafe { instruction_data.assume_init_ref() },
+                data: &instruction_data,
             };
         };
         assert!(fields.is_empty());
@@ -220,14 +209,14 @@ mod tests {
                 let ptr = instruction_data.as_mut_ptr() as *mut u8;
                 core::ptr::copy_nonoverlapping([1u8, 2u8, 3u8, 4u8].as_ptr(), ptr, 4usize);
             }
-
-            let mut writer = bytes::MaybeUninitWriter::new(&mut instruction_data, 4usize);
-            borsh::ser::BorshSerialize::serialize(&self.amount, &mut writer).map_err(|_| ProgramError::BorshIoError)?;
+            let data_len = 4usize + BorshStrategy::<false>::size(&self.amount)?;
+            let mut writer = &mut instruction_data[4usize..];
+            BorshStrategy::<false>::write_into(&mut writer, &self.amount)?;
 
             let instruction = instruction::InstructionView {
                 program_id: &PROGRAM_ID,
                 accounts: &account_metas,
-                data: writer.initialized(),
+                data: unsafe { core::slice::from_raw_parts(instruction_data.as_ptr() as *const u8, data_len) },
             };
         };
 

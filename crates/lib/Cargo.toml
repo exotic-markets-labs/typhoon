@@ -15,12 +15,7 @@ bytemuck = [
     "solana-address/copy",
     "typhoon-traits/bytemuck",
 ]
-borsh = [
-    "solana-address/borsh",
-    "typhoon-utility/borsh",
-    "typhoon-context/borsh",
-    "typhoon-traits/borsh",
-]
+wincode = ["solana-address/wincode"]
 alloc = ["pinocchio/alloc"]
 logging = ["typhoon-errors/logging"]
 
