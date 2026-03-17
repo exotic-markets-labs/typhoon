@@ -1,14 +1,11 @@
 #[cfg(feature = "bytemuck")]
 mod bytemuck;
-#[cfg(feature = "wincode")]
 mod wincode;
 
-use ::wincode::io::Writer;
 #[cfg(feature = "bytemuck")]
 pub use bytemuck::*;
-use solana_program_error::ProgramError;
-#[cfg(feature = "wincode")]
 pub use wincode::*;
+use {::wincode::io::Writer, solana_program_error::ProgramError};
 
 pub trait Accessor<'a, T> {
     type Data: 'a;
