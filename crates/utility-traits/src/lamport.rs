@@ -17,11 +17,7 @@ pub trait LamportsChecked: WritableAccount + SignerAccount {
                 .checked_sub(amount)
                 .ok_or(ProgramError::ArithmeticOverflow)?,
         );
-        to.set_lamports(
-            recipient_lamports
-                .checked_add(amount)
-                .ok_or(ProgramError::ArithmeticOverflow)?,
-        );
+        to.set_lamports(recipient_lamports.wrapping_add(amount));
 
         Ok(())
     }
@@ -32,11 +28,7 @@ pub trait LamportsChecked: WritableAccount + SignerAccount {
         let recipient_lamports = to.lamports();
 
         self.set_lamports(0);
-        to.set_lamports(
-            recipient_lamports
-                .checked_add(amount)
-                .ok_or(ProgramError::ArithmeticOverflow)?,
-        );
+        to.set_lamports(recipient_lamports.wrapping_add(amount));
 
         Ok(())
     }
