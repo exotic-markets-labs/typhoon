@@ -7,8 +7,8 @@ use {
         ApplyTypeModifiersVisitor, ApplyTypeOverridesVisitor, CodamaResult, CombineModulesVisitor,
         IdentifyFieldTypesVisitor, SetDefaultValuesVisitor, SetProgramMetadataVisitor,
     },
-    codama_korok_plugins::KorokPlugin,
     codama_korok_visitors::KorokVisitable,
+    codama_plugin_core::KorokPlugin,
 };
 
 pub struct TyphoonPlugin;
