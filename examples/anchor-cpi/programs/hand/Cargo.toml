@@ -19,4 +19,4 @@ unexpected_cfgs = { level = "warn", check-cfg = [
 [dependencies]
 wincode = { version = "0.4.8", default-features = false, features = ["derive"] }
 bytemuck = { version = "1.24.0", features = ["min_const_generics"] }
-typhoon = { path = "../../../../crates/lib", features = ["wincode"] }
+typhoon = { path = "../../../../crates/lib", features = ["wincode", "alloc"] }
