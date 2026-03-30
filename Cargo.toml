@@ -14,16 +14,16 @@ rust-version = "1.87"
 [workspace.dependencies]
 anyhow = "1.0"
 base64 = "0.22"
-bytemuck = "1.24"
+bytemuck = "1.25"
 cargo-manifest = "0.20"
-clap = { version = "4.5", features = ["derive"] }
-codama = "0.7.3"
-codama-attributes = "0.7.3"
-codama-korok-plugins = "0.7.3"
-codama-korok-visitors = "0.7.3"
-codama-koroks = "0.7.3"
-codama-nodes = "0.7.3"
-codama-syn-helpers = "0.7.3"
+clap = { version = "4.6", features = ["derive"] }
+codama = "0.8.0"
+codama-attributes = "0.8.0"
+codama-korok-visitors = "0.8.0"
+codama-koroks = "0.8.0"
+codama-nodes = "0.8.0"
+codama-plugin-core = "0.8.0"
+codama-syn-helpers = "0.8.0"
 const-crypto = "0.3"
 handlebars = "6.4"
 hashbrown = "0.16"
@@ -39,16 +39,16 @@ quote = "1.0"
 regex = "1.12"
 serde = "1.0"
 serde_json = "1.0"
-sha2 = "0.10"
+sha2 = "0.11"
 solana-account-view = "1.0.0"
-solana-address = "2.0.0"
-solana-instruction-view = "1.0.0"
-solana-program-error = "3.0.0"
+solana-address = "2.5.0"
+solana-instruction-view = "2.0.0"
+solana-program-error = "3.0.1"
 solana-program-log = "1.1.0"
 solana-keypair = "3.1"
 syn = "2.0"
 temp-dir = "0.2.0"
-toml_edit = "0.25.1"
+toml_edit = "0.25.8"
 trybuild = "1.0"
 typhoon-account-macro = { version = "0.2.2", path = "crates/account-macro" }
 typhoon-accounts = { version = "0.2.2", path = "crates/accounts" }
@@ -65,4 +65,4 @@ typhoon-syn = { version = "0.2.2", path = "crates/syn" }
 typhoon-token = { version = "0.2.2", path = "crates/token" }
 typhoon-utility = { version = "0.2.2", path = "crates/utility" }
 typhoon-utility-traits = { version = "0.2.2", path = "crates/utility-traits" }
-wincode = { version = "0.4.5", default-features = false }
+wincode = { version = "0.5.0", default-features = false }

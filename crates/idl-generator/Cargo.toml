@@ -10,17 +10,17 @@ rust-version.workspace = true
 
 [dependencies]
 base64.workspace = true
-codama.workspace = true
 codama-attributes.workspace = true
-codama-nodes.workspace = true
-codama-koroks.workspace = true
-codama-korok-plugins.workspace = true
 codama-korok-visitors.workspace = true
+codama-koroks.workspace = true
+codama-nodes.workspace = true
+codama-plugin-core.workspace = true
 codama-syn-helpers.workspace = true
+codama.workspace = true
 hashbrown.workspace = true
+syn = { workspace = true, features = ["full", "visit"] }
 typhoon-discriminator.workspace = true
 typhoon-syn.workspace = true
-syn = { workspace = true, features = ["full", "visit"] }
 
 [dev-dependencies]
 quote.workspace = true
